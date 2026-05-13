@@ -9,6 +9,7 @@ import {
   UserButton,
 } from '@clerk/nextjs';
 import { getAppUser } from '@/lib/current-user';
+import BottomNav from '@/components/BottomNav';
 import './globals.css';
 
 const fraunces = Fraunces({
@@ -33,7 +34,6 @@ export default async function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   const appUser = await getAppUser();
   const isAdmin = appUser?.app_role === 'admin';
-  const isCourse = appUser?.app_role === 'course';
 
   return (
     <html
@@ -42,7 +42,7 @@ export default async function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <ClerkProvider>
-          <header className="flex items-center justify-between border-b border-[color:var(--color-gold)]/30 px-6 py-4">
+          <header className="flex items-center justify-between border-b border-[color:var(--color-gold)]/30 px-6 py-4 sticky top-0 z-10 bg-[color:var(--color-cream)]">
             <Link href="/" className="leading-none">
               <div
                 className="text-xl font-semibold tracking-tight"
@@ -59,20 +59,9 @@ export default async function RootLayout({
             </Link>
             <div className="flex items-center gap-3">
               {isAdmin && (
-                <Link
-                  href="/admin"
-                  className="text-xs font-semibold tracking-[0.15em] uppercase text-[color:var(--color-gold)] border border-[color:var(--color-gold)]/60 rounded-full px-3 py-1.5 hover:bg-[color:var(--color-gold)]/10"
-                >
+                <span className="hidden sm:inline text-[10px] font-semibold tracking-[0.15em] uppercase text-[color:var(--color-gold)] border border-[color:var(--color-gold)]/60 rounded-full px-3 py-1">
                   Admin
-                </Link>
-              )}
-              {isCourse && (
-                <Link
-                  href="/course"
-                  className="text-xs font-semibold tracking-[0.15em] uppercase text-[color:var(--color-gold)] border border-[color:var(--color-gold)]/60 rounded-full px-3 py-1.5 hover:bg-[color:var(--color-gold)]/10"
-                >
-                  Course Ops
-                </Link>
+                </span>
               )}
               <Show when="signed-out">
                 <SignInButton>
@@ -91,7 +80,8 @@ export default async function RootLayout({
               </Show>
             </div>
           </header>
-          {children}
+          <div className="flex-1 pb-24">{children}</div>
+          <BottomNav role={appUser?.app_role ?? null} />
         </ClerkProvider>
       </body>
     </html>

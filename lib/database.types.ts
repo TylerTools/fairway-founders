@@ -73,7 +73,22 @@ export type Database = {
           id?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "foursome_members_foursome_id_fkey"
+            columns: ["foursome_id"]
+            isOneToOne: false
+            referencedRelation: "foursomes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "foursome_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       foursomes: {
         Row: {
@@ -103,7 +118,15 @@ export type Database = {
           score?: number | null
           tier?: Database["public"]["Enums"]["foursome_tier"]
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "foursomes_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       hole_scores: {
         Row: {
@@ -130,7 +153,15 @@ export type Database = {
           strokes?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "hole_scores_foursome_id_fkey"
+            columns: ["foursome_id"]
+            isOneToOne: false
+            referencedRelation: "foursomes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rsvps: {
         Row: {
@@ -151,7 +182,22 @@ export type Database = {
           id?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "rsvps_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rsvps_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       users: {
         Row: {

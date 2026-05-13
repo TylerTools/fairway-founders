@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { Fraunces, Inter } from 'next/font/google';
 import {
   ClerkProvider,
@@ -7,6 +8,7 @@ import {
   SignUpButton,
   UserButton,
 } from '@clerk/nextjs';
+import { getAppUser } from '@/lib/current-user';
 import './globals.css';
 
 const fraunces = Fraunces({
@@ -26,9 +28,13 @@ export const metadata: Metadata = {
   description: 'A private weekly networking round for founders and operators.',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const appUser = await getAppUser();
+  const isAdmin = appUser?.app_role === 'admin';
+  const isCourse = appUser?.app_role === 'course';
+
   return (
     <html
       lang="en"
@@ -37,7 +43,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <ClerkProvider>
           <header className="flex items-center justify-between border-b border-[color:var(--color-gold)]/30 px-6 py-4">
-            <div className="leading-none">
+            <Link href="/" className="leading-none">
               <div
                 className="text-xl font-semibold tracking-tight"
                 style={{ fontFamily: 'var(--font-display)' }}
@@ -50,8 +56,24 @@ export default function RootLayout({
               >
                 Founders
               </div>
-            </div>
+            </Link>
             <div className="flex items-center gap-3">
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  className="text-xs font-semibold tracking-[0.15em] uppercase text-[color:var(--color-gold)] border border-[color:var(--color-gold)]/60 rounded-full px-3 py-1.5 hover:bg-[color:var(--color-gold)]/10"
+                >
+                  Admin
+                </Link>
+              )}
+              {isCourse && (
+                <Link
+                  href="/course"
+                  className="text-xs font-semibold tracking-[0.15em] uppercase text-[color:var(--color-gold)] border border-[color:var(--color-gold)]/60 rounded-full px-3 py-1.5 hover:bg-[color:var(--color-gold)]/10"
+                >
+                  Course Ops
+                </Link>
+              )}
               <Show when="signed-out">
                 <SignInButton>
                   <button className="text-sm font-medium tracking-wide uppercase text-[color:var(--color-ink)] hover:text-[color:var(--color-gold)] cursor-pointer">

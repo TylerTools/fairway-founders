@@ -8,10 +8,10 @@ Fairway Founders is a private, weekly networking app for ~16–30 founders and o
 
 - **Framework:** Next.js 15 (App Router) + TypeScript
 - **Styling:** Tailwind (with brand tokens for navy `#1A3A2E`, gold `#C9A961`, cream `#F5F1E8`, plus Fraunces + Inter via `next/font`)
-- **DB:** Neon Postgres
-- **ORM:** Prisma
+- **DB:** Supabase Postgres
+- **DB client:** `@supabase/supabase-js` (no Prisma — schema lives in Supabase migrations)
 - **Auth:** Clerk
-- **Email:** Resend (pro-shop confirmations, RSVP reminders later)
+- **Email:** Resend (pro-shop confirmations, RSVP reminders later — deferred to Phase 2)
 - **Hosting:** Vercel
 - **Server interactions:** prefer **server actions** over API routes; only fall back to route handlers when a third party requires a webhook URL.
 
@@ -25,26 +25,26 @@ Three roles drive what tabs and actions are visible. Role lives on `User.role`; 
 
 ## Data model
 
-Five tables. **Pairing history is derived from past `FoursomeMember` rows — there is no `PairingHistory` table.**
+Five tables in the `public` schema, snake_case columns (Supabase convention). **Pairing history is derived from past `foursome_members` rows — there is no separate history table.**
 
-- **User** — `id`, `clerkId`, `name`, `company`, `professionalRole`, `bio`, `handicap`, `helps` (string[]), `appRole` (`member` | `admin` | `course`), timestamps.
-- **Event** — `id`, `date`, `opensAt`, `closesAt`, `courseConfig` (`front` | `back` | `both`), `feeCents`, `proShopEmail`, `status` (`locked` | `open` | `closed` | `past`), timestamps.
-- **Rsvp** — `id`, `eventId`, `userId`, `createdAt`. Unique on (`eventId`, `userId`).
-- **Foursome** — `id`, `eventId`, `hole`, `tier` (`A`/`B`/`C` for overflow), `groupIndex`, `score` (algorithm cost, for debugging).
-- **FoursomeMember** — `id`, `foursomeId`, `userId`, `cartNumber`. Unique on (`foursomeId`, `userId`). This table is the source of truth for both group composition AND historical pairings.
+- **users** — `id`, `clerk_id`, `email`, `name`, `company`, `professional_role`, `bio`, `handicap`, `helps` (text[]), `app_role` (`member` | `admin` | `course`), `created_at`, `updated_at`.
+- **events** — `id`, `date`, `opens_at`, `closes_at`, `course_config` (`front` | `back` | `both`), `fee_cents`, `pro_shop_email`, `status` (`locked` | `open` | `closed` | `past`), `created_at`, `updated_at`.
+- **rsvps** — `id`, `event_id`, `user_id`, `created_at`. Unique on (`event_id`, `user_id`).
+- **foursomes** — `id`, `event_id`, `hole`, `tier` (`A`/`B`/`C` for overflow), `group_index`, `score` (algorithm cost, for debugging).
+- **foursome_members** — `id`, `foursome_id`, `user_id`, `cart_number`. Unique on (`foursome_id`, `user_id`). Source of truth for both group composition AND historical pairings.
 
-Score entries (Phase 2) live on a separate `HoleScore` table keyed by `foursomeId` + hole number.
+Score entries (Phase 2) live on a separate `hole_scores` table keyed by (`foursome_id`, `hole`).
 
 ## Phase 1 scope
 
 Goal: a working private event flow end-to-end for one club, no scoring yet.
 
-1. Clerk auth + protected routes; middleware that resolves Clerk user → `User` row.
-2. Prisma schema for User / Event / Rsvp / Foursome / FoursomeMember + initial migration.
-3. Seed script that loads the 16 mock founders from the prototype.
+1. Clerk auth + protected routes; server helper that resolves Clerk user → `user` row (auto-creates on first sign-in).
+2. Supabase migrations for user / event / rsvp / foursome / foursome_members + hole_score (Phase 2 scaffold).
+3. Seed data: load the 16 mock founders from the prototype; `tyler@eminence.business` flagged `app_role='admin'`.
 4. RSVP flow: calendar strip, RSVP toggle, cutoff countdown, status states (locked / open / closed / past).
 5. Profile editor: bio, handicap (0–54), helps tags.
-6. Admin: generate groups (port `partitionSizes` / `generateGroups` / `assignCartPairs` / `assignHoles` from the prototype, swapping in real Prisma data and derived pairing history), manual player swap, course-layout + fee + pro-shop-email settings.
+6. Admin: generate groups (port `partitionSizes` / `generateGroups` / `assignCartPairs` / `assignHoles` from the prototype, swapping in real Supabase data and derived pairing history), manual player swap, course-layout + fee + pro-shop-email settings.
 7. Member group reveal: starting hole, cart number, cart-mates with bios.
 8. Roster: grid + detail view with past-rounds-together count (derived).
 

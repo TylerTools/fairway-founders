@@ -10,14 +10,14 @@ const MOCK_MEMBERS = [
   { id: 4,  name: 'Diana Rodriguez', company: 'Rodriguez CPA',         role: 'CPA',                handicap: 18, bio: 'Tax strategy for owner-operators. Former Big 4, prefers small business now.',             helps: ['Tax planning', 'Entity selection', 'Bookkeeping setup'] },
   { id: 5,  name: 'Eli Patterson',   company: 'ARETO',                 role: 'Marketing Agency',   handicap: 12, bio: 'AEO/GEO + brand. Help local businesses get found in AI search.',                          helps: ['SEO/AEO', 'Brand', 'Content systems'] },
   { id: 6,  name: 'James Wright',    company: 'Reefpoint',             role: 'SaaS Founder',       handicap: 6,  bio: 'B2B vertical SaaS for marinas. Bootstrapped to $1.2M ARR.',                              helps: ['Product strategy', 'Bootstrapping', 'Hiring engineers'] },
-  { id: 7,  name: 'Robin Mills',     company: 'Mills Insurance',       role: 'Insurance Broker',   handicap: 24, bio: 'Commercial lines. GL, workers comp, builders risk — all the un-fun stuff you need.',     helps: ['Coverage review', 'Claims advocacy'] },
+  { id: 7,  name: 'Robin Mills',     company: 'Mills Insurance',       role: 'Insurance Broker',   handicap: 24, bio: 'Commercial lines. GL, workers comp, builders risk â all the un-fun stuff you need.',     helps: ['Coverage review', 'Claims advocacy'] },
   { id: 8,  name: 'Priya Shah',      company: 'Shah Wealth',           role: 'Wealth Advisor',     handicap: 16, bio: 'Fiduciary, no commissions. Founders in liquidity events, biz owners planning exits.',     helps: ['Investment strategy', 'Exit planning'] },
   { id: 9,  name: 'Carlos Vega',     company: 'Vega Custom Homes',     role: 'Builder',            handicap: 10, bio: 'High-end coastal custom builds. 25 years in Manatee County.',                            helps: ['New construction', 'Permitting', 'Sub vetting'] },
   { id: 10, name: 'Dr. Amelia Foster', company: 'Foster Orthodontics', role: 'Orthodontist',       handicap: 20, bio: 'Practice owner, three locations. Always thinking about systems and team building.',     helps: ['Practice ops', 'Team culture'] },
   { id: 11, name: 'Jordan Kim',      company: 'Field Studio',          role: 'Brand Designer',     handicap: 28, bio: 'Identity + packaging for food, hospitality, premium services. Ex-Pentagram.',           helps: ['Brand identity', 'Packaging', 'Creative direction'] },
   { id: 12, name: 'Tony Russo',      company: 'Russo Hospitality',     role: 'Restaurant Owner',   handicap: 15, bio: 'Three concepts on Anna Maria. Margins are tight, vibes are immaculate.',                helps: ['F&B ops', 'Local hiring', 'Vendor intros'] },
   { id: 13, name: 'Megan O\'Brien',  company: 'OB Commercial',         role: 'Realtor',            handicap: 11, bio: 'Commercial leasing + investment sales. Industrial flex space is my niche.',             helps: ['Commercial space', 'Investment deals'] },
-  { id: 14, name: 'Vincent Park',    company: 'Park Capital',          role: 'Angel Investor',     handicap: 4,  bio: 'Early checks into Florida-based founders. $25K–$250K, B2B preferred.',                  helps: ['Funding', 'GTM intros', 'Board prep'] },
+  { id: 14, name: 'Vincent Park',    company: 'Park Capital',          role: 'Angel Investor',     handicap: 4,  bio: 'Early checks into Florida-based founders. $25Kâ$250K, B2B preferred.',                  helps: ['Funding', 'GTM intros', 'Board prep'] },
   { id: 15, name: 'Lila Bauer',      company: 'Bauer Architecture',    role: 'Architect',          handicap: 19, bio: 'Residential + small commercial. Coastal vernacular with modern guts.',                  helps: ['Design', 'Code/permitting', 'Builder selection'] },
   { id: 16, name: 'Derek Holloway',  company: 'Gulf Mortgage',         role: 'Mortgage Broker',    handicap: 13, bio: 'Self-employed borrowers, jumbos, construction loans. Rate-sensitive deals welcome.',    helps: ['Financing', 'Pre-approvals'] },
 ];
@@ -80,9 +80,9 @@ function eventStatus(evt, nowMs) {
 // COURSE LAYOUT
 // ============================================================================
 const COURSE_OPTIONS = {
-  front: { label: 'Front 9', range: '1–9', holes: Array.from({ length: 9 }, (_, i) => i + 1) },
-  back:  { label: 'Back 9', range: '10–18', holes: Array.from({ length: 9 }, (_, i) => i + 10) },
-  both:  { label: 'All 18', range: '1–18', holes: Array.from({ length: 18 }, (_, i) => i + 1) },
+  front: { label: 'Front 9', range: '1â9', holes: Array.from({ length: 9 }, (_, i) => i + 1) },
+  back:  { label: 'Back 9', range: '10â18', holes: Array.from({ length: 9 }, (_, i) => i + 10) },
+  both:  { label: 'All 18', range: '1â18', holes: Array.from({ length: 18 }, (_, i) => i + 1) },
 };
 
 function assignHoles(numFoursomes, courseConfig = 'front') {
@@ -202,10 +202,10 @@ function formatCountdown(ms) {
 function fmtMoney(n) { return `$${n.toLocaleString('en-US')}`; }
 
 // ============================================================================
-// SCORING — scramble net score with handicap
+// SCORING â scramble net score with handicap
 // In a scramble, the team plays one ball; net score = team gross - team handicap.
 // Team handicap (USGA-style): 25%/20%/15%/10% of low/2nd/3rd/4th, then sum.
-// We use a simpler & common variant: average of team handicaps × course handicap %.
+// We use a simpler & common variant: average of team handicaps Ã course handicap %.
 // For a 9-hole front/back round, divide handicap allotment by 2.
 // ============================================================================
 function teamHandicap(group, holesPlayed = 9) {
@@ -250,7 +250,7 @@ function leaderboardRows(foursomes, scoresByGroup, holesPlayed = 9) {
 }
 
 function fmtToPar(toPar) {
-  if (toPar == null) return '—';
+  if (toPar == null) return 'â';
   if (toPar === 0) return 'E';
   return toPar > 0 ? `+${toPar}` : `${toPar}`;
 }
@@ -273,7 +273,7 @@ function buildProShopEmail({ event, foursomes, members, fee, courseConfig }) {
   const playerCount = members.length;
   const totalCarts = foursomes.reduce((a, f) => a + f.carts.length, 0);
   const total = playerCount * fee;
-  const subject = `Fairway Founders — ${event.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} — Tee Time Confirmation`;
+  const subject = `Fairway Founders â ${event.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} â Tee Time Confirmation`;
   const lines = [];
   lines.push(`Hi ${COURSE_NAME} Pro Shop,`);
   lines.push('');
@@ -284,7 +284,7 @@ function buildProShopEmail({ event, foursomes, members, fee, courseConfig }) {
   lines.push(`Layout:   ${cfg.label} (holes ${cfg.range})`);
   lines.push(`Players:  ${playerCount} confirmed`);
   lines.push(`Carts:    ${totalCarts}`);
-  lines.push(`Fee:      ${fmtMoney(fee)}/player × ${playerCount} = ${fmtMoney(total)} estimated`);
+  lines.push(`Fee:      ${fmtMoney(fee)}/player Ã ${playerCount} = ${fmtMoney(total)} estimated`);
   lines.push('');
   lines.push(`Group assignments:`);
   for (const f of foursomes) {
@@ -301,11 +301,11 @@ function buildProShopEmail({ event, foursomes, members, fee, courseConfig }) {
 }
 
 // ============================================================================
-// PRINT — cart label per page
+// PRINT â cart label per page
 // ============================================================================
 function PrintCartLabel({ cart, eventDateStr }) {
   const names = cart.members.map(m => lastName(m.name));
-  const tierLabel = cart.hasTier ? ` · Tier ${cart.tier}` : '';
+  const tierLabel = cart.hasTier ? ` Â· Tier ${cart.tier}` : '';
   return (
     <div className="print-page">
       <div className="print-brand">
@@ -323,9 +323,9 @@ function PrintCartLabel({ cart, eventDateStr }) {
             {i < names.length - 1 && <div className="print-amp">&amp;</div>}
           </React.Fragment>
         ))}
-        {names.length === 1 && <div className="print-solo">— solo cart —</div>}
+        {names.length === 1 && <div className="print-solo">â solo cart â</div>}
       </div>
-      <div className="print-meta">Hole {cart.hole}{tierLabel}  ·  2:30 PM Shotgun  ·  {COURSE_NAME}</div>
+      <div className="print-meta">Hole {cart.hole}{tierLabel}  Â·  2:30 PM Shotgun  Â·  {COURSE_NAME}</div>
     </div>
   );
 }
@@ -334,9 +334,9 @@ function PrintCartLabel({ cart, eventDateStr }) {
 // MAIN APP
 // ============================================================================
 const ROLES = [
-  { id: 'member', label: 'Member', icon: '👤' },
-  { id: 'admin', label: 'Admin', icon: '⚙️' },
-  { id: 'course', label: 'Course', icon: '🏌' },
+  { id: 'member', label: 'Member', icon: 'ð¤' },
+  { id: 'admin', label: 'Admin', icon: 'âï¸' },
+  { id: 'course', label: 'Course', icon: 'ð' },
 ];
 
 export default function FairwayFounders() {
@@ -458,12 +458,12 @@ export default function FairwayFounders() {
 
   // Build tabs based on role
   const tabConfig = [
-    { id: 'home', label: 'Tee Time', icon: '⛳', roles: ['member', 'admin', 'course'] },
-    { id: 'leaderboard', label: 'Board', icon: '🏆', roles: ['member', 'admin', 'course'] },
-    { id: 'profile', label: 'Profile', icon: '👤', roles: ['member', 'admin'] },
-    { id: 'members', label: 'Roster', icon: '🧑‍🤝‍🧑', roles: ['member', 'admin', 'course'] },
-    { id: 'admin', label: 'Admin', icon: '⚙️', roles: ['admin'] },
-    { id: 'course', label: 'Course Ops', icon: '🏌', roles: ['admin', 'course'] },
+    { id: 'home', label: 'Tee Time', icon: 'â³', roles: ['member', 'admin', 'course'] },
+    { id: 'leaderboard', label: 'Board', icon: 'ð', roles: ['member', 'admin', 'course'] },
+    { id: 'profile', label: 'Profile', icon: 'ð¤', roles: ['member', 'admin'] },
+    { id: 'members', label: 'Roster', icon: 'ð§âð¤âð§', roles: ['member', 'admin', 'course'] },
+    { id: 'admin', label: 'Admin', icon: 'âï¸', roles: ['admin'] },
+    { id: 'course', label: 'Course Ops', icon: 'ð', roles: ['admin', 'course'] },
   ].filter(t => t.roles.includes(role));
 
   return (
@@ -518,7 +518,7 @@ export default function FairwayFounders() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
               <RoleSwitcher value={role} onChange={setRole} />
-              <div style={{ fontSize: 10, color: '#8a8576', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Round 23 · {rsvpedMembers.length} in</div>
+              <div style={{ fontSize: 10, color: '#8a8576', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Round 23 Â· {rsvpedMembers.length} in</div>
             </div>
           </div>
         </header>
@@ -615,7 +615,7 @@ function EmailDraftModal({ draft, onClose }) {
       <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 480, maxHeight: '92vh', background: '#f5f1e8', borderTopLeftRadius: 16, borderTopRightRadius: 16, display: 'flex', flexDirection: 'column' }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid #e8e2d2', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div className="display" style={{ fontSize: 18, fontWeight: 600 }}>Email to Pro Shop</div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 20, color: '#5a5a4a', cursor: 'pointer', padding: 4 }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 20, color: '#5a5a4a', cursor: 'pointer', padding: 4 }}>Ã</button>
         </div>
         <div style={{ padding: 20, overflowY: 'auto', flex: 1 }}>
           <div style={{ marginBottom: 12 }}>
@@ -634,11 +634,11 @@ function EmailDraftModal({ draft, onClose }) {
         <div style={{ display: 'flex', gap: 8, padding: 16, borderTop: '1px solid #e8e2d2', background: '#f5f1e8' }}>
           <button onClick={copy}
             style={{ flex: 1, padding: 12, borderRadius: 8, border: '1px solid #c9a961', background: '#fff', color: '#1a3a2e', fontSize: 12, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer' }}>
-            {copied ? '✓ Copied' : 'Copy'}
+            {copied ? 'â Copied' : 'Copy'}
           </button>
           <a href={mailtoUrl}
             style={{ flex: 1, padding: 12, borderRadius: 8, border: 'none', background: '#1a3a2e', color: '#c9a961', fontSize: 12, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer', textAlign: 'center', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'inherit' }}>
-            ✉ Open in Email
+            â Open in Email
           </a>
         </div>
       </div>
@@ -693,8 +693,8 @@ function HomeView({ me, myFoursome, schedule, selectedEventIdx, onSelectEvent, s
       <h1 className="display" style={{ fontSize: 32, fontWeight: 500, margin: '0 0 4px', lineHeight: 1.1 }}>
         Tee off <span style={{ fontStyle: 'italic', color: '#c9a961' }}>at half-past two</span>
       </h1>
-      <div style={{ fontSize: 14, color: '#5a5a4a', marginBottom: 6 }}>{COURSE_NAME} · {courseLabel} · shotgun start</div>
-      <div style={{ fontSize: 12, color: '#8a8576', marginBottom: 20 }}>Green fee · <strong style={{ color: '#1a3a2e' }}>{fmtMoney(fee)} per player</strong> (paid at the pro shop)</div>
+      <div style={{ fontSize: 14, color: '#5a5a4a', marginBottom: 6 }}>{COURSE_NAME} Â· {courseLabel} Â· shotgun start</div>
+      <div style={{ fontSize: 12, color: '#8a8576', marginBottom: 20 }}>Green fee Â· <strong style={{ color: '#1a3a2e' }}>{fmtMoney(fee)} per player</strong> (paid at the pro shop)</div>
 
       {role !== 'course' && (
         <div className="card" style={{ padding: 20, marginBottom: 16 }}>
@@ -711,7 +711,7 @@ function HomeView({ me, myFoursome, schedule, selectedEventIdx, onSelectEvent, s
                 style={{ width: '100%', padding: '14px', borderRadius: 8, border: 'none', cursor: 'pointer',
                   background: rsvped ? '#1a3a2e' : '#c9a961', color: rsvped ? '#f5f1e8' : '#1a3a2e',
                   fontSize: 14, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                {rsvped ? `✓ You're in · ${fmtMoney(fee)}` : `Tap to RSVP · ${fmtMoney(fee)}`}
+                {rsvped ? `â You're in Â· ${fmtMoney(fee)}` : `Tap to RSVP Â· ${fmtMoney(fee)}`}
               </button>
             </>
           )}
@@ -738,7 +738,7 @@ function HomeView({ me, myFoursome, schedule, selectedEventIdx, onSelectEvent, s
             <div style={{ background: '#1a3a2e', color: '#f5f1e8', padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ fontSize: 10, letterSpacing: '0.15em', color: '#c9a961', fontWeight: 600 }}>STARTING HOLE</div>
-                <div className="display" style={{ fontSize: 24, fontWeight: 600, lineHeight: 1 }}>Hole {myFoursome.hole}{myFoursome.hasTier ? ` · Tier ${myFoursome.tier}` : ''}</div>
+                <div className="display" style={{ fontSize: 24, fontWeight: 600, lineHeight: 1 }}>Hole {myFoursome.hole}{myFoursome.hasTier ? ` Â· Tier ${myFoursome.tier}` : ''}</div>
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: 10, letterSpacing: '0.15em', color: '#c9a961', fontWeight: 600 }}>SHOTGUN</div>
@@ -756,7 +756,7 @@ function HomeView({ me, myFoursome, schedule, selectedEventIdx, onSelectEvent, s
                     <Avatar size={48} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontWeight: 600, fontSize: 15 }}>{m.name}{m.id === me.id && <span style={{ color: '#c9a961', fontWeight: 400 }}> (you)</span>}</div>
-                      <div style={{ fontSize: 12, color: '#8a8576', marginBottom: 4 }}>{m.role} · {m.company}</div>
+                      <div style={{ fontSize: 12, color: '#8a8576', marginBottom: 4 }}>{m.role} Â· {m.company}</div>
                       <div style={{ fontSize: 12, color: '#5a5a4a', lineHeight: 1.4 }}>{m.bio}</div>
                       {m.helps && (
                         <div style={{ marginTop: 6, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
@@ -772,7 +772,7 @@ function HomeView({ me, myFoursome, schedule, selectedEventIdx, onSelectEvent, s
         </div>
       ) : isOpen && role !== 'course' ? (
         <div className="card" style={{ padding: 24, textAlign: 'center', background: '#1a3a2e', color: '#f5f1e8' }}>
-          <div style={{ fontSize: 32, marginBottom: 8 }}>⛳</div>
+          <div style={{ fontSize: 32, marginBottom: 8 }}>â³</div>
           <div className="display" style={{ fontSize: 18, fontWeight: 500 }}>Groups drop at cutoff</div>
           <div style={{ fontSize: 13, color: '#a8a596', marginTop: 4 }}>Algorithm pairs carts + assigns holes</div>
         </div>
@@ -806,7 +806,7 @@ function ProfileView({ me, onUpdate }) {
         </div>
         <div style={{ textAlign: 'center', padding: '8px 14px', background: '#1a3a2e', borderRadius: 10, color: '#c9a961' }}>
           <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.15em' }}>HCP</div>
-          <div className="display" style={{ fontSize: 22, fontWeight: 600, lineHeight: 1, color: '#f5f1e8' }}>{me.handicap ?? '—'}</div>
+          <div className="display" style={{ fontSize: 22, fontWeight: 600, lineHeight: 1, color: '#f5f1e8' }}>{me.handicap ?? 'â'}</div>
         </div>
       </div>
       <div className="card" style={{ padding: 20, marginBottom: 16 }}>
@@ -821,10 +821,10 @@ function ProfileView({ me, onUpdate }) {
         {editing ? (
           <>
             <input type="number" min="0" max="54" step="0.1" value={handicap} onChange={e => setHandicap(e.target.value)} placeholder="e.g. 14" className="input" />
-            <div style={{ fontSize: 10, color: '#8a8576', marginTop: 6 }}>Used for net scoring on the leaderboard. 0–54.</div>
+            <div style={{ fontSize: 10, color: '#8a8576', marginTop: 6 }}>Used for net scoring on the leaderboard. 0â54.</div>
           </>
         ) : (
-          <div style={{ fontSize: 14, lineHeight: 1.5 }}>{me.handicap != null ? `${me.handicap}` : 'Not set — leaderboard will use your gross score.'}</div>
+          <div style={{ fontSize: 14, lineHeight: 1.5 }}>{me.handicap != null ? `${me.handicap}` : 'Not set â leaderboard will use your gross score.'}</div>
         )}
       </div>
       <div className="card" style={{ padding: 20 }}>
@@ -855,7 +855,7 @@ function LeaderboardView({ leaderboard, foursomes, scores, holesPlayed, courseCo
         <div style={{ marginBottom: 8, fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#8a8576' }}>Leaderboard</div>
         <h1 className="display" style={{ fontSize: 26, fontWeight: 500, margin: '0 0 16px' }}>{dateStr}</h1>
         <div className="card" style={{ padding: 32, textAlign: 'center', color: '#8a8576' }}>
-          <div style={{ fontSize: 36, marginBottom: 8 }}>🏆</div>
+          <div style={{ fontSize: 36, marginBottom: 8 }}>ð</div>
           <div className="display" style={{ fontSize: 16, fontWeight: 500, color: '#1a3a2e' }}>Leaderboard not yet live</div>
           <div style={{ fontSize: 12, marginTop: 6 }}>Once admin generates groups and scoring opens, results post here in real time.</div>
         </div>
@@ -868,9 +868,9 @@ function LeaderboardView({ leaderboard, foursomes, scores, holesPlayed, courseCo
 
   return (
     <div>
-      <div style={{ marginBottom: 8, fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#8a8576' }}>Leaderboard · Live</div>
+      <div style={{ marginBottom: 8, fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#8a8576' }}>Leaderboard Â· Live</div>
       <h1 className="display" style={{ fontSize: 26, fontWeight: 500, margin: '0 0 4px' }}>{dateStr}</h1>
-      <div style={{ fontSize: 12, color: '#8a8576', marginBottom: 16 }}>{cfg.label} · Par {par} · scramble · net scoring</div>
+      <div style={{ fontSize: 12, color: '#8a8576', marginBottom: 16 }}>{cfg.label} Â· Par {par} Â· scramble Â· net scoring</div>
 
       {/* My group banner */}
       {myRow && (
@@ -878,13 +878,13 @@ function LeaderboardView({ leaderboard, foursomes, scores, holesPlayed, courseCo
           <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.15em', color: '#c9a961' }}>YOUR GROUP</div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
             <div className="display" style={{ fontSize: 16, fontWeight: 500 }}>
-              Hole {myRow.foursome.hole} · thru {myRow.thru}
+              Hole {myRow.foursome.hole} Â· thru {myRow.thru}
             </div>
             <div style={{ textAlign: 'right' }}>
               <div className="display" style={{ fontSize: 22, fontWeight: 600, lineHeight: 1 }}>
-                {myRow.net != null ? fmtToPar(myRow.toPar) : '—'}
+                {myRow.net != null ? fmtToPar(myRow.toPar) : 'â'}
               </div>
-              <div style={{ fontSize: 10, color: '#a8a596' }}>net · hcp {myRow.teamHcp}</div>
+              <div style={{ fontSize: 10, color: '#a8a596' }}>net Â· hcp {myRow.teamHcp}</div>
             </div>
           </div>
         </div>
@@ -894,7 +894,7 @@ function LeaderboardView({ leaderboard, foursomes, scores, holesPlayed, courseCo
         <div className="card" style={{ padding: 20, marginBottom: 12, textAlign: 'center', background: '#fff8e8' }}>
           <div className="pulse" style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#c9a961', marginRight: 8 }} />
           <span style={{ fontSize: 12, color: '#5a5a4a', verticalAlign: 'middle' }}>
-            Waiting for first scores · {canEdit ? 'tap any group to enter' : 'admin will post during the round'}
+            Waiting for first scores Â· {canEdit ? 'tap any group to enter' : 'admin will post during the round'}
           </span>
         </div>
       )}
@@ -916,7 +916,7 @@ function LeaderboardView({ leaderboard, foursomes, scores, holesPlayed, courseCo
                     {place === 1 ? '1' : place === 2 ? '2' : place === 3 ? '3' : place}
                   </div>
                 ) : (
-                  <div style={{ fontSize: 10, color: '#8a8576', fontWeight: 600, letterSpacing: '0.1em' }}>—</div>
+                  <div style={{ fontSize: 10, color: '#8a8576', fontWeight: 600, letterSpacing: '0.1em' }}>â</div>
                 )}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -924,15 +924,15 @@ function LeaderboardView({ leaderboard, foursomes, scores, holesPlayed, courseCo
                   {row.foursome.members.map(m => lastName(m.name)).join(' / ')}
                 </div>
                 <div style={{ fontSize: 10, color: '#8a8576', marginTop: 2, letterSpacing: '0.05em' }}>
-                  HOLE {row.foursome.hole}{row.foursome.hasTier ? ` · TIER ${row.foursome.tier}` : ''} · TEAM HCP {row.teamHcp}
+                  HOLE {row.foursome.hole}{row.foursome.hasTier ? ` Â· TIER ${row.foursome.tier}` : ''} Â· TEAM HCP {row.teamHcp}
                 </div>
               </div>
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
                 <div className="display" style={{ fontSize: 22, fontWeight: 600, lineHeight: 1, color: row.toPar < 0 ? '#7c9885' : '#1a3a2e' }}>
-                  {row.holesIn > 0 ? fmtToPar(row.toPar) : '—'}
+                  {row.holesIn > 0 ? fmtToPar(row.toPar) : 'â'}
                 </div>
                 <div style={{ fontSize: 10, color: '#8a8576', marginTop: 2 }}>
-                  {row.holesIn > 0 ? `thru ${row.thru} · net ${row.net}` : 'no scores'}
+                  {row.holesIn > 0 ? `thru ${row.thru} Â· net ${row.net}` : 'no scores'}
                 </div>
               </div>
             </button>
@@ -947,7 +947,7 @@ function LeaderboardView({ leaderboard, foursomes, scores, holesPlayed, courseCo
       })}
 
       <div style={{ fontSize: 10, color: '#8a8576', marginTop: 14, fontStyle: 'italic', textAlign: 'center', lineHeight: 1.5 }}>
-        Net = team gross − team handicap.<br/>
+        Net = team gross â team handicap.<br/>
         Team handicap uses USGA scramble formula (25/20/15/10%) scaled to {holesPlayed} holes.
       </div>
     </div>
@@ -962,7 +962,7 @@ function ScoreEntry({ holesPlayed, courseConfig, holes, onChange, canEdit, teamH
   return (
     <div style={{ background: '#f5f1e8', borderTop: '1px solid #e8e2d2', padding: '12px 14px' }}>
       <div style={{ fontSize: 10, color: '#8a8576', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8, fontWeight: 600 }}>
-        Hole-by-Hole Scoring {!canEdit && <span style={{ fontStyle: 'italic', textTransform: 'none', letterSpacing: 0, fontWeight: 400 }}>· view only</span>}
+        Hole-by-Hole Scoring {!canEdit && <span style={{ fontStyle: 'italic', textTransform: 'none', letterSpacing: 0, fontWeight: 400 }}>Â· view only</span>}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(9, 1fr)', gap: 4 }}>
         {holeNumbers.map((hn, i) => {
@@ -980,7 +980,7 @@ function ScoreEntry({ holesPlayed, courseConfig, holes, onChange, canEdit, teamH
                   style={{ width: '100%', padding: '6px 0', textAlign: 'center', border: '1px solid #e8e2d2', borderRadius: 4, fontSize: 14, fontWeight: 600, background: bg, color: fg, fontFamily: 'inherit' }} />
               ) : (
                 <div style={{ width: '100%', padding: '6px 0', textAlign: 'center', border: '1px solid #e8e2d2', borderRadius: 4, fontSize: 14, fontWeight: 600, background: bg, color: fg }}>
-                  {val ?? '—'}
+                  {val ?? 'â'}
                 </div>
               )}
             </div>
@@ -990,25 +990,25 @@ function ScoreEntry({ holesPlayed, courseConfig, holes, onChange, canEdit, teamH
       <div style={{ display: 'flex', justifyContent: 'space-around', marginTop: 12, paddingTop: 10, borderTop: '1px solid #e8e2d2', fontSize: 11 }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ color: '#8a8576', letterSpacing: '0.1em', fontWeight: 600 }}>GROSS</div>
-          <div className="display" style={{ fontSize: 18, fontWeight: 600 }}>{holes.reduce((a, h) => a + (h || 0), 0) || '—'}</div>
+          <div className="display" style={{ fontSize: 18, fontWeight: 600 }}>{holes.reduce((a, h) => a + (h || 0), 0) || 'â'}</div>
         </div>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ color: '#8a8576', letterSpacing: '0.1em', fontWeight: 600 }}>− HCP</div>
+          <div style={{ color: '#8a8576', letterSpacing: '0.1em', fontWeight: 600 }}>â HCP</div>
           <div className="display" style={{ fontSize: 18, fontWeight: 600 }}>{teamHcp}</div>
         </div>
         <div style={{ textAlign: 'center' }}>
           <div style={{ color: '#c9a961', letterSpacing: '0.1em', fontWeight: 700 }}>NET</div>
           <div className="display" style={{ fontSize: 18, fontWeight: 700, color: '#1a3a2e' }}>
-            {holes.reduce((a, h) => a + (h || 0), 0) > 0 ? holes.reduce((a, h) => a + (h || 0), 0) - teamHcp : '—'}
+            {holes.reduce((a, h) => a + (h || 0), 0) > 0 ? holes.reduce((a, h) => a + (h || 0), 0) - teamHcp : 'â'}
           </div>
         </div>
       </div>
       <div style={{ marginTop: 10, paddingTop: 8, borderTop: '1px solid #e8e2d2' }}>
-        <div style={{ fontSize: 10, color: '#8a8576', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6, fontWeight: 600 }}>Players · Individual HCP</div>
+        <div style={{ fontSize: 10, color: '#8a8576', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6, fontWeight: 600 }}>Players Â· Individual HCP</div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {foursome.members.map(m => (
             <div key={m.id} style={{ fontSize: 11, padding: '3px 8px', background: '#fff', border: '1px solid #e8e2d2', borderRadius: 12, color: '#5a5a4a' }}>
-              {m.name.split(' ')[0]} {lastName(m.name)[0]} · <strong style={{ color: '#1a3a2e' }}>{m.handicap ?? '—'}</strong>
+              {m.name.split(' ')[0]} {lastName(m.name)[0]} Â· <strong style={{ color: '#1a3a2e' }}>{m.handicap ?? 'â'}</strong>
             </div>
           ))}
         </div>
@@ -1029,7 +1029,7 @@ function MembersView({ members, currentUserId, history, role }) {
       .sort((a, b) => b.count - a.count);
     return (
       <div>
-        <button onClick={() => setSelected(null)} style={{ background: 'none', border: 'none', color: '#c9a961', fontSize: 13, marginBottom: 16, cursor: 'pointer', padding: 0 }}>← Roster</button>
+        <button onClick={() => setSelected(null)} style={{ background: 'none', border: 'none', color: '#c9a961', fontSize: 13, marginBottom: 16, cursor: 'pointer', padding: 0 }}>â Roster</button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
           <Avatar size={64} />
           <div style={{ flex: 1 }}>
@@ -1063,7 +1063,7 @@ function MembersView({ members, currentUserId, history, role }) {
             {playedWith.slice(0, 5).map(({ member, count }) => member && (
               <div key={member.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f0ebd8', fontSize: 13 }}>
                 <span>{member.name}</span>
-                <span style={{ color: '#c9a961', fontWeight: 600 }}>{count}×</span>
+                <span style={{ color: '#c9a961', fontWeight: 600 }}>{count}Ã</span>
               </div>
             ))}
           </div>
@@ -1073,7 +1073,7 @@ function MembersView({ members, currentUserId, history, role }) {
   }
   return (
     <div>
-      <div style={{ marginBottom: 16, fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#8a8576' }}>Roster · {members.length} members</div>
+      <div style={{ marginBottom: 16, fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#8a8576' }}>Roster Â· {members.length} members</div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
         {members.map(m => (
           <button key={m.id} onClick={() => setSelected(m)} style={{ background: '#fff', border: '1px solid #e8e2d2', borderRadius: 12, padding: 14, textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit' }}>
@@ -1106,7 +1106,7 @@ function CourseOpsView({ foursomes, rsvpedMembers, fee, courseConfig, selectedEv
     <div>
       <div style={{ marginBottom: 8, fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#8a8576' }}>Course Operations</div>
       <h1 className="display" style={{ fontSize: 26, fontWeight: 500, margin: '0 0 4px' }}>{dateStr}</h1>
-      <div style={{ fontSize: 11, color: '#8a8576', marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.1em' }}>2:30 PM Shotgun · {COURSE_NAME}</div>
+      <div style={{ fontSize: 11, color: '#8a8576', marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.1em' }}>2:30 PM Shotgun Â· {COURSE_NAME}</div>
 
       {/* Big summary card */}
       <div className="card" style={{ overflow: 'hidden', marginBottom: 16 }}>
@@ -1118,7 +1118,7 @@ function CourseOpsView({ foursomes, rsvpedMembers, fee, courseConfig, selectedEv
           <SummaryStat label="Players" value={playerCount} sub="confirmed" />
           <SummaryStat label="Carts" value={totalCarts} sub={`${COURSE_OPTIONS[courseConfig].label}`} border="left" />
           <SummaryStat label="Layout" value={cfg.label} sub={`Holes ${cfg.range}`} border="top" />
-          <SummaryStat label="Total" value={fmtMoney(totalFee)} sub={`${fmtMoney(fee)} × ${playerCount}`} border="left top" />
+          <SummaryStat label="Total" value={fmtMoney(totalFee)} sub={`${fmtMoney(fee)} Ã ${playerCount}`} border="left top" />
         </div>
       </div>
 
@@ -1126,11 +1126,11 @@ function CourseOpsView({ foursomes, rsvpedMembers, fee, courseConfig, selectedEv
       <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
         <button onClick={onEmailProShop} disabled={!foursomes}
           style={{ flex: 1, padding: 12, borderRadius: 8, border: 'none', background: foursomes ? '#1a3a2e' : '#a8a596', color: '#c9a961', fontSize: 12, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: foursomes ? 'pointer' : 'not-allowed', fontFamily: 'inherit' }}>
-          ✉ Draft Email
+          â Draft Email
         </button>
         <button onClick={onPrintCarts} disabled={!foursomes}
           style={{ flex: 1, padding: 12, borderRadius: 8, border: '1px solid #c9a961', background: '#fff', color: '#1a3a2e', fontSize: 12, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: foursomes ? 'pointer' : 'not-allowed', opacity: foursomes ? 1 : 0.5, fontFamily: 'inherit' }}>
-          🖨 Cart Labels
+          ð¨ Cart Labels
         </button>
       </div>
 
@@ -1140,15 +1140,15 @@ function CourseOpsView({ foursomes, rsvpedMembers, fee, courseConfig, selectedEv
         </div>
       )}
 
-      {/* Group / hole / cart breakdown — operational only, no bios */}
+      {/* Group / hole / cart breakdown â operational only, no bios */}
       {foursomes ? (
         <>
           <div style={{ marginBottom: 8, fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#8a8576' }}>Hole assignments</div>
           {foursomes.map((f, gi) => (
             <div key={gi} className="card" style={{ marginBottom: 8, overflow: 'hidden' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', background: '#f5f1e8', borderBottom: '1px solid #e8e2d2' }}>
-                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em' }}>HOLE {f.hole}{f.hasTier ? ` · TIER ${f.tier}` : ''}</div>
-                <div style={{ fontSize: 11, color: '#8a8576' }}>{f.members.length} players · {f.carts.length} cart{f.carts.length > 1 ? 's' : ''}</div>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em' }}>HOLE {f.hole}{f.hasTier ? ` Â· TIER ${f.tier}` : ''}</div>
+                <div style={{ fontSize: 11, color: '#8a8576' }}>{f.members.length} players Â· {f.carts.length} cart{f.carts.length > 1 ? 's' : ''}</div>
               </div>
               {f.carts.map(cart => (
                 <div key={cart.number} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 14px', borderTop: '1px solid #f0ebd8', fontSize: 13 }}>
@@ -1212,7 +1212,7 @@ function AdminView({ members, rsvps, onToggleRsvp, foursomes, groupScore, sizes,
     <div>
       <div style={{ marginBottom: 8, fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#8a8576' }}>Admin Console</div>
       <h1 className="display" style={{ fontSize: 26, fontWeight: 500, margin: '0 0 4px' }}>{dateStr}</h1>
-      <div style={{ fontSize: 11, color: '#8a8576', marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Status · {status}</div>
+      <div style={{ fontSize: 11, color: '#8a8576', marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Status Â· {status}</div>
 
       <div style={{ display: 'flex', gap: 4, marginBottom: 16, background: '#fff', padding: 4, borderRadius: 8, border: '1px solid #e8e2d2' }}>
         {['settings', 'rsvps', 'groups', 'history'].map(s => (
@@ -1262,18 +1262,18 @@ function AdminView({ members, rsvps, onToggleRsvp, foursomes, groupScore, sizes,
         <div>
           <button onClick={onGenerate} disabled={rsvps.size < 2}
             style={{ width: '100%', padding: 14, borderRadius: 8, border: 'none', background: rsvps.size < 2 ? '#a8a596' : '#1a3a2e', color: '#c9a961', fontSize: 13, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: rsvps.size < 2 ? 'not-allowed' : 'pointer', marginBottom: 10 }}>
-            ⚡ Generate Groups ({rsvps.size} in)
+            â¡ Generate Groups ({rsvps.size} in)
           </button>
 
           {foursomes && (
             <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
               <button onClick={onEmailProShop}
                 style={{ flex: 1, padding: 11, borderRadius: 8, border: '1px solid #c9a961', background: '#fff', color: '#1a3a2e', fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: 'inherit' }}>
-                ✉ Email Pro Shop
+                â Email Pro Shop
               </button>
               <button onClick={onPrintCarts}
                 style={{ flex: 1, padding: 11, borderRadius: 8, border: '1px solid #c9a961', background: '#fff', color: '#1a3a2e', fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: 'inherit' }}>
-                🖨 Cart Labels ({totalCarts})
+                ð¨ Cart Labels ({totalCarts})
               </button>
             </div>
           )}
@@ -1281,8 +1281,8 @@ function AdminView({ members, rsvps, onToggleRsvp, foursomes, groupScore, sizes,
           {sizes && (
             <div className="card" style={{ padding: 12, marginBottom: 12, background: hasUnavoidablePair ? '#fff8e8' : '#fff' }}>
               <div style={{ fontSize: 11, color: '#8a8576', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Partition</div>
-              <div style={{ fontSize: 14, fontWeight: 600 }}>{rsvps.size} RSVPs → {partition}</div>
-              {hasUnavoidablePair && <div style={{ fontSize: 11, color: '#a87c4f', marginTop: 6, fontWeight: 500 }}>⚠ A pair is unavoidable at this RSVP count.</div>}
+              <div style={{ fontSize: 14, fontWeight: 600 }}>{rsvps.size} RSVPs â {partition}</div>
+              {hasUnavoidablePair && <div style={{ fontSize: 11, color: '#a87c4f', marginTop: 6, fontWeight: 500 }}>â  A pair is unavoidable at this RSVP count.</div>}
             </div>
           )}
 
@@ -1301,7 +1301,7 @@ function AdminView({ members, rsvps, onToggleRsvp, foursomes, groupScore, sizes,
                 </div>
               )}
               <div style={{ fontSize: 11, color: '#8a8576', marginBottom: 12, textAlign: 'center' }}>
-                Score: <strong style={{ color: '#1a3a2e' }}>{groupScore}</strong> · {totalCarts} carts · {COURSE_OPTIONS[courseConfig].label} · <em>tap a player to swap</em>
+                Score: <strong style={{ color: '#1a3a2e' }}>{groupScore}</strong> Â· {totalCarts} carts Â· {COURSE_OPTIONS[courseConfig].label} Â· <em>tap a player to swap</em>
               </div>
               {foursomes.map((f, gi) => {
                 const roles = f.members.map(m => m.role);
@@ -1312,8 +1312,8 @@ function AdminView({ members, rsvps, onToggleRsvp, foursomes, groupScore, sizes,
                     <div style={{ background: '#1a3a2e', color: '#f5f1e8', padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div className="display" style={{ fontSize: 15, fontWeight: 600 }}>{groupLabel} {gi + 1}</div>
                       <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                        {dupes.length > 0 && <div style={{ fontSize: 9, color: '#e8b97f', fontWeight: 600 }}>⚠ {dupes[0]} ×2</div>}
-                        <div style={{ fontSize: 10, letterSpacing: '0.1em', color: '#c9a961', fontWeight: 700 }}>HOLE {f.hole}{f.hasTier ? ` · TIER ${f.tier}` : ''}</div>
+                        {dupes.length > 0 && <div style={{ fontSize: 9, color: '#e8b97f', fontWeight: 600 }}>â  {dupes[0]} Ã2</div>}
+                        <div style={{ fontSize: 10, letterSpacing: '0.1em', color: '#c9a961', fontWeight: 700 }}>HOLE {f.hole}{f.hasTier ? ` Â· TIER ${f.tier}` : ''}</div>
                       </div>
                     </div>
                     {f.carts.map((cart, ci) => (
@@ -1336,7 +1336,7 @@ function AdminView({ members, rsvps, onToggleRsvp, foursomes, groupScore, sizes,
                               <Avatar size={26} />
                               <span style={{ fontSize: 13, fontWeight: 500, flex: 1, color: '#1a3a2e' }}>
                                 {m.name}
-                                {isSelected && <span style={{ color: '#a87c4f', fontWeight: 600, marginLeft: 6 }}>· selected</span>}
+                                {isSelected && <span style={{ color: '#a87c4f', fontWeight: 600, marginLeft: 6 }}>Â· selected</span>}
                               </span>
                               <span style={{ fontSize: 9, color: '#fff', background: ROLE_COLORS[m.role] || '#5a5a4a', padding: '2px 8px', borderRadius: 10 }}>{m.role}</span>
                             </button>
@@ -1363,10 +1363,10 @@ function AdminView({ members, rsvps, onToggleRsvp, foursomes, groupScore, sizes,
             return (
               <div key={k} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f0ebd8', fontSize: 13 }}>
                 <div style={{ flex: 1 }}>
-                  <div>{ma.name} <span style={{ color: '#8a8576' }}>×</span> {mb.name}</div>
-                  <div style={{ fontSize: 10, color: '#8a8576' }}>{ma.role} · {mb.role}</div>
+                  <div>{ma.name} <span style={{ color: '#8a8576' }}>Ã</span> {mb.name}</div>
+                  <div style={{ fontSize: 10, color: '#8a8576' }}>{ma.role} Â· {mb.role}</div>
                 </div>
-                <div style={{ background: count >= 3 ? '#a13c3c' : '#c9a961', color: '#fff', padding: '3px 10px', borderRadius: 12, fontSize: 11, fontWeight: 600 }}>{count}×</div>
+                <div style={{ background: count >= 3 ? '#a13c3c' : '#c9a961', color: '#fff', padding: '3px 10px', borderRadius: 12, fontSize: 11, fontWeight: 600 }}>{count}Ã</div>
               </div>
             );
           })}
@@ -1382,9 +1382,9 @@ function AdminView({ members, rsvps, onToggleRsvp, foursomes, groupScore, sizes,
 // ============================================================================
 function CourseConfigSelector({ value, onChange, rsvpCount }) {
   const opts = [
-    { id: 'front', label: 'Front 9', range: '1–9', capacity: 18 },
-    { id: 'back', label: 'Back 9', range: '10–18', capacity: 18 },
-    { id: 'both', label: 'All 18', range: '1–18', capacity: 36 },
+    { id: 'front', label: 'Front 9', range: '1â9', capacity: 18 },
+    { id: 'back', label: 'Back 9', range: '10â18', capacity: 18 },
+    { id: 'both', label: 'All 18', range: '1â18', capacity: 36 },
   ];
   const selected = opts.find(o => o.id === value);
   const projFoursomes = Math.ceil(rsvpCount / 4);
@@ -1406,7 +1406,7 @@ function CourseConfigSelector({ value, onChange, rsvpCount }) {
         <span>Holes: <strong style={{ color: '#1a3a2e' }}>{selected.range}</strong></span>
         <span>Capacity: <strong style={{ color: '#1a3a2e' }}>{selected.capacity / 2} groups</strong></span>
       </div>
-      {willOverflow && <div style={{ fontSize: 10, color: '#a87c4f', marginTop: 6 }}>⚠ {projFoursomes} groups will tier</div>}
+      {willOverflow && <div style={{ fontSize: 10, color: '#a87c4f', marginTop: 6 }}>â  {projFoursomes} groups will tire</div>}
     </div>
   );
 }

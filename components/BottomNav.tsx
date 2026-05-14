@@ -13,7 +13,7 @@ interface Tab {
 }
 
 const TABS: Tab[] = [
-  { href: '/', label: 'Tee Time', roles: ['member', 'admin', 'course'] },
+  { href: '/dashboard', label: 'Tee Time', roles: ['member', 'admin', 'course'] },
   { href: '/leaderboard', label: 'Board', roles: ['member', 'admin', 'course'] },
   { href: '/profile', label: 'Profile', roles: ['member', 'admin'] },
   { href: '/roster', label: 'Roster', roles: ['member', 'admin', 'course'] },
@@ -30,7 +30,7 @@ export default function BottomNav({ role }: { role: AppRole | null }) {
     <nav className="fixed bottom-0 inset-x-0 z-20 bg-[color:var(--color-navy)] border-t border-[color:var(--color-gold)] pt-3 pb-5">
       <div className="mx-auto max-w-md flex justify-around">
         {visible.map((t) => {
-          const isActive = t.href === '/' ? pathname === '/' : pathname.startsWith(t.href);
+          const isActive = pathname.startsWith(t.href);
           return (
             <Link
               key={t.href}

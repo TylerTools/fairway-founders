@@ -31,7 +31,8 @@ export default async function FeedbackInbox({
 }) {
   const me = await getAppUser();
   const view = await getViewMode(me?.app_role ?? null);
-  if (!me || me.app_role !== 'admin' || view !== 'admin') redirect('/');
+  if (!me) redirect('/');
+  if (me.app_role !== 'admin' || view !== 'admin') redirect('/dashboard');
 
   const { kind: kindFilter, status: statusFilter } = await searchParams;
 

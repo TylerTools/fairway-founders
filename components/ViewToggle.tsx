@@ -20,10 +20,10 @@ export default function ViewToggle({ current }: { current: ViewMode }) {
       //  - cookie is read fresh on the next request
       //  - layout, bottom nav, route guards all re-render with new view
       //  - no chance of Next.js client-side router caching the old state
-      // Flipping to member → land on / (member home).
+      // Flipping to member → land on /dashboard (the signed-in home).
       // Flipping back to admin → land on /admin.
       if (typeof window !== 'undefined') {
-        window.location.assign(target === 'member' ? '/' : '/admin');
+        window.location.assign(target === 'member' ? '/dashboard' : '/admin');
       }
     });
   }

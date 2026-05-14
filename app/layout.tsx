@@ -142,14 +142,16 @@ export default async function RootLayout({
         >
           <header className="flex items-center justify-between border-b border-[color:var(--color-gold)]/30 px-6 py-4 sticky top-0 z-10 bg-[color:var(--color-cream)]">
             <Link href="/" className="flex items-center gap-2 leading-none">
-              <Image
-                src="/logo.png"
-                alt="Fairway Founders Network"
-                width={160}
-                height={160}
-                priority
-                className="h-10 sm:h-12 w-auto"
-              />
+              {appUser && (
+                <Image
+                  src="/logo.png"
+                  alt="Fairway Founders Network"
+                  width={640}
+                  height={640}
+                  priority
+                  className="h-40 sm:h-48 w-auto"
+                />
+              )}
               <span className="sr-only">Fairway Founders Network</span>
             </Link>
             <div className="flex items-center gap-3">

@@ -15,7 +15,8 @@ export default async function EmailDraftPage({
 }) {
   const me = await getAppUser();
   const view = await getViewMode(me?.app_role ?? null);
-  if (!me || (view !== 'admin' && view !== 'course')) redirect('/');
+  if (!me) redirect('/');
+  if (view !== 'admin' && view !== 'course') redirect('/dashboard');
 
   const { event: requestedEvent } = await searchParams;
 

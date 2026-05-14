@@ -7,6 +7,7 @@ import Countdown from '@/components/Countdown';
 import RsvpToggle from '@/components/RsvpToggle';
 import Avatar from '@/components/Avatar';
 import CalendarStrip from '@/components/CalendarStrip';
+import HeroVideo from '@/components/HeroVideo';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,26 +23,31 @@ export default async function Home({
   // Signed-out landing
   if (!me) {
     return (
-      <main className="px-6 py-16 max-w-md mx-auto text-center">
-        <p className="text-xs tracking-[0.2em] uppercase text-[color:var(--color-mute)]">
-          A private members round
-        </p>
-        <h1
-          className="mt-3 text-4xl leading-tight tracking-tight"
-          style={{ fontFamily: 'var(--font-display)' }}
-        >
-          Tee off{' '}
-          <span
-            className="italic text-[color:var(--color-gold)]"
+      <main className="px-4 sm:px-6 py-8 max-w-xl mx-auto">
+        <HeroVideo />
+
+        <div className="mt-8 text-center px-2">
+          <p className="text-xs tracking-[0.2em] uppercase text-[color:var(--color-mute)]">
+            A private members round
+          </p>
+          <h1
+            className="mt-3 text-4xl sm:text-5xl leading-tight tracking-tight"
             style={{ fontFamily: 'var(--font-display)' }}
           >
-            at half-past two
-          </span>
-        </h1>
-        <p className="mt-5 text-sm text-[color:#5a5a4a] leading-relaxed">
-          Sixteen to thirty founders. One nine-hole scramble. Every Thursday.
-          Membership is curated — new requests are reviewed by an admin.
-        </p>
+            Tee off{' '}
+            <span
+              className="italic text-[color:var(--color-gold)]"
+              style={{ fontFamily: 'var(--font-display)' }}
+            >
+              at half-past two
+            </span>
+          </h1>
+          <p className="mt-5 text-sm text-[color:#5a5a4a] leading-relaxed max-w-md mx-auto">
+            Sixteen to thirty founders. One nine-hole scramble. Every Thursday.
+            Membership is curated — new requests are reviewed by an admin.
+          </p>
+        </div>
+
         <div className="mt-8 rounded-xl border border-[color:#e8e2d2] bg-white p-5 text-left">
           <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] font-semibold mb-3">
             How to join
@@ -59,7 +65,7 @@ export default async function Home({
             </Step>
           </ol>
         </div>
-        <p className="mt-6 text-xs text-[color:var(--color-mute)]">
+        <p className="mt-6 text-center text-xs text-[color:var(--color-mute)]">
           Already approved?{' '}
           <span className="text-[color:var(--color-gold)] font-semibold">
             Sign in

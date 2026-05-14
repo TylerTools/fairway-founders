@@ -51,7 +51,33 @@ export default async function RootLayout({
       className={`${fraunces.variable} ${inter.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <ClerkProvider>
+        <ClerkProvider
+          appearance={{
+            variables: {
+              colorPrimary: '#1a3a2e',
+              colorText: '#1a3a2e',
+              colorTextOnPrimaryBackground: '#c9a961',
+              colorBackground: '#f5f1e8',
+              colorInputBackground: '#ffffff',
+              colorInputText: '#1a3a2e',
+              fontFamily:
+                "'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
+              borderRadius: '10px',
+            },
+            elements: {
+              card: 'shadow-xl border border-[#e8e2d2]',
+              headerTitle:
+                "text-[color:#1a3a2e] [font-family:'Fraunces',Georgia,serif] font-semibold",
+              headerSubtitle: 'text-[color:#5a5a4a]',
+              socialButtonsBlockButton:
+                'border border-[#e8e2d2] hover:bg-[#f5f1e8]/40',
+              formButtonPrimary:
+                'bg-[#1a3a2e] hover:opacity-90 text-[#c9a961] tracking-[0.08em] uppercase text-xs',
+              footerActionLink: 'text-[#c9a961] hover:text-[#1a3a2e]',
+              logoBox: 'h-10',
+            },
+          }}
+        >
           <header className="flex items-center justify-between border-b border-[color:var(--color-gold)]/30 px-6 py-4 sticky top-0 z-10 bg-[color:var(--color-cream)]">
             <Link href="/" className="leading-none">
               <div

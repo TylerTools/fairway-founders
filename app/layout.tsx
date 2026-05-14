@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Fraunces, Inter } from 'next/font/google';
@@ -33,12 +33,69 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Fairway Founders',
-  description: 'A private weekly networking round for founders and operators.',
-  icons: {
-    icon: '/logo.png',
-    apple: '/logo.png',
+  metadataBase: new URL('https://fairwayfounders.org'),
+  title: {
+    default: 'Fairway Founders Network',
+    template: '%s · Fairway Founders Network',
   },
+  description:
+    'Where founders connect, talk shop, and build deals on the course.',
+  manifest: '/site.webmanifest',
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon-16x16.png', type: 'image/png', sizes: '16x16' },
+      { url: '/favicon-32x32.png', type: 'image/png', sizes: '32x32' },
+      { url: '/favicon-96x96.png', type: 'image/png', sizes: '96x96' },
+      { url: '/favicon-192x192.png', type: 'image/png', sizes: '192x192' },
+      { url: '/favicon-512x512.png', type: 'image/png', sizes: '512x512' },
+    ],
+    shortcut: '/favicon.ico',
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180' },
+      { url: '/apple-touch-icon-152x152.png', sizes: '152x152' },
+      { url: '/apple-touch-icon-167x167.png', sizes: '167x167' },
+      { url: '/apple-touch-icon-120x120.png', sizes: '120x120' },
+    ],
+    other: [
+      {
+        rel: 'mask-icon',
+        url: '/safari-pinned-tab.svg',
+        color: '#2E5D3A',
+      },
+    ],
+  },
+  openGraph: {
+    type: 'website',
+    siteName: 'Fairway Founders Network',
+    title: 'Fairway Founders Network',
+    description:
+      'Where founders connect, talk shop, and build deals on the course.',
+    url: 'https://fairwayfounders.org',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Fairway Founders Network',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Fairway Founders Network',
+    description:
+      'Where founders connect, talk shop, and build deals on the course.',
+    images: ['/og-image.png'],
+  },
+  other: {
+    'msapplication-TileColor': '#2E5D3A',
+    'msapplication-config': '/browserconfig.xml',
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#2E5D3A',
 };
 
 export default async function RootLayout({

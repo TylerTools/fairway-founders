@@ -14,8 +14,7 @@ interface Tab {
 
 const TABS: Tab[] = [
   { href: '/dashboard', label: 'Tee Time', roles: ['member', 'admin', 'course'] },
-  { href: '/leaderboard', label: 'Board', roles: ['member', 'admin', 'course'] },
-  { href: '/profile', label: 'Profile', roles: ['member', 'admin'] },
+  { href: '/leaderboard', label: 'Scorecard', roles: ['member', 'admin', 'course'] },
   { href: '/roster', label: 'Roster', roles: ['member', 'admin', 'course'] },
   { href: '/admin', label: 'Admin', roles: ['admin'] },
   { href: '/course', label: 'Course', roles: ['admin', 'course'] },

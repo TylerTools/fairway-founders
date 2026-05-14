@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
+import { getViewMode } from '@/lib/view-mode';
 import { selectEvent } from '@/lib/events';
 import { COURSE_OPTIONS, liveStatus, fmtMoney } from '@/lib/schedule';
 import Countdown from '@/components/Countdown';
@@ -18,6 +19,8 @@ export default async function Dashboard({
 }) {
   const me = await getAppUser();
   if (!me) redirect('/');
+  const viewRole = await getViewMode(me.app_role);
+  const showAdminChrome = viewRole === 'admin';
 
   const { event: requestedId } = await searchParams;
   const { event, events } = await selectEvent(requestedId);
@@ -295,7 +298,7 @@ export default async function Dashboard({
         </div>
       ) : null}
 
-      {me?.app_role === 'admin' && (
+      {showAdminChrome && me.app_role === 'admin' && (
         <p className="mt-6 text-center text-xs">
           <Link
             href={`/admin?event=${event.id}`}

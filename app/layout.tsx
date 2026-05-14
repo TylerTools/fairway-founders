@@ -61,6 +61,7 @@ export default async function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <ClerkProvider
+          afterSignOutUrl="/"
           appearance={{
             variables: {
               colorPrimary: '#1a3a2e',

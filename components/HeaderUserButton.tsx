@@ -23,6 +23,13 @@ const FlagIcon = () => (
 export default function HeaderUserButton() {
   return (
     <UserButton>
+      <UserButton.MenuItems>
+        <UserButton.Action
+          label="Founder details"
+          labelIcon={<FlagIcon />}
+          open="founder"
+        />
+      </UserButton.MenuItems>
       <UserButton.UserProfilePage
         label="Founder details"
         url="founder"

@@ -12,6 +12,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      email_log: {
+        Row: {
+          audience: Database["public"]["Enums"]["email_audience"]
+          blast_id: string | null
+          body: string
+          created_at: string
+          error: string | null
+          event_id: string | null
+          id: string
+          kind: Database["public"]["Enums"]["email_kind"]
+          resend_id: string | null
+          sent_at: string | null
+          sent_by: string | null
+          status: Database["public"]["Enums"]["email_status"]
+          subject: string
+          to_email: string
+          to_user_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          audience?: Database["public"]["Enums"]["email_audience"]
+          blast_id?: string | null
+          body: string
+          created_at?: string
+          error?: string | null
+          event_id?: string | null
+          id?: string
+          kind: Database["public"]["Enums"]["email_kind"]
+          resend_id?: string | null
+          sent_at?: string | null
+          sent_by?: string | null
+          status?: Database["public"]["Enums"]["email_status"]
+          subject: string
+          to_email: string
+          to_user_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          audience?: Database["public"]["Enums"]["email_audience"]
+          blast_id?: string | null
+          body?: string
+          created_at?: string
+          error?: string | null
+          event_id?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["email_kind"]
+          resend_id?: string | null
+          sent_at?: string | null
+          sent_by?: string | null
+          status?: Database["public"]["Enums"]["email_status"]
+          subject?: string
+          to_email?: string
+          to_user_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           closes_at: string
@@ -307,6 +364,9 @@ export type Database = {
       access_status: "pending" | "approved" | "denied"
       app_role: "member" | "admin" | "course"
       course_config: "front" | "back" | "both"
+      email_audience: "one" | "all_approved" | "this_week_rsvps" | "this_week_no_rsvps" | "pending_applicants" | "all_admins"
+      email_kind: "access_approved" | "access_denied" | "foursomes_generated" | "rsvp_reminder" | "pro_shop_confirmation" | "admin_blast"
+      email_status: "queued" | "sent" | "failed" | "cancelled"
       event_status: "locked" | "open" | "closed" | "past"
       feedback_kind: "feedback" | "issue"
       feedback_status: "new" | "in_review" | "resolved" | "wontfix"

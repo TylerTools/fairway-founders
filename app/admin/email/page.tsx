@@ -5,6 +5,7 @@ import { getAppUser } from '@/lib/current-user';
 import { getViewMode } from '@/lib/view-mode';
 import { buildProShopEmail, type ProShopFoursome } from '@/lib/pro-shop-email';
 import EmailDraftActions from './EmailDraftActions';
+import BlastComposer from './BlastComposer';
 
 export const dynamic = 'force-dynamic';
 
@@ -72,16 +73,20 @@ export default async function EmailDraftPage({
 
   if (foursomes.length === 0) {
     return (
-      <main className="px-6 py-12 max-w-md lg:max-w-3xl mx-auto text-center">
+      <main className="px-6 py-12 max-w-md lg:max-w-3xl mx-auto w-full">
         <Link
           href="/admin"
           className="text-xs text-[color:var(--color-gold)]"
         >
           ← Admin
         </Link>
-        <p className="mt-6 text-sm text-[color:#5a5a4a]">
+        <p className="mt-6 text-sm text-[color:#5a5a4a] text-center">
           Generate groups before drafting the pro-shop email.
         </p>
+
+        <hr className="my-8 border-[color:#e8e2d2]" />
+
+        <BlastComposer />
       </main>
     );
   }
@@ -127,6 +132,10 @@ export default async function EmailDraftPage({
         Server-side send via Resend lands once an API key is provisioned. For
         now, &ldquo;Open in email&rdquo; uses your default mail client.
       </p>
+
+      <hr className="my-8 border-[color:#e8e2d2]" />
+
+      <BlastComposer />
     </main>
   );
 }

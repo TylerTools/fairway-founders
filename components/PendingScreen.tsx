@@ -12,7 +12,7 @@ export default function PendingScreen({ name }: { name: string }) {
         Hang tight, {first}.
       </h1>
       <p className="mt-4 text-sm leading-relaxed text-[color:#5a5a4a]">
-        Fairway Founders is a private group. An admin will review your request
+        An admin will review your request
         and approve or decline it. You&rsquo;ll get full access here as soon as
         the green light flips on.
       </p>

@@ -11,7 +11,7 @@ export default function InviteFriend({ inviterName }: { inviterName: string }) {
   const { subject, body, mailto } = useMemo(() => {
     const subject = `${first} invited you to Fairway Founders`;
     const body = [
-      `${first} invited you to Fairway Founders — a private weekly network of founders and operators who tee off in a 9-hole scramble Thursdays at 2:30 PM.`,
+      `${first} invited you to Fairway Founders — a weekly network of founders and operators who tee off in a 9-hole scramble Thursdays at 2:30 PM.`,
       '',
       `Sign up here to request access: ${SITE_URL}`,
     ].join('\n');

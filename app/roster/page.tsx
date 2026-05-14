@@ -15,15 +15,12 @@ export default async function RosterPage() {
 
   return (
     <main className="px-6 py-8 max-w-md lg:max-w-5xl mx-auto w-full">
-      {canInvite && (
-        <div className="mb-5">
-          <InviteFriend inviterName={me.name} />
-        </div>
-      )}
-
-      <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] mb-3">
-        Roster · {members.length} members
-      </p>
+      <div className="flex items-center justify-between gap-3 mb-3">
+        <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)]">
+          Roster · {members.length} members
+        </p>
+        {canInvite && <InviteFriend inviterName={me.name} />}
+      </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
         {members.map((m) => (

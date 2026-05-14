@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
+import { getViewMode } from '@/lib/view-mode';
 import AccessActions from './AccessActions';
 import type { Database } from '@/lib/database.types';
 
@@ -27,7 +28,8 @@ export default async function AccessInbox({
   searchParams: Promise<{ status?: string }>;
 }) {
   const me = await getAppUser();
-  if (!me || me.app_role !== 'admin') redirect('/');
+  const view = await getViewMode(me?.app_role ?? null);
+  if (!me || me.app_role !== 'admin' || view !== 'admin') redirect('/');
 
   const { status: statusFilter } = await searchParams;
 

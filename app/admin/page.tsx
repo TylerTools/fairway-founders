@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
+import { getViewMode } from '@/lib/view-mode';
 import { selectEvent } from '@/lib/events';
 import { COURSE_OPTIONS, fmtMoney, liveStatus } from '@/lib/schedule';
 import AdminRsvpList from './AdminRsvpList';
@@ -19,7 +20,8 @@ export default async function AdminHome({
   searchParams: Promise<{ event?: string }>;
 }) {
   const me = await getAppUser();
-  if (!me || me.app_role !== 'admin') redirect('/');
+  const view = await getViewMode(me?.app_role ?? null);
+  if (!me || me.app_role !== 'admin' || view !== 'admin') redirect('/');
 
   const { event: requestedId } = await searchParams;
   const { event, events } = await selectEvent(requestedId);

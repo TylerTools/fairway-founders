@@ -1,7 +1,6 @@
 'use client';
 
 import { UserButton, useClerk } from '@clerk/nextjs';
-import { useRouter } from 'next/navigation';
 import FounderProfile from './FounderProfile';
 
 const FlagIcon = () => (
@@ -41,16 +40,19 @@ const SignOutIcon = () => (
 
 export default function HeaderUserButton() {
   const { signOut } = useClerk();
-  const router = useRouter();
 
   async function handleSignOut() {
     try {
-      await signOut({ redirectUrl: '/' });
-    } finally {
-      // Belt-and-suspenders: even if Clerk's internal redirect skips a beat,
-      // we always navigate.
-      router.push('/');
-      router.refresh();
+      await signOut();
+    } catch (e) {
+      // Even if Clerk errors, we still want out.
+      console.error('signOut error', e);
+    }
+    // Hard navigation — browser-level, cannot be intercepted by Next router
+    // state or Clerk modal portals. Guarantees the user lands on the
+    // marketing landing in a fresh document.
+    if (typeof window !== 'undefined') {
+      window.location.assign('/');
     }
   }
 

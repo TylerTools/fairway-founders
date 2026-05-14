@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
+import { getViewMode } from '@/lib/view-mode';
 import { buildProShopEmail, type ProShopFoursome } from '@/lib/pro-shop-email';
 import EmailDraftActions from './EmailDraftActions';
 
@@ -13,7 +14,8 @@ export default async function EmailDraftPage({
   searchParams: Promise<{ event?: string }>;
 }) {
   const me = await getAppUser();
-  if (!me || (me.app_role !== 'admin' && me.app_role !== 'course')) redirect('/');
+  const view = await getViewMode(me?.app_role ?? null);
+  if (!me || (view !== 'admin' && view !== 'course')) redirect('/');
 
   const { event: requestedEvent } = await searchParams;
 

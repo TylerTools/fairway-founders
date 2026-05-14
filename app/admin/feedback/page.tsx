@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
+import { getViewMode } from '@/lib/view-mode';
 import FeedbackRow from './FeedbackRow';
 import type { Database } from '@/lib/database.types';
 
@@ -29,7 +30,8 @@ export default async function FeedbackInbox({
   searchParams: Promise<{ kind?: string; status?: string }>;
 }) {
   const me = await getAppUser();
-  if (!me || me.app_role !== 'admin') redirect('/');
+  const view = await getViewMode(me?.app_role ?? null);
+  if (!me || me.app_role !== 'admin' || view !== 'admin') redirect('/');
 
   const { kind: kindFilter, status: statusFilter } = await searchParams;
 

@@ -57,33 +57,42 @@ export async function createEvent(
   const courseConfig = (formData.get('course_config') as CourseConfig) ?? 'front';
   const feeDollarsRaw = formData.get('fee_dollars') as string | null;
   const proShopEmail = (formData.get('pro_shop_email') as string | null) ?? null;
+  const recurrence = (formData.get('recurrence') as string | null) ?? 'once';
+  const repeatRaw = formData.get('repeat_count') as string | null;
+  const repeatCount = Math.max(
+    1,
+    Math.min(52, parseInt(repeatRaw ?? '1', 10) || 1),
+  );
 
   if (!dateRaw) return { ok: false, error: 'Date is required.' };
 
-  let date: Date;
+  let firstDate: Date;
   try {
-    date = parseLocalDate(dateRaw);
+    firstDate = parseLocalDate(dateRaw);
   } catch (e) {
     return { ok: false, error: (e as Error).message };
   }
 
   const fee_cents = Math.max(0, Math.round(parseFloat(feeDollarsRaw ?? '0') * 100));
-  const { opensAt, closesAt } = defaultWindows(date);
 
-  const res = await supabase
-    .from('events')
-    .insert({
+  // Build N events: 1 if one-off, otherwise weekly for `repeatCount` weeks.
+  const total = recurrence === 'weekly' ? repeatCount : 1;
+  const inserts = Array.from({ length: total }, (_, i) => {
+    const date = new Date(firstDate);
+    date.setUTCDate(date.getUTCDate() + i * 7);
+    const { opensAt, closesAt } = defaultWindows(date);
+    return {
       date: date.toISOString(),
       opens_at: opensAt.toISOString(),
       closes_at: closesAt.toISOString(),
       course_config: courseConfig,
       fee_cents,
       pro_shop_email: proShopEmail || null,
-      status: 'locked',
-    })
-    .select('id')
-    .single();
+      status: 'locked' as const,
+    };
+  });
 
+  const res = await supabase.from('events').insert(inserts).select('id');
   if (res.error) return { ok: false, error: res.error.message };
 
   revalidatePath('/');

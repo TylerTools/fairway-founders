@@ -3,6 +3,13 @@ import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
 import Avatar from '@/components/Avatar';
+import AdminMemberActions from './AdminMemberActions';
+
+const ROLE_LABEL: Record<'member' | 'admin' | 'course', string> = {
+  member: 'Member',
+  admin: 'Admin',
+  course: 'Course',
+};
 
 export default async function MemberDetail({
   params,
@@ -12,10 +19,13 @@ export default async function MemberDetail({
   const { id } = await params;
   const me = await getAppUser();
   const isCourse = me?.app_role === 'course';
+  const isAdmin = me?.app_role === 'admin';
 
   const res = await supabase.from('users').select('*').eq('id', id).maybeSingle();
   const member = res.data;
   if (!member) notFound();
+
+  const showAdminActions = isAdmin && me.id !== member.id;
 
   // Past rounds together (only for non-course roles)
   let played: { other: { id: string; name: string }; count: number }[] = [];
@@ -58,12 +68,24 @@ export default async function MemberDetail({
       <div className="mt-4 flex items-center gap-3.5">
         <Avatar size={64} />
         <div className="flex-1">
-          <p
-            className="text-xl"
-            style={{ fontFamily: 'var(--font-display)' }}
-          >
-            {member.name}
-          </p>
+          <div className="flex items-center gap-2 flex-wrap">
+            <p
+              className="text-xl"
+              style={{ fontFamily: 'var(--font-display)' }}
+            >
+              {member.name}
+            </p>
+            {member.app_role !== 'member' && (
+              <span className="text-[9px] tracking-[0.12em] uppercase font-bold bg-[color:var(--color-navy)] text-[color:var(--color-gold)] rounded-full px-2 py-0.5">
+                {ROLE_LABEL[member.app_role]}
+              </span>
+            )}
+            {isAdmin && member.access_status !== 'approved' && (
+              <span className="text-[9px] tracking-[0.12em] uppercase font-bold bg-[color:#a13c3c] text-white rounded-full px-2 py-0.5">
+                {member.access_status}
+              </span>
+            )}
+          </div>
           <p className="text-xs text-[color:#5a5a4a]">{member.professional_role}</p>
           <p className="text-[11px] text-[color:var(--color-mute)]">{member.company}</p>
         </div>
@@ -102,6 +124,15 @@ export default async function MemberDetail({
             ))}
           </div>
         </section>
+      )}
+
+      {showAdminActions && (
+        <AdminMemberActions
+          userId={member.id}
+          currentRole={member.app_role}
+          currentStatus={member.access_status}
+          memberName={member.name}
+        />
       )}
 
       {!isCourse && played.length > 0 && (

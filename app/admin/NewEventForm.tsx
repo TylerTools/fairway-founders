@@ -8,6 +8,7 @@ const initial: EventFormState = { ok: true };
 export default function NewEventForm() {
   const [state, formAction, pending] = useActionState(createEvent, initial);
   const [open, setOpen] = useState(false);
+  const [recurrence, setRecurrence] = useState<'once' | 'weekly'>('once');
 
   if (!open) {
     return (
@@ -35,6 +36,48 @@ export default function NewEventForm() {
         type="datetime-local"
         required
       />
+
+      <div>
+        <p className="text-[10px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] font-semibold mb-1">
+          Recurrence
+        </p>
+        <div className="grid grid-cols-2 gap-1.5">
+          {(['once', 'weekly'] as const).map((opt) => (
+            <label key={opt} className="cursor-pointer">
+              <input
+                type="radio"
+                name="recurrence"
+                value={opt}
+                checked={recurrence === opt}
+                onChange={() => setRecurrence(opt)}
+                className="sr-only peer"
+              />
+              <span className="block text-center py-2 rounded-md border border-[color:#e8e2d2] text-xs font-semibold tracking-wide peer-checked:bg-[color:var(--color-navy)] peer-checked:text-[color:var(--color-gold)] peer-checked:border-[color:var(--color-navy)]">
+                {opt === 'once' ? 'One-off' : 'Weekly series'}
+              </span>
+            </label>
+          ))}
+        </div>
+        {recurrence === 'weekly' && (
+          <label className="block mt-2">
+            <span className="text-[10px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] font-semibold">
+              Number of weeks
+            </span>
+            <input
+              type="number"
+              name="repeat_count"
+              min="2"
+              max="52"
+              defaultValue="8"
+              className="mt-1 w-full border border-[color:#e8e2d2] rounded-md px-2.5 py-2 text-sm bg-white focus:outline-none focus:border-[color:var(--color-gold)]"
+            />
+            <span className="block text-[10px] text-[color:var(--color-mute)] mt-1 italic">
+              Creates one event per week starting on the tee time above.
+            </span>
+          </label>
+        )}
+      </div>
+
       <div>
         <p className="text-[10px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] font-semibold mb-1">
           Course layout

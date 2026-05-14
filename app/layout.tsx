@@ -10,6 +10,7 @@ import BottomNav from '@/components/BottomNav';
 import ViewToggle from '@/components/ViewToggle';
 import FeedbackButton from '@/components/FeedbackButton';
 import PendingScreen from '@/components/PendingScreen';
+import OnboardingWizard from '@/components/OnboardingWizard';
 import DeniedScreen from '@/components/DeniedScreen';
 import EventSidebar from '@/components/EventSidebar';
 import { fetchEvents } from '@/lib/events';
@@ -172,6 +173,8 @@ export default async function RootLayout({
                 children
               ) : accessStatus === 'denied' ? (
                 <DeniedScreen />
+              ) : !appUser.professional_role || !appUser.company ? (
+                <OnboardingWizard name={appUser.name} />
               ) : (
                 <PendingScreen name={appUser.name} />
               )}

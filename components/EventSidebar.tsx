@@ -30,7 +30,7 @@ export default function EventSidebar({ events }: { events: EventRow[] }) {
       className={`hidden sm:flex sticky top-[73px] self-start shrink-0 flex-col border-r border-[color:#e8e2d2] bg-[color:var(--color-cream)] transition-[width] duration-200 ${
         collapsed ? 'w-14' : 'w-64'
       }`}
-      style={{ minHeight: 'calc(100vh - 73px)' }}
+      style={{ height: 'calc(100vh - 73px)' }}
     >
       <div className="flex items-center justify-between px-3 py-3 border-b border-[color:#e8e2d2]">
         {!collapsed && (

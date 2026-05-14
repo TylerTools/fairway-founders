@@ -2,21 +2,24 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
+import { selectEvent } from '@/lib/events';
 import { COURSE_OPTIONS, fmtMoney, lastName, liveStatus } from '@/lib/schedule';
+import CalendarStrip from '@/components/CalendarStrip';
 
-export default async function CourseOpsPage() {
+export const dynamic = 'force-dynamic';
+
+export default async function CourseOpsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ event?: string }>;
+}) {
   const me = await getAppUser();
   if (!me || (me.app_role !== 'admin' && me.app_role !== 'course')) {
     redirect('/');
   }
 
-  const eventRes = await supabase
-    .from('events')
-    .select('*')
-    .order('date', { ascending: true })
-    .limit(1)
-    .maybeSingle();
-  const event = eventRes.data;
+  const { event: requestedId } = await searchParams;
+  const { event, events } = await selectEvent(requestedId);
 
   if (!event) {
     return (
@@ -56,6 +59,8 @@ export default async function CourseOpsPage() {
 
   return (
     <main className="px-6 py-8 max-w-md mx-auto w-full">
+      <CalendarStrip events={events} selectedId={event.id} />
+
       <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)]">
         Course operations
       </p>

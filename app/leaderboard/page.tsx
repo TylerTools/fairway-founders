@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
+import { selectEvent } from '@/lib/events';
 import { COURSE_OPTIONS } from '@/lib/schedule';
 import {
   buildLeaderboard,
@@ -7,20 +8,20 @@ import {
   type FoursomeForScoring,
 } from '@/lib/scoring';
 import LeaderboardRow, { type LeaderboardRowData } from './LeaderboardRow';
+import CalendarStrip from '@/components/CalendarStrip';
 
 export const dynamic = 'force-dynamic';
 
-export default async function LeaderboardPage() {
+export default async function LeaderboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ event?: string }>;
+}) {
   const me = await getAppUser();
   const canEdit = me?.app_role === 'admin';
 
-  const eventRes = await supabase
-    .from('events')
-    .select('*')
-    .order('date', { ascending: true })
-    .limit(1)
-    .maybeSingle();
-  const event = eventRes.data;
+  const { event: requestedId } = await searchParams;
+  const { event, events } = await selectEvent(requestedId);
 
   if (!event) {
     return (
@@ -108,6 +109,7 @@ export default async function LeaderboardPage() {
   if (foursomes.length === 0) {
     return (
       <main className="px-6 py-12 max-w-md mx-auto text-center">
+        <CalendarStrip events={events} selectedId={event.id} />
         <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)]">
           Leaderboard
         </p>
@@ -126,6 +128,7 @@ export default async function LeaderboardPage() {
 
   return (
     <main className="px-6 py-8 max-w-md mx-auto w-full">
+      <CalendarStrip events={events} selectedId={event.id} />
       <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)]">
         Leaderboard · Live
       </p>

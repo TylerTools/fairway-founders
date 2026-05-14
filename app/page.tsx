@@ -1,21 +1,23 @@
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
-import { COURSE_OPTIONS, liveStatus, fmtMoney, lastName } from '@/lib/schedule';
+import { selectEvent } from '@/lib/events';
+import { COURSE_OPTIONS, liveStatus, fmtMoney } from '@/lib/schedule';
 import Countdown from '@/components/Countdown';
 import RsvpToggle from '@/components/RsvpToggle';
 import Avatar from '@/components/Avatar';
+import CalendarStrip from '@/components/CalendarStrip';
 
-export default async function Home() {
+export const dynamic = 'force-dynamic';
+
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ event?: string }>;
+}) {
   const me = await getAppUser();
-
-  const eventRes = await supabase
-    .from('events')
-    .select('*')
-    .order('date', { ascending: true })
-    .limit(1)
-    .maybeSingle();
-  const event = eventRes.data;
+  const { event: requestedId } = await searchParams;
+  const { event, events } = await selectEvent(requestedId);
 
   if (!event) {
     return (
@@ -36,7 +38,6 @@ export default async function Home() {
   const status = liveStatus(event);
   const courseLabel = COURSE_OPTIONS[event.course_config].label;
 
-  // RSVP state for current user
   let rsvped = false;
   if (me) {
     const r = await supabase
@@ -48,13 +49,21 @@ export default async function Home() {
     rsvped = !!r.data;
   }
 
-  // My foursome if generated
   let myFoursome:
     | {
         hole: number;
         tier: 'A' | 'B' | 'C';
         hasTier: boolean;
-        carts: { number: number; members: { id: string; name: string; bio: string | null; professional_role: string | null; company: string | null }[] }[];
+        carts: {
+          number: number;
+          members: {
+            id: string;
+            name: string;
+            bio: string | null;
+            professional_role: string | null;
+            company: string | null;
+          }[];
+        }[];
       }
     | null = null;
 
@@ -76,7 +85,13 @@ export default async function Home() {
         const tier = f.tier as 'A' | 'B' | 'C';
         const cartMap = new Map<
           number,
-          { name: string; id: string; bio: string | null; professional_role: string | null; company: string | null }[]
+          {
+            name: string;
+            id: string;
+            bio: string | null;
+            professional_role: string | null;
+            company: string | null;
+          }[]
         >();
         for (const mem of f.foursome_members ?? []) {
           const u = Array.isArray(mem.user) ? mem.user[0] : mem.user;
@@ -97,7 +112,6 @@ export default async function Home() {
     }
   }
 
-  // RSVP count for the open status
   const countRes = await supabase
     .from('rsvps')
     .select('id', { count: 'exact', head: true })
@@ -113,6 +127,8 @@ export default async function Home() {
 
   return (
     <main className="px-6 py-8 max-w-md mx-auto w-full">
+      <CalendarStrip events={events} selectedId={event.id} />
+
       <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)]">
         {dateStr}
       </p>
@@ -287,7 +303,10 @@ export default async function Home() {
 
       {me?.app_role === 'admin' && (
         <p className="mt-6 text-center text-xs">
-          <Link href="/admin" className="text-[color:var(--color-gold)] underline">
+          <Link
+            href={`/admin?event=${event.id}`}
+            className="text-[color:var(--color-gold)] underline"
+          >
             Go to admin console →
           </Link>
         </p>

@@ -2,22 +2,27 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
+import { selectEvent } from '@/lib/events';
 import { COURSE_OPTIONS, fmtMoney, liveStatus } from '@/lib/schedule';
 import AdminRsvpList from './AdminRsvpList';
 import GenerateButton from './GenerateButton';
 import AdminFoursomes, { type AdminFoursomePayload } from './AdminFoursomes';
+import EventSettingsForm from './EventSettingsForm';
+import NewEventForm from './NewEventForm';
+import CalendarStrip from '@/components/CalendarStrip';
 
-export default async function AdminHome() {
+export const dynamic = 'force-dynamic';
+
+export default async function AdminHome({
+  searchParams,
+}: {
+  searchParams: Promise<{ event?: string }>;
+}) {
   const me = await getAppUser();
   if (!me || me.app_role !== 'admin') redirect('/');
 
-  const eventRes = await supabase
-    .from('events')
-    .select('*')
-    .order('date', { ascending: true })
-    .limit(1)
-    .maybeSingle();
-  const event = eventRes.data;
+  const { event: requestedId } = await searchParams;
+  const { event, events } = await selectEvent(requestedId);
 
   if (!event) {
     return (
@@ -31,6 +36,10 @@ export default async function AdminHome() {
         >
           No event yet.
         </h1>
+        <p className="mt-3 text-sm text-[color:#5a5a4a]">Schedule the first round:</p>
+        <div className="mt-4">
+          <NewEventForm />
+        </div>
       </main>
     );
   }
@@ -91,19 +100,31 @@ export default async function AdminHome() {
 
   return (
     <main className="px-6 py-8 max-w-md mx-auto w-full">
+      <CalendarStrip events={events} selectedId={event.id} />
+
       <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)]">
         Admin console
       </p>
-      <h1
-        className="mt-1 text-3xl leading-tight"
-        style={{ fontFamily: 'var(--font-display)' }}
-      >
-        {dateStr}
-      </h1>
+      <div className="mt-1 flex justify-between items-center gap-3">
+        <h1
+          className="text-3xl leading-tight"
+          style={{ fontFamily: 'var(--font-display)' }}
+        >
+          {dateStr}
+        </h1>
+        <NewEventForm />
+      </div>
       <p className="text-[11px] uppercase tracking-[0.1em] text-[color:var(--color-mute)] mt-1">
         Status · {status} · {COURSE_OPTIONS[event.course_config].label} ·{' '}
         {fmtMoney(event.fee_cents)}/player
       </p>
+
+      <section className="mt-6">
+        <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] mb-3">
+          Event settings
+        </p>
+        <EventSettingsForm event={event} />
+      </section>
 
       <section className="mt-6">
         <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] mb-3">

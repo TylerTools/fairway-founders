@@ -14,8 +14,6 @@ export interface FeedbackFormState {
   message?: string;
 }
 
-const initial: FeedbackFormState = { ok: true };
-
 export async function submitFeedback(
   _prev: FeedbackFormState,
   formData: FormData,
@@ -63,5 +61,3 @@ export async function updateFeedbackStatus(
   revalidatePath('/admin');
   revalidatePath('/admin/feedback');
 }
-
-export { initial as initialFeedbackState };

@@ -32,7 +32,6 @@ export default async function Home({
           loop
           playsInline
           preload="metadata"
-          poster="/hero-poster.jpg"
           className="absolute inset-0 w-full h-full object-cover opacity-35 pointer-events-none"
         >
           <source src="/hero.mp4" type="video/mp4" />

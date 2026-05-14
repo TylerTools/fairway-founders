@@ -2,16 +2,18 @@
 
 import { useActionState, useEffect, useState } from 'react';
 import {
-  initialFeedbackState,
   submitFeedback,
+  type FeedbackFormState,
 } from '@/app/actions/feedback';
+
+const INITIAL_STATE: FeedbackFormState = { ok: true };
 
 export default function FeedbackButton() {
   const [open, setOpen] = useState(false);
   const [kind, setKind] = useState<'feedback' | 'issue'>('feedback');
   const [state, formAction, pending] = useActionState(
     submitFeedback,
-    initialFeedbackState,
+    INITIAL_STATE,
   );
 
   useEffect(() => {

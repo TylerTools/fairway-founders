@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
@@ -91,6 +92,24 @@ export default async function CourseOpsPage() {
           />
         </div>
       </section>
+
+      {foursomes.length > 0 && (
+        <div className="mt-5 grid grid-cols-2 gap-2">
+          <Link
+            href={`/print/cart-labels?event=${event.id}`}
+            target="_blank"
+            className="rounded-lg bg-[color:var(--color-navy)] text-[color:var(--color-gold)] text-center py-2.5 text-[11px] font-semibold tracking-[0.08em] uppercase"
+          >
+            🖨 Cart Labels ({totalCarts})
+          </Link>
+          <Link
+            href={`/admin/email?event=${event.id}`}
+            className="rounded-lg border border-[color:var(--color-gold)] bg-white text-center py-2.5 text-[11px] font-semibold tracking-[0.08em] uppercase text-[color:var(--color-ink)]"
+          >
+            ✉ Draft email
+          </Link>
+        </div>
+      )}
 
       {foursomes.length > 0 && (
         <section className="mt-6 space-y-2">

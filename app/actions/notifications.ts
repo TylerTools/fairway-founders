@@ -95,7 +95,8 @@ export async function sendBroadcast(
   const audienceRes = await supabase
     .from('users')
     .select('id')
-    .eq('access_status', 'approved');
+    .eq('access_status', 'approved')
+    .neq('id', me.id);
   const recipients = audienceRes.data ?? [];
   if (recipients.length === 0) {
     return { ok: false, error: 'No approved members to notify.' };

@@ -15,7 +15,8 @@ export async function notifyAdminsOfAccessRequest(opts: {
       .from('users')
       .select('id')
       .eq('app_role', 'admin')
-      .eq('access_status', 'approved');
+      .eq('access_status', 'approved')
+      .neq('id', opts.newUserId);
     const admins = adminsRes.data ?? [];
     if (admins.length === 0) return;
     await supabase.from('notifications').insert(
@@ -40,11 +41,13 @@ export async function notifyAdminsOfFeedback(opts: {
   subject: string | null;
 }): Promise<void> {
   try {
-    const adminsRes = await supabase
+    let q = supabase
       .from('users')
       .select('id')
       .eq('app_role', 'admin')
       .eq('access_status', 'approved');
+    if (opts.fromUserId) q = q.neq('id', opts.fromUserId);
+    const adminsRes = await q;
     const admins = adminsRes.data ?? [];
     if (admins.length === 0) return;
     const label = opts.kind === 'issue' ? 'reported an issue' : 'left feedback';

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { SignInButton, SignUpButton } from '@clerk/nextjs';
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
@@ -8,7 +9,6 @@ import Countdown from '@/components/Countdown';
 import RsvpToggle from '@/components/RsvpToggle';
 import Avatar from '@/components/Avatar';
 import CalendarStrip from '@/components/CalendarStrip';
-import HeroVideo from '@/components/HeroVideo';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,42 +24,58 @@ export default async function Home({
   // Signed-out landing
   if (!me) {
     return (
-      <main className="px-4 sm:px-6 py-8 max-w-xl mx-auto">
-        <HeroVideo />
+      <main className="relative flex flex-col items-center justify-center text-center px-6 overflow-hidden min-h-[calc(100vh-73px-100px)]">
+        {/* Video backdrop */}
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          poster="/hero-poster.jpg"
+          className="absolute inset-0 w-full h-full object-cover opacity-35 pointer-events-none"
+        >
+          <source src="/hero.mp4" type="video/mp4" />
+          <source src="/hero.webm" type="video/webm" />
+        </video>
 
-        <div className="mt-8 text-center px-2">
-          <p className="text-xs tracking-[0.2em] uppercase text-[color:var(--color-mute)]">
-            A private members round
-          </p>
-          <h1
-            className="mt-3 text-4xl sm:text-5xl leading-tight tracking-tight"
+        {/* Soft fade so content stays readable */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[color:var(--color-cream)]/60 via-[color:var(--color-cream)]/20 to-[color:var(--color-cream)]/80 pointer-events-none" />
+
+        {/* Foreground */}
+        <div className="relative z-10 flex flex-col items-center w-full max-w-lg py-12">
+          <Image
+            src="/logo.png"
+            alt="Fairway Founders Network"
+            width={1024}
+            height={1024}
+            priority
+            className="w-64 sm:w-80 md:w-96 h-auto drop-shadow-[0_8px_24px_rgba(26,58,46,0.25)]"
+          />
+
+          <p
+            className="mt-2 text-base sm:text-lg italic text-[color:var(--color-ink)]/80"
             style={{ fontFamily: 'var(--font-display)' }}
           >
-            Tee off{' '}
-            <span
-              className="italic text-[color:var(--color-gold)]"
-              style={{ fontFamily: 'var(--font-display)' }}
-            >
-              at half-past two
-            </span>
-          </h1>
-        </div>
+            Tee off at half-past two.
+          </p>
 
-        <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-md mx-auto">
-          <SignUpButton>
-            <button className="rounded-lg bg-[color:var(--color-navy)] text-[color:var(--color-gold)] py-4 text-sm font-semibold tracking-[0.1em] uppercase hover:opacity-90">
-              Sign up
-            </button>
-          </SignUpButton>
-          <SignInButton>
-            <button className="rounded-lg border border-[color:var(--color-gold)] bg-white text-[color:var(--color-ink)] py-4 text-sm font-semibold tracking-[0.1em] uppercase hover:bg-[color:#f5f1e8]/40">
-              Sign in
-            </button>
-          </SignInButton>
+          <div className="mt-10 grid grid-cols-2 gap-3 w-full max-w-sm">
+            <SignUpButton>
+              <button className="rounded-lg bg-[color:var(--color-navy)] text-[color:var(--color-gold)] py-4 text-sm font-semibold tracking-[0.1em] uppercase shadow-lg shadow-[color:var(--color-navy)]/25 hover:opacity-90">
+                Sign up
+              </button>
+            </SignUpButton>
+            <SignInButton>
+              <button className="rounded-lg border border-[color:var(--color-gold)] bg-white text-[color:var(--color-ink)] py-4 text-sm font-semibold tracking-[0.1em] uppercase shadow-md hover:bg-[color:#f5f1e8]/40">
+                Sign in
+              </button>
+            </SignInButton>
+          </div>
+          <p className="mt-4 text-[11px] text-[color:var(--color-ink)]/70 italic">
+            New here? Sign up — an admin will approve your request before you can RSVP.
+          </p>
         </div>
-        <p className="mt-4 text-center text-[11px] text-[color:var(--color-mute)] italic">
-          New here? Sign up — an admin will approve your request before you can RSVP.
-        </p>
       </main>
     );
   }

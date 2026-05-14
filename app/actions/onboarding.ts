@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
+import { notifyAdminsOfAccessRequest } from '@/lib/notify';
 
 export interface OnboardingState {
   ok: boolean;
@@ -54,6 +55,12 @@ export async function submitOnboarding(
     .eq('id', me.id);
 
   if (error) return { ok: false, error: error.message };
+
+  // Notify admins now that the request has a fleshed-out profile to judge.
+  await notifyAdminsOfAccessRequest({
+    newUserId: me.id,
+    newUserName: me.name,
+  });
 
   revalidatePath('/');
   revalidatePath('/dashboard');

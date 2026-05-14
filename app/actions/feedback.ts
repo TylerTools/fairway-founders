@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
+import { notifyAdminsOfFeedback } from '@/lib/notify';
 import type { Database } from '@/lib/database.types';
 
 type FeedbackKind = Database['public']['Enums']['feedback_kind'];
@@ -31,13 +32,21 @@ export async function submitFeedback(
     return { ok: false, error: 'Please keep it under 2000 characters.' };
   }
 
+  const trimmedSubject = subjectRaw?.trim() ? subjectRaw.trim().slice(0, 200) : null;
   const res = await supabase.from('feedback').insert({
     kind,
     body,
-    subject: subjectRaw?.trim() ? subjectRaw.trim().slice(0, 200) : null,
+    subject: trimmedSubject,
     user_id: me.id,
   });
   if (res.error) return { ok: false, error: res.error.message };
+
+  await notifyAdminsOfFeedback({
+    fromUserId: me.id,
+    fromUserName: me.name,
+    kind,
+    subject: trimmedSubject,
+  });
 
   revalidatePath('/admin');
   revalidatePath('/admin/feedback');

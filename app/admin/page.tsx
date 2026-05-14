@@ -10,6 +10,7 @@ import GenerateButton from './GenerateButton';
 import AdminFoursomes, { type AdminFoursomePayload } from './AdminFoursomes';
 import EventSettingsForm from './EventSettingsForm';
 import NewEventForm from './NewEventForm';
+import BroadcastComposer from './BroadcastComposer';
 import CalendarStrip from '@/components/CalendarStrip';
 
 export const dynamic = 'force-dynamic';
@@ -169,6 +170,7 @@ export default async function AdminHome({
                 </span>
               )}
             </Link>
+            <BroadcastComposer />
           </div>
 
           <section>

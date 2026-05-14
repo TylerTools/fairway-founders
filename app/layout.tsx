@@ -13,6 +13,7 @@ import FeedbackButton from '@/components/FeedbackButton';
 import PendingScreen from '@/components/PendingScreen';
 import OnboardingWizard from '@/components/OnboardingWizard';
 import DeniedScreen from '@/components/DeniedScreen';
+import NotificationBell from '@/components/NotificationBell';
 import EventSidebar from '@/components/EventSidebar';
 import { fetchEvents } from '@/lib/events';
 import './globals.css';
@@ -163,6 +164,7 @@ export default async function RootLayout({
               {isActuallyAdmin && isApproved && (
                 <ViewToggle current={viewRole === 'admin' ? 'admin' : 'member'} />
               )}
+              {isSignedInApproved && <NotificationBell />}
               <Show when="signed-in">
                 <HeaderUserButton />
               </Show>

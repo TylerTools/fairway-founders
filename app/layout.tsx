@@ -15,6 +15,8 @@ import ViewToggle from '@/components/ViewToggle';
 import FeedbackButton from '@/components/FeedbackButton';
 import PendingScreen from '@/components/PendingScreen';
 import DeniedScreen from '@/components/DeniedScreen';
+import EventSidebar from '@/components/EventSidebar';
+import { fetchEvents } from '@/lib/events';
 import './globals.css';
 
 const fraunces = Fraunces({
@@ -44,6 +46,8 @@ export default async function RootLayout({
   const showAdminChrome = viewRole === 'admin';
   const accessStatus = appUser?.access_status ?? null;
   const isApproved = !appUser || accessStatus === 'approved';
+  const isSignedInApproved = !!appUser && accessStatus === 'approved';
+  const sidebarEvents = isSignedInApproved ? await fetchEvents() : [];
 
   return (
     <html
@@ -114,14 +118,17 @@ export default async function RootLayout({
               </Show>
             </div>
           </header>
-          <div className="flex-1 pb-24">
-            {!appUser || isApproved ? (
-              children
-            ) : accessStatus === 'denied' ? (
-              <DeniedScreen />
-            ) : (
-              <PendingScreen name={appUser.name} />
-            )}
+          <div className="flex-1 pb-24 flex">
+            {isSignedInApproved && <EventSidebar events={sidebarEvents} />}
+            <div className="flex-1 min-w-0">
+              {!appUser || isApproved ? (
+                children
+              ) : accessStatus === 'denied' ? (
+                <DeniedScreen />
+              ) : (
+                <PendingScreen name={appUser.name} />
+              )}
+            </div>
           </div>
           {appUser && isApproved && <FeedbackButton />}
           {isApproved && (

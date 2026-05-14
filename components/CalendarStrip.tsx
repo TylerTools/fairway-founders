@@ -26,7 +26,7 @@ export default function CalendarStrip({
 
   return (
     <div
-      className="flex gap-2 overflow-x-auto pb-1 mb-4"
+      className="sm:hidden flex gap-2 overflow-x-auto pb-1 mb-4"
       style={{ scrollbarWidth: 'none' }}
     >
       {events.map((e) => {

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { SignInButton, SignUpButton } from '@clerk/nextjs';
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
 import { selectEvent } from '@/lib/events';
@@ -42,35 +43,22 @@ export default async function Home({
               at half-past two
             </span>
           </h1>
-          <p className="mt-5 text-sm text-[color:#5a5a4a] leading-relaxed max-w-md mx-auto">
-            Sixteen to thirty founders. One nine-hole scramble. Every Thursday.
-            Membership is curated — new requests are reviewed by an admin.
-          </p>
         </div>
 
-        <div className="mt-8 rounded-xl border border-[color:#e8e2d2] bg-white p-5 text-left">
-          <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] font-semibold mb-3">
-            How to join
-          </p>
-          <ol className="space-y-2 text-sm text-[color:#1a3a2e]">
-            <Step n={1}>
-              Tap <strong>Request access</strong> in the top right and create
-              your account.
-            </Step>
-            <Step n={2}>
-              We&rsquo;ll review your request — usually within a day.
-            </Step>
-            <Step n={3}>
-              Once approved, RSVP for the next round and you&rsquo;re in.
-            </Step>
-          </ol>
+        <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-md mx-auto">
+          <SignUpButton>
+            <button className="rounded-lg bg-[color:var(--color-navy)] text-[color:var(--color-gold)] py-4 text-sm font-semibold tracking-[0.1em] uppercase hover:opacity-90">
+              Sign up
+            </button>
+          </SignUpButton>
+          <SignInButton>
+            <button className="rounded-lg border border-[color:var(--color-gold)] bg-white text-[color:var(--color-ink)] py-4 text-sm font-semibold tracking-[0.1em] uppercase hover:bg-[color:#f5f1e8]/40">
+              Sign in
+            </button>
+          </SignInButton>
         </div>
-        <p className="mt-6 text-center text-xs text-[color:var(--color-mute)]">
-          Already approved?{' '}
-          <span className="text-[color:var(--color-gold)] font-semibold">
-            Sign in
-          </span>{' '}
-          using the link up top.
+        <p className="mt-4 text-center text-[11px] text-[color:var(--color-mute)] italic">
+          New here? Sign up — an admin will approve your request before you can RSVP.
         </p>
       </main>
     );
@@ -369,16 +357,5 @@ export default async function Home({
         </p>
       )}
     </main>
-  );
-}
-
-function Step({ n, children }: { n: number; children: React.ReactNode }) {
-  return (
-    <li className="flex gap-3">
-      <span className="shrink-0 w-6 h-6 rounded-full bg-[color:var(--color-navy)] text-[color:var(--color-gold)] text-[11px] font-bold flex items-center justify-center">
-        {n}
-      </span>
-      <span className="flex-1 leading-relaxed">{children}</span>
-    </li>
   );
 }

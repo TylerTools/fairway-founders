@@ -6,13 +6,15 @@ import {
   Show,
   SignInButton,
   SignUpButton,
-  UserButton,
 } from '@clerk/nextjs';
+import HeaderUserButton from '@/components/HeaderUserButton';
 import { getAppUser } from '@/lib/current-user';
 import { getViewMode } from '@/lib/view-mode';
 import BottomNav from '@/components/BottomNav';
 import ViewToggle from '@/components/ViewToggle';
 import FeedbackButton from '@/components/FeedbackButton';
+import PendingScreen from '@/components/PendingScreen';
+import DeniedScreen from '@/components/DeniedScreen';
 import './globals.css';
 
 const fraunces = Fraunces({
@@ -40,6 +42,8 @@ export default async function RootLayout({
   const viewRole = await getViewMode(actualRole);
   const isActuallyAdmin = actualRole === 'admin';
   const showAdminChrome = viewRole === 'admin';
+  const accessStatus = appUser?.access_status ?? null;
+  const isApproved = !appUser || accessStatus === 'approved';
 
   return (
     <html
@@ -64,7 +68,7 @@ export default async function RootLayout({
               </div>
             </Link>
             <div className="flex items-center gap-3">
-              {isActuallyAdmin && (
+              {isActuallyAdmin && isApproved && (
                 <ViewToggle current={viewRole === 'admin' ? 'admin' : 'member'} />
               )}
               <Show when="signed-out">
@@ -75,18 +79,28 @@ export default async function RootLayout({
                 </SignInButton>
                 <SignUpButton>
                   <button className="bg-[color:var(--color-navy)] text-[color:var(--color-gold)] rounded-full text-sm font-semibold tracking-wide uppercase px-5 py-2 cursor-pointer hover:opacity-90">
-                    Sign up
+                    Request access
                   </button>
                 </SignUpButton>
               </Show>
               <Show when="signed-in">
-                <UserButton />
+                <HeaderUserButton />
               </Show>
             </div>
           </header>
-          <div className="flex-1 pb-24">{children}</div>
-          {appUser && <FeedbackButton />}
-          <BottomNav role={showAdminChrome ? viewRole : actualRole} />
+          <div className="flex-1 pb-24">
+            {!appUser || isApproved ? (
+              children
+            ) : accessStatus === 'denied' ? (
+              <DeniedScreen />
+            ) : (
+              <PendingScreen name={appUser.name} />
+            )}
+          </div>
+          {appUser && isApproved && <FeedbackButton />}
+          {isApproved && (
+            <BottomNav role={showAdminChrome ? viewRole : actualRole} />
+          )}
         </ClerkProvider>
       </body>
     </html>

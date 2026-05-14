@@ -2,11 +2,31 @@
 
 import { revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/supabase';
-import { getAppUser } from '@/lib/current-user';
+import { getAppUser, type AppUser } from '@/lib/current-user';
 
 export interface ProfileFormState {
   ok: boolean;
   error?: string;
+}
+
+export interface AppProfileSnapshot {
+  bio: string | null;
+  company: string | null;
+  professional_role: string | null;
+  handicap: number | null;
+  helps: string[];
+}
+
+export async function getMyAppProfile(): Promise<AppProfileSnapshot | null> {
+  const me: AppUser | null = await getAppUser();
+  if (!me) return null;
+  return {
+    bio: me.bio,
+    company: me.company,
+    professional_role: me.professional_role,
+    handicap: me.handicap != null ? Number(me.handicap) : null,
+    helps: me.helps ?? [],
+  };
 }
 
 export async function updateProfile(

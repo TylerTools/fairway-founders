@@ -13,23 +13,33 @@ export type AppUser = Database['public']['Tables']['users']['Row'];
  *
  * When matched by email, we stamp clerk_id so subsequent lookups are O(1).
  * If no row exists, we create a member-level row from the Clerk profile.
+ *
+ * On every fetch we sync the auth-managed fields (name, email) from Clerk
+ * into our row — Clerk is the source of truth for those.
  */
 export async function getAppUser(): Promise<AppUser | null> {
   const { userId } = await auth();
   if (!userId) return null;
+
+  let row: AppUser | null = null;
 
   const byClerkId = await supabase
     .from('users')
     .select('*')
     .eq('clerk_id', userId)
     .maybeSingle();
-  if (byClerkId.data) return byClerkId.data;
+  if (byClerkId.data) row = byClerkId.data;
 
   const clerkUser = await clerkCurrentUser();
-  if (!clerkUser) return null;
+  if (!clerkUser) return row;
 
-  const email = clerkUser.primaryEmailAddress?.emailAddress;
-  if (email) {
+  const email = clerkUser.primaryEmailAddress?.emailAddress ?? null;
+  const clerkName =
+    [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') ||
+    email ||
+    'New member';
+
+  if (!row && email) {
     const byEmail = await supabase
       .from('users')
       .select('*')
@@ -38,29 +48,43 @@ export async function getAppUser(): Promise<AppUser | null> {
     if (byEmail.data) {
       const linked = await supabase
         .from('users')
-        .update({ clerk_id: userId })
+        .update({ clerk_id: userId, name: clerkName })
         .eq('id', byEmail.data.id)
         .select('*')
         .single();
-      if (linked.data) return linked.data;
+      if (linked.data) row = linked.data;
     }
   }
 
-  const fallbackName =
-    [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') ||
-    email ||
-    'New member';
+  if (!row) {
+    const created = await supabase
+      .from('users')
+      .insert({
+        clerk_id: userId,
+        email: email ?? `${userId}@clerk.local`,
+        name: clerkName,
+        app_role: 'member',
+        access_status: 'pending',
+        access_requested_at: new Date().toISOString(),
+      })
+      .select('*')
+      .single();
+    return created.data ?? null;
+  }
 
-  const created = await supabase
-    .from('users')
-    .insert({
-      clerk_id: userId,
-      email: email ?? `${userId}@clerk.local`,
-      name: fallbackName,
-      app_role: 'member',
-    })
-    .select('*')
-    .single();
+  // Sync auth-managed fields from Clerk into our row when they drift.
+  const updates: Partial<AppUser> = {};
+  if (clerkName && row.name !== clerkName) updates.name = clerkName;
+  if (email && row.email !== email) updates.email = email;
+  if (Object.keys(updates).length > 0) {
+    const refreshed = await supabase
+      .from('users')
+      .update(updates)
+      .eq('id', row.id)
+      .select('*')
+      .single();
+    if (refreshed.data) row = refreshed.data;
+  }
 
-  return created.data ?? null;
+  return row;
 }

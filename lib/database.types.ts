@@ -245,6 +245,10 @@ export type Database = {
       }
       users: {
         Row: {
+          access_decided_at: string | null
+          access_decided_by: string | null
+          access_requested_at: string | null
+          access_status: Database["public"]["Enums"]["access_status"]
           app_role: Database["public"]["Enums"]["app_role"]
           bio: string | null
           clerk_id: string | null
@@ -259,6 +263,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          access_decided_at?: string | null
+          access_decided_by?: string | null
+          access_requested_at?: string | null
+          access_status?: Database["public"]["Enums"]["access_status"]
           app_role?: Database["public"]["Enums"]["app_role"]
           bio?: string | null
           clerk_id?: string | null
@@ -273,6 +281,10 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          access_decided_at?: string | null
+          access_decided_by?: string | null
+          access_requested_at?: string | null
+          access_status?: Database["public"]["Enums"]["access_status"]
           app_role?: Database["public"]["Enums"]["app_role"]
           bio?: string | null
           clerk_id?: string | null
@@ -292,6 +304,7 @@ export type Database = {
     Views: { [_ in never]: never }
     Functions: { [_ in never]: never }
     Enums: {
+      access_status: "pending" | "approved" | "denied"
       app_role: "member" | "admin" | "course"
       course_config: "front" | "back" | "both"
       event_status: "locked" | "open" | "closed" | "past"

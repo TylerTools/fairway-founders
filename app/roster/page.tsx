@@ -17,7 +17,7 @@ export default async function RosterPage() {
     <main className="px-6 py-8 max-w-md lg:max-w-5xl mx-auto w-full">
       {canInvite && (
         <div className="mb-5">
-          <InviteFriend />
+          <InviteFriend inviterName={me.name} />
         </div>
       )}
 

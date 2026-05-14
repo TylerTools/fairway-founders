@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Fraunces, Inter } from 'next/font/google';
 import {
   ClerkProvider,
@@ -34,6 +35,10 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'Fairway Founders',
   description: 'A private weekly networking round for founders and operators.',
+  icons: {
+    icon: '/logo.png',
+    apple: '/logo.png',
+  },
 };
 
 export default async function RootLayout({
@@ -83,19 +88,16 @@ export default async function RootLayout({
           }}
         >
           <header className="flex items-center justify-between border-b border-[color:var(--color-gold)]/30 px-6 py-4 sticky top-0 z-10 bg-[color:var(--color-cream)]">
-            <Link href="/" className="leading-none">
-              <div
-                className="text-xl font-semibold tracking-tight"
-                style={{ fontFamily: 'var(--font-display)' }}
-              >
-                Fairway
-              </div>
-              <div
-                className="text-xl italic text-[color:var(--color-gold)]"
-                style={{ fontFamily: 'var(--font-display)' }}
-              >
-                Founders
-              </div>
+            <Link href="/" className="flex items-center gap-2 leading-none">
+              <Image
+                src="/logo.png"
+                alt="Fairway Founders Network"
+                width={160}
+                height={160}
+                priority
+                className="h-10 sm:h-12 w-auto"
+              />
+              <span className="sr-only">Fairway Founders Network</span>
             </Link>
             <div className="flex items-center gap-3">
               {isActuallyAdmin && isApproved && (

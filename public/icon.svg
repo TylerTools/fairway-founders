@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <!-- Fairway Founders icon: stylized green with flag, ball, and hole -->
+  <!-- Outer fairway curve (lighter green) -->
+  <path d="M 40 320
+           Q 256 180 472 320
+           Q 256 290 40 320 Z"
+        fill="#7CB342"/>
+  <!-- Inner green / putting surface (darker green) -->
+  <path d="M 150 312
+           Q 256 250 362 312
+           Q 256 300 150 312 Z"
+        fill="#2E5D3A"/>
+  <!-- Hole shadow -->
+  <ellipse cx="256" cy="312" rx="22" ry="6" fill="#0A1F12"/>
+  <!-- Golf ball sitting at hole -->
+  <circle cx="232" cy="305" r="11" fill="#F5F1E8"/>
+  <circle cx="229" cy="302" r="3" fill="#FFFFFF" opacity="0.6"/>
+  <!-- Flag pole -->
+  <rect x="262" y="120" width="6" height="200" rx="2" fill="#1F2D24"/>
+  <!-- Flag (triangular, orange) -->
+  <path d="M 268 128
+           L 360 152
+           L 268 178 Z"
+        fill="#E8A33D"/>
+</svg>

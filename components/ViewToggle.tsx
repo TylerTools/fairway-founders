@@ -1,31 +1,29 @@
 'use client';
 
 import { useTransition } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
 import { setViewMode } from '@/app/actions/view-mode';
 import type { ViewMode } from '@/lib/view-mode';
 
-const ADMIN_ONLY_PREFIXES = ['/admin', '/course'];
-
 export default function ViewToggle({ current }: { current: ViewMode }) {
-  const router = useRouter();
-  const pathname = usePathname();
   const [pending, startTransition] = useTransition();
 
   function flip(target: ViewMode) {
     if (target === current) return;
-    const onAdminRoute = ADMIN_ONLY_PREFIXES.some((p) => pathname.startsWith(p));
 
     startTransition(async () => {
-      await setViewMode(target);
-      // Flipping to member while on an admin-only surface would render an
-      // admin page in a member-tab world — confusing. Bounce to /.
-      // Flipping back to admin from / does NOT auto-bounce; the user can
-      // tap the bottom nav like normal.
-      if (target === 'member' && onAdminRoute) {
-        router.push('/');
-      } else {
-        router.refresh();
+      try {
+        await setViewMode(target);
+      } catch (e) {
+        console.error('setViewMode failed', e);
+      }
+      // Hard browser navigation guarantees:
+      //  - cookie is read fresh on the next request
+      //  - layout, bottom nav, route guards all re-render with new view
+      //  - no chance of Next.js client-side router caching the old state
+      // Flipping to member → land on / (member home).
+      // Flipping back to admin → land on /admin.
+      if (typeof window !== 'undefined') {
+        window.location.assign(target === 'member' ? '/' : '/admin');
       }
     });
   }

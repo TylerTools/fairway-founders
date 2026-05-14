@@ -2,9 +2,11 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
 import Avatar from '@/components/Avatar';
+import InviteFriend from '@/components/InviteFriend';
 
 export default async function RosterPage() {
   const me = await getAppUser();
+  const canInvite = !!me && me.access_status === 'approved';
   const res = await supabase
     .from('users')
     .select('id, name, professional_role, company, handicap')
@@ -13,6 +15,12 @@ export default async function RosterPage() {
 
   return (
     <main className="px-6 py-8 max-w-md mx-auto w-full">
+      {canInvite && (
+        <div className="mb-5">
+          <InviteFriend />
+        </div>
+      )}
+
       <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] mb-3">
         Roster · {members.length} members
       </p>

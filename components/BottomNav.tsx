@@ -26,7 +26,7 @@ export default function BottomNav({ role }: { role: AppRole | null }) {
   const visible = TABS.filter((t) => t.roles.includes(role));
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-20 bg-[color:var(--color-navy)] border-t border-[color:var(--color-gold)] pt-3 pb-5">
+    <nav className="lg:hidden fixed bottom-0 inset-x-0 z-20 bg-[color:var(--color-navy)] border-t border-[color:var(--color-gold)] pt-3 pb-5">
       <div className="mx-auto max-w-md flex justify-around">
         {visible.map((t) => {
           const isActive = pathname.startsWith(t.href);

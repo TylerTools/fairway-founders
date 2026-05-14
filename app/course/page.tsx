@@ -24,7 +24,7 @@ export default async function CourseOpsPage({
 
   if (!event) {
     return (
-      <main className="px-6 py-12 max-w-md mx-auto w-full text-center">
+      <main className="px-6 py-12 max-w-md lg:max-w-3xl mx-auto w-full text-center">
         <p className="text-sm text-[color:#5a5a4a]">No event scheduled.</p>
       </main>
     );
@@ -59,7 +59,7 @@ export default async function CourseOpsPage({
   });
 
   return (
-    <main className="px-6 py-8 max-w-md mx-auto w-full">
+    <main className="px-6 py-8 max-w-md lg:max-w-3xl mx-auto w-full">
       <CalendarStrip events={events} selectedId={event.id} />
 
       <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)]">

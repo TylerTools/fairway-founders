@@ -7,6 +7,7 @@ import HeaderUserButton from '@/components/HeaderUserButton';
 import { getAppUser } from '@/lib/current-user';
 import { getViewMode } from '@/lib/view-mode';
 import BottomNav from '@/components/BottomNav';
+import HeaderNav from '@/components/HeaderNav';
 import ViewToggle from '@/components/ViewToggle';
 import FeedbackButton from '@/components/FeedbackButton';
 import PendingScreen from '@/components/PendingScreen';
@@ -143,8 +144,8 @@ export default async function RootLayout({
             },
           }}
         >
-          <header className="flex items-center justify-between border-b border-[color:var(--color-gold)]/30 px-6 py-4 sticky top-0 z-10 bg-[color:var(--color-cream)]">
-            <Link href="/" className="flex items-center gap-2 leading-none">
+          <header className="flex items-center justify-between gap-6 border-b border-[color:var(--color-gold)]/30 px-6 py-4 sticky top-0 z-10 bg-[color:var(--color-cream)]">
+            <Link href="/" className="flex items-center gap-2 leading-none shrink-0">
               {appUser && (
                 <Image
                   src="/logo.png"
@@ -157,7 +158,8 @@ export default async function RootLayout({
               )}
               <span className="sr-only">Fairway Founders Network</span>
             </Link>
-            <div className="flex items-center gap-3">
+            {isSignedInApproved && <HeaderNav role={viewRole} />}
+            <div className="flex items-center gap-3 shrink-0">
               {isActuallyAdmin && isApproved && (
                 <ViewToggle current={viewRole === 'admin' ? 'admin' : 'member'} />
               )}
@@ -166,7 +168,7 @@ export default async function RootLayout({
               </Show>
             </div>
           </header>
-          <div className="flex-1 pb-24 flex">
+          <div className="flex-1 lg:pb-0 pb-24 flex">
             {isSignedInApproved && <EventSidebar events={sidebarEvents} />}
             <div className="flex-1 min-w-0">
               {!appUser || isApproved ? (

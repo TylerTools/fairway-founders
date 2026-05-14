@@ -57,7 +57,7 @@ export default async function AccessInbox({
   }
 
   return (
-    <main className="px-6 py-8 max-w-md mx-auto w-full">
+    <main className="px-6 py-8 max-w-md lg:max-w-3xl mx-auto w-full">
       <Link href="/admin" className="text-xs text-[color:var(--color-gold)]">
         ← Admin
       </Link>

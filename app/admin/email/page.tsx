@@ -72,7 +72,7 @@ export default async function EmailDraftPage({
 
   if (foursomes.length === 0) {
     return (
-      <main className="px-6 py-12 max-w-md mx-auto text-center">
+      <main className="px-6 py-12 max-w-md lg:max-w-3xl mx-auto text-center">
         <Link
           href="/admin"
           className="text-xs text-[color:var(--color-gold)]"
@@ -89,7 +89,7 @@ export default async function EmailDraftPage({
   const draft = buildProShopEmail({ event, foursomes, playerCount, cartCount });
 
   return (
-    <main className="px-6 py-8 max-w-md mx-auto w-full">
+    <main className="px-6 py-8 max-w-md lg:max-w-3xl mx-auto w-full">
       <Link
         href="/admin"
         className="text-xs text-[color:var(--color-gold)]"

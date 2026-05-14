@@ -14,7 +14,7 @@ export default async function RosterPage() {
   const members = res.data ?? [];
 
   return (
-    <main className="px-6 py-8 max-w-md mx-auto w-full">
+    <main className="px-6 py-8 max-w-md lg:max-w-5xl mx-auto w-full">
       {canInvite && (
         <div className="mb-5">
           <InviteFriend />
@@ -25,7 +25,7 @@ export default async function RosterPage() {
         Roster · {members.length} members
       </p>
 
-      <div className="grid grid-cols-2 gap-2.5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
         {members.map((m) => (
           <Link
             key={m.id}

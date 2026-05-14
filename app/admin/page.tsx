@@ -114,7 +114,7 @@ export default async function AdminHome({
   });
 
   return (
-    <main className="px-6 py-8 max-w-md lg:max-w-3xl mx-auto w-full">
+    <main className="px-6 py-8 max-w-md lg:max-w-6xl mx-auto w-full">
       <CalendarStrip events={events} selectedId={event.id} />
 
       <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)]">
@@ -134,95 +134,104 @@ export default async function AdminHome({
         {fmtMoney(event.fee_cents)}/player
       </p>
 
-      <div className="mt-5 grid gap-2">
-        <Link
-          href="/admin/access"
-          className="flex items-center justify-between rounded-xl border border-[color:#e8e2d2] bg-white px-4 py-3 hover:border-[color:var(--color-gold)]"
-        >
-          <span className="text-sm font-semibold">Access requests</span>
-          {pendingAccessCount > 0 ? (
-            <span className="text-[10px] tracking-[0.1em] uppercase font-bold bg-[color:var(--color-gold)] text-[color:var(--color-navy)] rounded-full px-2 py-0.5">
-              {pendingAccessCount} pending
-            </span>
-          ) : (
-            <span className="text-[10px] tracking-[0.1em] uppercase text-[color:var(--color-mute)]">
-              none
-            </span>
-          )}
-        </Link>
-        <Link
-          href="/admin/feedback"
-          className="flex items-center justify-between rounded-xl border border-[color:#e8e2d2] bg-white px-4 py-3 hover:border-[color:var(--color-gold)]"
-        >
-          <span className="text-sm font-semibold">Feedback & issues inbox</span>
-          {newFeedbackCount > 0 ? (
-            <span className="text-[10px] tracking-[0.1em] uppercase font-bold bg-[color:var(--color-gold)] text-[color:var(--color-navy)] rounded-full px-2 py-0.5">
-              {newFeedbackCount} new
-            </span>
-          ) : (
-            <span className="text-[10px] tracking-[0.1em] uppercase text-[color:var(--color-mute)]">
-              empty
-            </span>
-          )}
-        </Link>
-      </div>
-
-      <section className="mt-6">
-        <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] mb-3">
-          Event settings
-        </p>
-        <EventSettingsForm event={event} />
-      </section>
-
-      <section className="mt-6">
-        <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] mb-3">
-          Groups
-        </p>
-        <GenerateButton
-          eventId={event.id}
-          rsvpCount={rsvpedIds.length}
-          hasFoursomes={foursomes.length > 0}
-        />
-      </section>
-
-      {foursomes.length > 0 && (
-        <>
-          <div className="mt-4 grid grid-cols-2 gap-2">
+      {/* Desktop 2-column grid; mobile stacks naturally */}
+      <div className="mt-5 lg:grid lg:grid-cols-[1fr_1.4fr] lg:gap-6 space-y-6 lg:space-y-0">
+        {/* LEFT column on desktop: inboxes, event settings, RSVPs */}
+        <div className="space-y-6">
+          <div className="grid gap-2">
             <Link
-              href={`/print/cart-labels?event=${event.id}`}
-              target="_blank"
-              className="rounded-lg border border-[color:var(--color-gold)] text-center py-2.5 text-[11px] font-semibold tracking-[0.08em] uppercase bg-white text-[color:var(--color-ink)] hover:bg-[color:#f5f1e8]/40"
+              href="/admin/access"
+              className="flex items-center justify-between rounded-xl border border-[color:#e8e2d2] bg-white px-4 py-3 hover:border-[color:var(--color-gold)]"
             >
-              🖨 Cart Labels ({totalCarts})
+              <span className="text-sm font-semibold">Access requests</span>
+              {pendingAccessCount > 0 ? (
+                <span className="text-[10px] tracking-[0.1em] uppercase font-bold bg-[color:var(--color-gold)] text-[color:var(--color-navy)] rounded-full px-2 py-0.5">
+                  {pendingAccessCount} pending
+                </span>
+              ) : (
+                <span className="text-[10px] tracking-[0.1em] uppercase text-[color:var(--color-mute)]">
+                  none
+                </span>
+              )}
             </Link>
             <Link
-              href={`/admin/email?event=${event.id}`}
-              className="rounded-lg border border-[color:var(--color-gold)] text-center py-2.5 text-[11px] font-semibold tracking-[0.08em] uppercase bg-white text-[color:var(--color-ink)] hover:bg-[color:#f5f1e8]/40"
+              href="/admin/feedback"
+              className="flex items-center justify-between rounded-xl border border-[color:#e8e2d2] bg-white px-4 py-3 hover:border-[color:var(--color-gold)]"
             >
-              ✉ Email Pro Shop
+              <span className="text-sm font-semibold">Feedback & issues inbox</span>
+              {newFeedbackCount > 0 ? (
+                <span className="text-[10px] tracking-[0.1em] uppercase font-bold bg-[color:var(--color-gold)] text-[color:var(--color-navy)] rounded-full px-2 py-0.5">
+                  {newFeedbackCount} new
+                </span>
+              ) : (
+                <span className="text-[10px] tracking-[0.1em] uppercase text-[color:var(--color-mute)]">
+                  empty
+                </span>
+              )}
             </Link>
           </div>
-          <section className="mt-6">
-            <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] mb-3">
-              Foursomes
-            </p>
-            <AdminFoursomes eventId={event.id} foursomes={foursomes} />
-          </section>
-        </>
-      )}
 
-      <section className="mt-8">
-        <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] mb-3">
-          RSVPs · {rsvpedIds.length} of {members.length}
-        </p>
-        <div className="rounded-xl border border-[color:#e8e2d2] bg-white">
-          <AdminRsvpList
-            eventId={event.id}
-            members={members}
-            rsvpedIds={rsvpedIds}
-          />
+          <section>
+            <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] mb-3">
+              Event settings
+            </p>
+            <EventSettingsForm event={event} />
+          </section>
+
+          <section>
+            <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] mb-3">
+              RSVPs · {rsvpedIds.length} of {members.length}
+            </p>
+            <div className="rounded-xl border border-[color:#e8e2d2] bg-white">
+              <AdminRsvpList
+                eventId={event.id}
+                members={members}
+                rsvpedIds={rsvpedIds}
+              />
+            </div>
+          </section>
         </div>
-      </section>
+
+        {/* RIGHT column on desktop: groups + foursomes */}
+        <div className="space-y-6">
+          <section>
+            <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] mb-3">
+              Groups
+            </p>
+            <GenerateButton
+              eventId={event.id}
+              rsvpCount={rsvpedIds.length}
+              hasFoursomes={foursomes.length > 0}
+            />
+          </section>
+
+          {foursomes.length > 0 && (
+            <>
+              <div className="grid grid-cols-2 gap-2">
+                <Link
+                  href={`/print/cart-labels?event=${event.id}`}
+                  target="_blank"
+                  className="rounded-lg border border-[color:var(--color-gold)] text-center py-2.5 text-[11px] font-semibold tracking-[0.08em] uppercase bg-white text-[color:var(--color-ink)] hover:bg-[color:#f5f1e8]/40"
+                >
+                  🖨 Cart Labels ({totalCarts})
+                </Link>
+                <Link
+                  href={`/admin/email?event=${event.id}`}
+                  className="rounded-lg border border-[color:var(--color-gold)] text-center py-2.5 text-[11px] font-semibold tracking-[0.08em] uppercase bg-white text-[color:var(--color-ink)] hover:bg-[color:#f5f1e8]/40"
+                >
+                  ✉ Email Pro Shop
+                </Link>
+              </div>
+              <section>
+                <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] mb-3">
+                  Foursomes
+                </p>
+                <AdminFoursomes eventId={event.id} foursomes={foursomes} />
+              </section>
+            </>
+          )}
+        </div>
+      </div>
     </main>
   );
 }

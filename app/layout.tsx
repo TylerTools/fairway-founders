@@ -2,12 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Fraunces, Inter } from 'next/font/google';
-import {
-  ClerkProvider,
-  Show,
-  SignInButton,
-  SignUpButton,
-} from '@clerk/nextjs';
+import { ClerkProvider, Show } from '@clerk/nextjs';
 import HeaderUserButton from '@/components/HeaderUserButton';
 import { getAppUser } from '@/lib/current-user';
 import { getViewMode } from '@/lib/view-mode';
@@ -161,18 +156,6 @@ export default async function RootLayout({
               {isActuallyAdmin && isApproved && (
                 <ViewToggle current={viewRole === 'admin' ? 'admin' : 'member'} />
               )}
-              <Show when="signed-out">
-                <SignInButton>
-                  <button className="text-sm font-medium tracking-wide uppercase text-[color:var(--color-ink)] hover:text-[color:var(--color-gold)] cursor-pointer">
-                    Sign in
-                  </button>
-                </SignInButton>
-                <SignUpButton>
-                  <button className="bg-[color:var(--color-navy)] text-[color:var(--color-gold)] rounded-full text-sm font-semibold tracking-wide uppercase px-5 py-2 cursor-pointer hover:opacity-90">
-                    Request access
-                  </button>
-                </SignUpButton>
-              </Show>
               <Show when="signed-in">
                 <HeaderUserButton />
               </Show>

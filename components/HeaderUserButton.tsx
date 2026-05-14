@@ -29,6 +29,8 @@ export default function HeaderUserButton() {
           labelIcon={<FlagIcon />}
           open="founder"
         />
+        <UserButton.Action label="manageAccount" />
+        <UserButton.Action label="signOut" />
       </UserButton.MenuItems>
       <UserButton.UserProfilePage
         label="Founder details"

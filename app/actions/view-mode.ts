@@ -14,5 +14,6 @@ export async function setViewMode(mode: ViewMode): Promise<void> {
     maxAge: 60 * 60 * 24 * 30, // 30 days
     sameSite: 'lax',
   });
-  revalidatePath('/');
+  // Layout reads the cookie, so every cached page needs to re-render.
+  revalidatePath('/', 'layout');
 }

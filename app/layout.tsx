@@ -191,9 +191,7 @@ export default async function RootLayout({
             </div>
           </div>
           {appUser && isApproved && <FeedbackButton />}
-          {isApproved && (
-            <BottomNav role={showAdminChrome ? viewRole : actualRole} />
-          )}
+          {isApproved && <BottomNav role={viewRole} />}
         </ClerkProvider>
       </body>
     </html>

@@ -1,19 +1,32 @@
 'use client';
 
 import { useTransition } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { setViewMode } from '@/app/actions/view-mode';
 import type { ViewMode } from '@/lib/view-mode';
 
+const ADMIN_ONLY_PREFIXES = ['/admin', '/course'];
+
 export default function ViewToggle({ current }: { current: ViewMode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [pending, startTransition] = useTransition();
 
   function flip(target: ViewMode) {
     if (target === current) return;
+    const onAdminRoute = ADMIN_ONLY_PREFIXES.some((p) => pathname.startsWith(p));
+
     startTransition(async () => {
       await setViewMode(target);
-      router.refresh();
+      // Flipping to member while on an admin-only surface would render an
+      // admin page in a member-tab world — confusing. Bounce to /.
+      // Flipping back to admin from / does NOT auto-bounce; the user can
+      // tap the bottom nav like normal.
+      if (target === 'member' && onAdminRoute) {
+        router.push('/');
+      } else {
+        router.refresh();
+      }
     });
   }
 

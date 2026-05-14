@@ -52,6 +52,12 @@ export default async function AdminHome({
     .order('name');
   const members = membersRes.data ?? [];
 
+  const newFeedbackRes = await supabase
+    .from('feedback')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'new');
+  const newFeedbackCount = newFeedbackRes.count ?? 0;
+
   const rsvpRes = await supabase
     .from('rsvps')
     .select('user_id')
@@ -118,6 +124,22 @@ export default async function AdminHome({
         Status · {status} · {COURSE_OPTIONS[event.course_config].label} ·{' '}
         {fmtMoney(event.fee_cents)}/player
       </p>
+
+      <Link
+        href="/admin/feedback"
+        className="mt-5 flex items-center justify-between rounded-xl border border-[color:#e8e2d2] bg-white px-4 py-3 hover:border-[color:var(--color-gold)]"
+      >
+        <span className="text-sm font-semibold">Feedback & issues inbox</span>
+        {newFeedbackCount > 0 ? (
+          <span className="text-[10px] tracking-[0.1em] uppercase font-bold bg-[color:var(--color-gold)] text-[color:var(--color-navy)] rounded-full px-2 py-0.5">
+            {newFeedbackCount} new
+          </span>
+        ) : (
+          <span className="text-[10px] tracking-[0.1em] uppercase text-[color:var(--color-mute)]">
+            empty
+          </span>
+        )}
+      </Link>
 
       <section className="mt-6">
         <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] mb-3">

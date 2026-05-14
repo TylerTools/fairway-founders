@@ -9,7 +9,10 @@ import {
   UserButton,
 } from '@clerk/nextjs';
 import { getAppUser } from '@/lib/current-user';
+import { getViewMode } from '@/lib/view-mode';
 import BottomNav from '@/components/BottomNav';
+import ViewToggle from '@/components/ViewToggle';
+import FeedbackButton from '@/components/FeedbackButton';
 import './globals.css';
 
 const fraunces = Fraunces({
@@ -33,7 +36,10 @@ export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const appUser = await getAppUser();
-  const isAdmin = appUser?.app_role === 'admin';
+  const actualRole = appUser?.app_role ?? null;
+  const viewRole = await getViewMode(actualRole);
+  const isActuallyAdmin = actualRole === 'admin';
+  const showAdminChrome = viewRole === 'admin';
 
   return (
     <html
@@ -58,10 +64,8 @@ export default async function RootLayout({
               </div>
             </Link>
             <div className="flex items-center gap-3">
-              {isAdmin && (
-                <span className="hidden sm:inline text-[10px] font-semibold tracking-[0.15em] uppercase text-[color:var(--color-gold)] border border-[color:var(--color-gold)]/60 rounded-full px-3 py-1">
-                  Admin
-                </span>
+              {isActuallyAdmin && (
+                <ViewToggle current={viewRole === 'admin' ? 'admin' : 'member'} />
               )}
               <Show when="signed-out">
                 <SignInButton>
@@ -81,7 +85,8 @@ export default async function RootLayout({
             </div>
           </header>
           <div className="flex-1 pb-24">{children}</div>
-          <BottomNav role={appUser?.app_role ?? null} />
+          {appUser && <FeedbackButton />}
+          <BottomNav role={showAdminChrome ? viewRole : actualRole} />
         </ClerkProvider>
       </body>
     </html>

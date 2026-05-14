@@ -51,6 +51,50 @@ export type Database = {
         }
         Relationships: []
       }
+      feedback: {
+        Row: {
+          admin_notes: string | null
+          body: string
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["feedback_kind"]
+          status: Database["public"]["Enums"]["feedback_status"]
+          subject: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          body: string
+          created_at?: string
+          id?: string
+          kind: Database["public"]["Enums"]["feedback_kind"]
+          status?: Database["public"]["Enums"]["feedback_status"]
+          subject?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["feedback_kind"]
+          status?: Database["public"]["Enums"]["feedback_status"]
+          subject?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       foursome_members: {
         Row: {
           cart_number: number
@@ -251,6 +295,8 @@ export type Database = {
       app_role: "member" | "admin" | "course"
       course_config: "front" | "back" | "both"
       event_status: "locked" | "open" | "closed" | "past"
+      feedback_kind: "feedback" | "issue"
+      feedback_status: "new" | "in_review" | "resolved" | "wontfix"
       foursome_tier: "A" | "B" | "C"
     }
     CompositeTypes: { [_ in never]: never }

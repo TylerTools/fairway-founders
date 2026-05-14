@@ -151,7 +151,7 @@ export default async function RootLayout({
                   width={640}
                   height={640}
                   priority
-                  className="h-40 sm:h-48 w-auto"
+                  className="h-20 sm:h-24 w-auto"
                 />
               )}
               <span className="sr-only">Fairway Founders Network</span>

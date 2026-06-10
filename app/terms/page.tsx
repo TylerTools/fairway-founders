@@ -43,8 +43,14 @@ export default function TermsPage() {
             otherwise using Fairway Founders Network (&ldquo;Fairway Founders,&rdquo;
             &ldquo;we,&rdquo; &ldquo;us,&rdquo; &ldquo;our&rdquo;), you
             (&ldquo;you,&rdquo; &ldquo;Member&rdquo;) agree to these Terms of
-            Service (&ldquo;Terms&rdquo;) and our Privacy Policy. If you do not
-            agree, do not use the Service.
+            Service (&ldquo;Terms&rdquo;) and our{' '}
+            <Link
+              href="/privacy"
+              className="text-[color:var(--color-gold)] underline"
+            >
+              Privacy Policy
+            </Link>
+            . If you do not agree, do not use the Service.
           </p>
         </Section>
 

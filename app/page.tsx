@@ -88,6 +88,10 @@ export default async function Home() {
             By signing up, you agree to our{' '}
             <Link href="/terms" className="underline hover:text-[color:var(--color-gold)]">
               Terms of Service
+            </Link>{' '}
+            and{' '}
+            <Link href="/privacy" className="underline hover:text-[color:var(--color-gold)]">
+              Privacy Policy
             </Link>
             .
           </p>
@@ -336,6 +340,10 @@ export default async function Home() {
             <span>·</span>
             <Link href="/terms" className="hover:text-[color:var(--color-gold)]">
               Terms
+            </Link>
+            <span>·</span>
+            <Link href="/privacy" className="hover:text-[color:var(--color-gold)]">
+              Privacy
             </Link>
             <span>·</span>
             <a

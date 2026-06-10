@@ -14,6 +14,7 @@ import PendingScreen from '@/components/PendingScreen';
 import OnboardingWizard from '@/components/OnboardingWizard';
 import DeniedScreen from '@/components/DeniedScreen';
 import NotificationBell from '@/components/NotificationBell';
+import PublicHeaderLogo from '@/components/PublicHeaderLogo';
 import EventSidebar from '@/components/EventSidebar';
 import { fetchEvents } from '@/lib/events';
 import './globals.css';
@@ -147,7 +148,7 @@ export default async function RootLayout({
         >
           <header className="flex items-center justify-between gap-6 border-b border-[color:var(--color-gold)]/30 px-6 py-4 sticky top-0 z-10 bg-[color:var(--color-cream)]">
             <Link href="/" className="flex items-center gap-2 leading-none shrink-0">
-              {appUser && (
+              {appUser ? (
                 <Image
                   src="/logo.png"
                   alt="Fairway Founders Network"
@@ -156,6 +157,8 @@ export default async function RootLayout({
                   priority
                   className="h-20 sm:h-24 w-auto"
                 />
+              ) : (
+                <PublicHeaderLogo />
               )}
               <span className="sr-only">Fairway Founders Network</span>
             </Link>

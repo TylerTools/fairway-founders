@@ -5,6 +5,7 @@ import { ClerkProvider, Show } from '@clerk/nextjs';
 import HeaderUserButton from '@/components/HeaderUserButton';
 import { getAppUser } from '@/lib/current-user';
 import { getViewMode } from '@/lib/view-mode';
+import { canAccessCourseOps } from '@/lib/auth';
 import BottomNav from '@/components/BottomNav';
 import HeaderNav from '@/components/HeaderNav';
 import ViewToggle from '@/components/ViewToggle';
@@ -108,6 +109,7 @@ export default async function RootLayout({
   const accessStatus = appUser?.access_status ?? null;
   const isApproved = !appUser || accessStatus === 'approved';
   const isSignedInApproved = !!appUser && accessStatus === 'approved';
+  const showCourseTab = isSignedInApproved ? await canAccessCourseOps() : false;
   const sidebarEvents = isSignedInApproved ? await fetchEvents() : [];
 
   return (
@@ -151,7 +153,11 @@ export default async function RootLayout({
               <HeaderLogo size={appUser ? 'large' : 'small'} />
               <span className="sr-only">Fairway Founders Network</span>
             </Link>
-            {isSignedInApproved && <HeaderNav role={viewRole} />}
+            <HeaderNav
+              signedIn={isSignedInApproved}
+              showAdmin={showAdminChrome}
+              showCourse={showCourseTab}
+            />
             <div className="flex items-center gap-3 shrink-0">
               {isActuallyAdmin && isApproved && (
                 <ViewToggle current={viewRole === 'admin' ? 'admin' : 'member'} />
@@ -178,7 +184,13 @@ export default async function RootLayout({
           </div>
           {appUser && accessStatus === 'approved' && <PlayNowBall me={appUser} />}
           {appUser && isApproved && <FeedbackButton />}
-          {isApproved && <BottomNav role={viewRole} />}
+          {isApproved && (
+            <BottomNav
+              signedIn={isSignedInApproved}
+              showAdmin={showAdminChrome}
+              showCourse={showCourseTab}
+            />
+          )}
         </ClerkProvider>
       </body>
     </html>

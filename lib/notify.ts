@@ -14,7 +14,7 @@ export async function notifyAdminsOfAccessRequest(opts: {
     const adminsRes = await supabase
       .from('users')
       .select('id')
-      .eq('app_role', 'admin')
+      .eq('app_role', 'super_admin')
       .eq('access_status', 'approved')
       .neq('id', opts.newUserId);
     const admins = adminsRes.data ?? [];
@@ -44,7 +44,7 @@ export async function notifyAdminsOfFeedback(opts: {
     let q = supabase
       .from('users')
       .select('id')
-      .eq('app_role', 'admin')
+      .eq('app_role', 'super_admin')
       .eq('access_status', 'approved');
     if (opts.fromUserId) q = q.neq('id', opts.fromUserId);
     const adminsRes = await q;

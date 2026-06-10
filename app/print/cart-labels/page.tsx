@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
 import { getViewMode } from '@/lib/view-mode';
+import { canAccessCourseOps } from '@/lib/auth';
 import { lastName } from '@/lib/schedule';
 import PrintTrigger from './PrintTrigger';
 
@@ -15,7 +16,7 @@ export default async function CartLabelsPrintPage({
   const me = await getAppUser();
   const view = await getViewMode(me?.app_role ?? null);
   if (!me) redirect('/');
-  if (view !== 'admin' && view !== 'course') redirect('/dashboard');
+  if (!(await canAccessCourseOps())) redirect('/dashboard');
 
   const { event: requestedEvent } = await searchParams;
 

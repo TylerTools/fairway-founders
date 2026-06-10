@@ -5,10 +5,9 @@ import { getAppUser } from '@/lib/current-user';
 import Avatar from '@/components/Avatar';
 import AdminMemberActions from './AdminMemberActions';
 
-const ROLE_LABEL: Record<'member' | 'admin' | 'course', string> = {
+const ROLE_LABEL: Record<'member' | 'super_admin', string> = {
   member: 'Member',
-  admin: 'Admin',
-  course: 'Course',
+  super_admin: 'Admin',
 };
 
 export default async function MemberDetail({
@@ -18,7 +17,11 @@ export default async function MemberDetail({
 }) {
   const { id } = await params;
   const me = await getAppUser();
-  const isCourse = me?.app_role === 'course';
+  // The dedicated 'course' app_role is gone — per-course staff is now
+  // a course_contacts.user_id link. Treating isCourse as false here means
+  // the detail view shows full bio/helps to everyone signed in; admin-only
+  // gating still works via isAdmin below.
+  const isCourse = false;
   const isAdmin = me?.app_role === 'super_admin';
 
   const res = await supabase.from('users').select('*').eq('id', id).maybeSingle();

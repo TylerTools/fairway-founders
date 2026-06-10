@@ -10,8 +10,7 @@ type AccessStatus = Database['public']['Enums']['access_status'];
 
 const ROLE_LABEL: Record<AppRole, string> = {
   member: 'Member',
-  admin: 'Admin',
-  course: 'Course',
+  super_admin: 'Admin',
 };
 
 export default async function RosterPage() {

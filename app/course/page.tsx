@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
 import { getViewMode } from '@/lib/view-mode';
+import { canAccessCourseOps } from '@/lib/auth';
 import { selectEvent } from '@/lib/events';
 import { COURSE_OPTIONS, fmtMoney, lastName, liveStatus } from '@/lib/schedule';
 import CalendarStrip from '@/components/CalendarStrip';
@@ -17,7 +18,7 @@ export default async function CourseOpsPage({
   const me = await getAppUser();
   const view = await getViewMode(me?.app_role ?? null);
   if (!me) redirect('/');
-  if (view !== 'admin' && view !== 'course') redirect('/dashboard');
+  if (!(await canAccessCourseOps())) redirect('/dashboard');
 
   const { event: requestedId } = await searchParams;
   const { event, events } = await selectEvent(requestedId);

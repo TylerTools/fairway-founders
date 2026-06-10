@@ -33,12 +33,25 @@ async function resolveAudience(audience: Audience): Promise<Recipient[]> {
   }
 
   if (audience === 'all_admins') {
-    const res = await supabase
+    // Super admins + anyone with a league_memberships row of role='admin'.
+    const supers = await supabase
       .from('users')
       .select('id, email')
       .eq('access_status', 'approved')
-      .eq('app_role', 'admin');
-    return (res.data ?? []).map((u) => ({ user_id: u.id, email: u.email }));
+      .eq('app_role', 'super_admin');
+    const leagueAdmins = await supabase
+      .from('league_memberships')
+      .select('user:user_id(id, email)')
+      .eq('role', 'admin');
+    const dedup = new Map<string, Recipient>();
+    for (const u of supers.data ?? []) {
+      dedup.set(u.id, { user_id: u.id, email: u.email });
+    }
+    for (const row of leagueAdmins.data ?? []) {
+      const u = Array.isArray(row.user) ? row.user[0] : row.user;
+      if (u) dedup.set(u.id, { user_id: u.id, email: u.email });
+    }
+    return [...dedup.values()];
   }
 
   if (audience === 'pending_applicants') {

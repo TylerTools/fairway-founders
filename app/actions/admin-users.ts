@@ -17,13 +17,13 @@ async function requireAdmin() {
 export async function setUserRole(userId: string, role: AppRole): Promise<void> {
   const me = await requireAdmin();
 
-  if (me.id === userId && role !== 'admin') {
+  if (me.id === userId && role !== 'super_admin') {
     const adminCount = await supabase
       .from('users')
       .select('id', { count: 'exact', head: true })
-      .eq('app_role', 'admin');
+      .eq('app_role', 'super_admin');
     if ((adminCount.count ?? 0) <= 1) {
-      throw new Error("Can't demote the last admin.");
+      throw new Error("Can't demote the last super admin.");
     }
   }
 

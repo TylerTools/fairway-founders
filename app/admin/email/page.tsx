@@ -26,18 +26,25 @@ export default async function EmailDraftPage({
   if (requestedEvent) {
     eventRes = await supabase
       .from('events')
-      .select('*')
+      .select('*, course:course_id(name, default_pro_shop_email)')
       .eq('id', requestedEvent)
       .maybeSingle();
   } else {
     eventRes = await supabase
       .from('events')
-      .select('*')
+      .select('*, course:course_id(name, default_pro_shop_email)')
       .order('date', { ascending: true })
       .limit(1)
       .maybeSingle();
   }
   const event = eventRes.data;
+  const courseInfo = event
+    ? Array.isArray(event.course)
+      ? event.course[0]
+      : event.course
+    : null;
+  const courseName = courseInfo?.name ?? undefined;
+  const courseDefaultEmail = courseInfo?.default_pro_shop_email ?? null;
   if (!event) {
     return (
       <main className="px-6 py-12 text-center">
@@ -92,7 +99,14 @@ export default async function EmailDraftPage({
     );
   }
 
-  const draft = buildProShopEmail({ event, foursomes, playerCount, cartCount });
+  const draft = buildProShopEmail({
+    event,
+    courseName,
+    proShopEmail: event.pro_shop_email ?? courseDefaultEmail,
+    foursomes,
+    playerCount,
+    cartCount,
+  });
 
   return (
     <main className="px-6 py-8 max-w-md lg:max-w-3xl mx-auto w-full">

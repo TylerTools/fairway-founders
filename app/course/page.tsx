@@ -73,7 +73,7 @@ export default async function CourseOpsPage({
         {dateStr}
       </h1>
       <p className="text-[11px] uppercase tracking-[0.1em] text-[color:var(--color-mute)] mt-1">
-        2:30 PM Shotgun · Legacy Golf Club · {status}
+        2:30 PM Shotgun · {event.course?.name ?? 'Legacy Golf Club'} · {status}
       </p>
 
       <section className="mt-6 rounded-xl border border-[color:#e8e2d2] bg-white overflow-hidden">

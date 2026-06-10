@@ -24,18 +24,20 @@ export default async function CartLabelsPrintPage({
   if (requestedEvent) {
     eventRes = await supabase
       .from('events')
-      .select('*')
+      .select('*, course:course_id(name)')
       .eq('id', requestedEvent)
       .maybeSingle();
   } else {
     eventRes = await supabase
       .from('events')
-      .select('*')
+      .select('*, course:course_id(name)')
       .order('date', { ascending: true })
       .limit(1)
       .maybeSingle();
   }
   const event = eventRes.data;
+  const courseName =
+    event && (Array.isArray(event.course) ? event.course[0]?.name : event.course?.name);
   if (!event) {
     return (
       <main className="px-6 py-12 text-center">
@@ -225,7 +227,7 @@ export default async function CartLabelsPrintPage({
           <div className="ff-meta">
             Hole {cart.hole}
             {cart.hasTier ? ` · Tier ${cart.tier}` : ''} &nbsp;·&nbsp; 2:30 PM Shotgun &nbsp;·&nbsp;
-            Legacy Golf Club
+            {courseName ?? 'Legacy Golf Club'}
           </div>
         </div>
       ))}

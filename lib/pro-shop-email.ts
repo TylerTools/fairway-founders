@@ -1,4 +1,5 @@
 import { COURSE_OPTIONS, fmtMoney, lastName } from './schedule';
+import { FALLBACK_COURSE_NAME } from './events';
 import type { Database } from './database.types';
 
 type EventRow = Database['public']['Tables']['events']['Row'];
@@ -18,15 +19,20 @@ export interface ProShopDraft {
 
 export function buildProShopEmail({
   event,
+  courseName,
+  proShopEmail,
   foursomes,
   playerCount,
   cartCount,
 }: {
   event: EventRow;
+  courseName?: string;
+  proShopEmail?: string | null;
   foursomes: ProShopFoursome[];
   playerCount: number;
   cartCount: number;
 }): ProShopDraft {
+  const resolvedName = courseName?.trim() || FALLBACK_COURSE_NAME;
   const eventDate = new Date(event.date);
   const dateStr = eventDate.toLocaleDateString('en-US', {
     weekday: 'long',
@@ -44,7 +50,7 @@ export function buildProShopEmail({
 
   const subject = `Fairway Founders — ${shortDate} — Tee Time Confirmation`;
   const lines: string[] = [];
-  lines.push('Hi Legacy Golf Club Pro Shop,');
+  lines.push(`Hi ${resolvedName} Pro Shop,`);
   lines.push('');
   lines.push('Confirming our Fairway Founders group for this week:');
   lines.push('');
@@ -79,6 +85,6 @@ export function buildProShopEmail({
   return {
     subject,
     body: lines.join('\n'),
-    to: event.pro_shop_email,
+    to: proShopEmail ?? event.pro_shop_email,
   };
 }

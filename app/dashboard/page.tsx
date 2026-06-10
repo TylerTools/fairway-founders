@@ -146,7 +146,7 @@ export default async function Dashboard({
         </span>
       </h1>
       <p className="mt-1 text-sm text-[color:#5a5a4a]">
-        Legacy Golf Club · {courseLabel} scramble · shotgun start
+        {event.course?.name ?? 'Legacy Golf Club'} · {courseLabel} scramble · shotgun start
       </p>
       <p className="text-xs text-[color:var(--color-mute)] mt-1">
         Green fee ·{' '}

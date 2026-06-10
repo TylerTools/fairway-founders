@@ -84,6 +84,13 @@ export default async function Home() {
           <p className="mt-3 text-[11px] text-[color:var(--color-ink)]/70 italic">
             New here? Sign up — an admin will approve your request before you can RSVP.
           </p>
+          <p className="mt-2 text-[10px] text-[color:var(--color-ink)]/60">
+            By signing up, you agree to our{' '}
+            <Link href="/terms" className="underline hover:text-[color:var(--color-gold)]">
+              Terms of Service
+            </Link>
+            .
+          </p>
         </div>
       </section>
 
@@ -327,6 +334,10 @@ export default async function Home() {
               <button className="hover:text-[color:var(--color-gold)]">Request access</button>
             </SignUpButton>
             <span>·</span>
+            <Link href="/terms" className="hover:text-[color:var(--color-gold)]">
+              Terms
+            </Link>
+            <span>·</span>
             <a
               href="mailto:hello@fairwayfounders.org"
               className="hover:text-[color:var(--color-gold)]"
@@ -336,7 +347,7 @@ export default async function Home() {
           </div>
 
           <p className="text-[10px] tracking-[0.15em] uppercase text-[color:var(--color-mute)]">
-            © {new Date().getFullYear()} Fairway Founders Network
+            © {new Date().getFullYear()} Fairway Founders Network · Operated by Golf Links Network LLC
           </p>
         </div>
       </footer>

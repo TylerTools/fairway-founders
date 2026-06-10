@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from 'next';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Fraunces, Inter } from 'next/font/google';
 import { ClerkProvider, Show } from '@clerk/nextjs';
 import HeaderUserButton from '@/components/HeaderUserButton';
@@ -14,7 +13,8 @@ import PendingScreen from '@/components/PendingScreen';
 import OnboardingWizard from '@/components/OnboardingWizard';
 import DeniedScreen from '@/components/DeniedScreen';
 import NotificationBell from '@/components/NotificationBell';
-import PublicHeaderLogo from '@/components/PublicHeaderLogo';
+import HeaderLogo from '@/components/HeaderLogo';
+import PlayNowBall from '@/components/PlayNowBall';
 import EventSidebar from '@/components/EventSidebar';
 import { fetchEvents } from '@/lib/events';
 import './globals.css';
@@ -103,7 +103,7 @@ export default async function RootLayout({
   const appUser = await getAppUser();
   const actualRole = appUser?.app_role ?? null;
   const viewRole = await getViewMode(actualRole);
-  const isActuallyAdmin = actualRole === 'admin';
+  const isActuallyAdmin = actualRole === 'super_admin';
   const showAdminChrome = viewRole === 'admin';
   const accessStatus = appUser?.access_status ?? null;
   const isApproved = !appUser || accessStatus === 'approved';
@@ -148,18 +148,7 @@ export default async function RootLayout({
         >
           <header className="flex items-center justify-between gap-6 border-b border-[color:var(--color-gold)]/30 px-6 py-4 sticky top-0 z-10 bg-[color:var(--color-cream)]">
             <Link href="/" className="flex items-center gap-2 leading-none shrink-0">
-              {appUser ? (
-                <Image
-                  src="/logo.png"
-                  alt="Fairway Founders Network"
-                  width={640}
-                  height={640}
-                  priority
-                  className="h-20 sm:h-24 w-auto"
-                />
-              ) : (
-                <PublicHeaderLogo />
-              )}
+              <HeaderLogo size={appUser ? 'large' : 'small'} />
               <span className="sr-only">Fairway Founders Network</span>
             </Link>
             {isSignedInApproved && <HeaderNav role={viewRole} />}
@@ -187,6 +176,7 @@ export default async function RootLayout({
               )}
             </div>
           </div>
+          {appUser && accessStatus === 'approved' && <PlayNowBall me={appUser} />}
           {appUser && isApproved && <FeedbackButton />}
           {isApproved && <BottomNav role={viewRole} />}
         </ClerkProvider>

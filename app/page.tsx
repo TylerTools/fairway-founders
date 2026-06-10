@@ -1,6 +1,5 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 import { SignInButton, SignUpButton } from '@clerk/nextjs';
 import { getAppUser } from '@/lib/current-user';
 import { supabase } from '@/lib/supabase';
@@ -26,7 +25,7 @@ const SOCIAL_LINKS: { label: string; href: string; icon: 'instagram' | 'x' | 'li
 
 export default async function Home() {
   const me = await getAppUser();
-  if (me && me.access_status === 'approved') redirect('/dashboard');
+  const isSignedInApproved = !!me && me.access_status === 'approved';
 
   const eventsRes = await supabase
     .from('events')
@@ -69,32 +68,48 @@ export default async function Home() {
             Tee off at half-past two.
           </p>
 
-          <div className="mt-8 grid grid-cols-2 gap-3 w-full max-w-sm">
-            <SignUpButton>
-              <button className="rounded-lg bg-[color:var(--color-navy)] text-[color:var(--color-gold)] py-4 text-sm font-semibold tracking-[0.1em] uppercase shadow-lg shadow-[color:var(--color-navy)]/25 hover:opacity-90">
-                Sign up
-              </button>
-            </SignUpButton>
-            <SignInButton>
-              <button className="rounded-lg border border-[color:var(--color-gold)] bg-white text-[color:var(--color-ink)] py-4 text-sm font-semibold tracking-[0.1em] uppercase shadow-md hover:bg-[color:#f5f1e8]/40">
-                Sign in
-              </button>
-            </SignInButton>
-          </div>
-          <p className="mt-3 text-[11px] text-[color:var(--color-ink)]/70 italic">
-            New here? Sign up — an admin will approve your request before you can RSVP.
-          </p>
-          <p className="mt-2 text-[10px] text-[color:var(--color-ink)]/60">
-            By signing up, you agree to our{' '}
-            <Link href="/terms" className="underline hover:text-[color:var(--color-gold)]">
-              Terms of Service
-            </Link>{' '}
-            and{' '}
-            <Link href="/privacy" className="underline hover:text-[color:var(--color-gold)]">
-              Privacy Policy
-            </Link>
-            .
-          </p>
+          {isSignedInApproved ? (
+            <div className="mt-8 w-full max-w-sm">
+              <Link
+                href="/dashboard"
+                className="block w-full rounded-lg bg-[color:var(--color-navy)] text-[color:var(--color-gold)] py-4 text-center text-sm font-semibold tracking-[0.1em] uppercase shadow-lg shadow-[color:var(--color-navy)]/25 hover:opacity-90"
+              >
+                Go to your dashboard →
+              </Link>
+              <p className="mt-3 text-[11px] text-[color:var(--color-ink)]/70 italic text-center">
+                Welcome back, {me!.name.split(' ')[0]}.
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="mt-8 grid grid-cols-2 gap-3 w-full max-w-sm">
+                <SignUpButton>
+                  <button className="rounded-lg bg-[color:var(--color-navy)] text-[color:var(--color-gold)] py-4 text-sm font-semibold tracking-[0.1em] uppercase shadow-lg shadow-[color:var(--color-navy)]/25 hover:opacity-90">
+                    Sign up
+                  </button>
+                </SignUpButton>
+                <SignInButton>
+                  <button className="rounded-lg border border-[color:var(--color-gold)] bg-white text-[color:var(--color-ink)] py-4 text-sm font-semibold tracking-[0.1em] uppercase shadow-md hover:bg-[color:#f5f1e8]/40">
+                    Sign in
+                  </button>
+                </SignInButton>
+              </div>
+              <p className="mt-3 text-[11px] text-[color:var(--color-ink)]/70 italic">
+                New here? Sign up — an admin will approve your request before you can RSVP.
+              </p>
+              <p className="mt-2 text-[10px] text-[color:var(--color-ink)]/60">
+                By signing up, you agree to our{' '}
+                <Link href="/terms" className="underline hover:text-[color:var(--color-gold)]">
+                  Terms of Service
+                </Link>{' '}
+                and{' '}
+                <Link href="/privacy" className="underline hover:text-[color:var(--color-gold)]">
+                  Privacy Policy
+                </Link>
+                .
+              </p>
+            </>
+          )}
         </div>
       </section>
 

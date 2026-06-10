@@ -7,7 +7,7 @@ import { VIEW_COOKIE_NAME, type ViewMode } from '@/lib/view-mode';
 
 export async function setViewMode(mode: ViewMode): Promise<void> {
   const me = await getAppUser();
-  if (!me || me.app_role !== 'admin') return;
+  if (!me || me.app_role !== 'super_admin') return;
   const store = await cookies();
   store.set(VIEW_COOKIE_NAME, mode, {
     path: '/',

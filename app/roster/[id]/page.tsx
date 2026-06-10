@@ -19,7 +19,7 @@ export default async function MemberDetail({
   const { id } = await params;
   const me = await getAppUser();
   const isCourse = me?.app_role === 'course';
-  const isAdmin = me?.app_role === 'admin';
+  const isAdmin = me?.app_role === 'super_admin';
 
   const res = await supabase.from('users').select('*').eq('id', id).maybeSingle();
   const member = res.data;

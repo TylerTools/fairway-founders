@@ -298,7 +298,7 @@ export default async function Dashboard({
         </div>
       ) : null}
 
-      {showAdminChrome && me.app_role === 'admin' && (
+      {showAdminChrome && me.app_role === 'super_admin' && (
         <p className="mt-6 text-center text-xs">
           <Link
             href={`/admin?event=${event.id}`}

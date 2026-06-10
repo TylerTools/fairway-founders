@@ -27,7 +27,7 @@ export async function toggleRsvp(eventId: string): Promise<void> {
 
 export async function adminToggleRsvp(eventId: string, userId: string): Promise<void> {
   const me = await getAppUser();
-  if (!me || me.app_role !== 'admin') throw new Error('Admins only.');
+  if (!me || me.app_role !== 'super_admin') throw new Error('Admins only.');
 
   const existing = await supabase
     .from('rsvps')

@@ -15,7 +15,7 @@ export async function upsertHoleScore(
   strokes: number | null,
 ): Promise<ScoreActionState> {
   const me = await getAppUser();
-  if (!me || me.app_role !== 'admin') return { ok: false, error: 'Admins only.' };
+  if (!me || me.app_role !== 'super_admin') return { ok: false, error: 'Admins only.' };
   if (hole < 1 || hole > 18) return { ok: false, error: 'Invalid hole.' };
 
   if (strokes == null || Number.isNaN(strokes) || strokes <= 0) {

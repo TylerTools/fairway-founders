@@ -14,7 +14,7 @@ export interface GroupActionState {
 
 async function requireAdmin() {
   const me = await getAppUser();
-  if (!me || me.app_role !== 'admin') throw new Error('Admins only.');
+  if (!me || me.app_role !== 'super_admin') throw new Error('Admins only.');
   return me;
 }
 

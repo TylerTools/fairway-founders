@@ -23,7 +23,7 @@ export default async function AdminHome({
   const me = await getAppUser();
   const view = await getViewMode(me?.app_role ?? null);
   if (!me) redirect('/');
-  if (me.app_role !== 'admin' || view !== 'admin') redirect('/dashboard');
+  if (me.app_role !== 'super_admin' || view !== 'admin') redirect('/dashboard');
 
   const { event: requestedId } = await searchParams;
   const { event, events } = await selectEvent(requestedId);

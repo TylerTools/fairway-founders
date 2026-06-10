@@ -17,7 +17,7 @@ const ROLE_LABEL: Record<AppRole, string> = {
 export default async function RosterPage() {
   const me = await getAppUser();
   const canInvite = !!me && me.access_status === 'approved';
-  const isAdmin = me?.app_role === 'admin';
+  const isAdmin = me?.app_role === 'super_admin';
 
   let q = supabase
     .from('users')

@@ -3,11 +3,13 @@
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 
-export default function PublicHeaderLogo() {
+export default function HeaderLogo({ size }: { size: 'large' | 'small' }) {
   const pathname = usePathname();
-  // On the marketing home page when signed-out, keep the header clear so the
-  // front-facing hero logo is the only brand mark on screen.
+  // On the home page itself, keep the header clear — the front-facing hero
+  // logo is the only brand mark on screen there.
   if (pathname === '/') return null;
+  const cls =
+    size === 'large' ? 'h-20 sm:h-24 w-auto' : 'h-14 sm:h-16 w-auto';
   return (
     <Image
       src="/logo.png"
@@ -15,7 +17,7 @@ export default function PublicHeaderLogo() {
       width={640}
       height={640}
       priority
-      className="h-14 sm:h-16 w-auto"
+      className={cls}
     />
   );
 }

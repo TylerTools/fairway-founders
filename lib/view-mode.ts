@@ -7,12 +7,12 @@ export type AppRole = Database['public']['Enums']['app_role'];
 const COOKIE_NAME = 'ff-view';
 
 /**
- * The role-driven view to render for. Admins can toggle to 'member' to
- * preview the member experience; everyone else falls back to their actual role.
+ * The UI view a user is currently inhabiting. Only super_admins can toggle
+ * to 'member' to preview the member experience; everyone else is always
+ * in 'member' view.
  */
-export async function getViewMode(actualRole: AppRole | null): Promise<AppRole | null> {
-  if (!actualRole) return null;
-  if (actualRole !== 'admin') return actualRole;
+export async function getViewMode(actualRole: AppRole | null): Promise<ViewMode> {
+  if (actualRole !== 'super_admin') return 'member';
 
   const store = await cookies();
   const cookie = store.get(COOKIE_NAME)?.value;

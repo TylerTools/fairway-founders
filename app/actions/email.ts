@@ -100,7 +100,7 @@ const AUDIENCE_LABELS: Record<Audience, string> = {
 
 export async function previewAudience(audience: Audience): Promise<number> {
   const me = await getAppUser();
-  if (!me || me.app_role !== 'admin') return 0;
+  if (!me || me.app_role !== 'super_admin') return 0;
   const recipients = await resolveAudience(audience);
   return recipients.length;
 }
@@ -110,7 +110,7 @@ export async function queueAdminBlast(
   formData: FormData,
 ): Promise<BlastFormState> {
   const me = await getAppUser();
-  if (!me || me.app_role !== 'admin') {
+  if (!me || me.app_role !== 'super_admin') {
     return { ok: false, error: 'Admins only.' };
   }
 

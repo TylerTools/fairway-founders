@@ -18,7 +18,7 @@ export default async function LeaderboardPage({
   searchParams: Promise<{ event?: string }>;
 }) {
   const me = await getAppUser();
-  const canEdit = me?.app_role === 'admin';
+  const canEdit = me?.app_role === 'super_admin';
 
   const { event: requestedId } = await searchParams;
   const { event, events } = await selectEvent(requestedId);

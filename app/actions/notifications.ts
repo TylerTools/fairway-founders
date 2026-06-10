@@ -82,7 +82,7 @@ export async function sendBroadcast(
   formData: FormData,
 ): Promise<BroadcastState> {
   const me = await getAppUser();
-  if (!me || me.app_role !== 'admin') {
+  if (!me || me.app_role !== 'super_admin') {
     return { ok: false, error: 'Admins only.' };
   }
 

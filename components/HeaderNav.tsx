@@ -2,29 +2,37 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import type { Database } from '@/lib/database.types';
 
-type AppRole = Database['public']['Enums']['app_role'];
-
-interface Tab {
-  href: string;
-  label: string;
-  roles: AppRole[];
+interface HeaderNavProps {
+  signedIn: boolean;
+  showAdmin: boolean;
+  showCourse: boolean;
 }
 
-const TABS: Tab[] = [
-  { href: '/dashboard', label: 'Tee Time', roles: ['member', 'admin', 'course'] },
-  { href: '/leaderboard', label: 'Scorecard', roles: ['member', 'admin', 'course'] },
-  { href: '/roster', label: 'Roster', roles: ['member', 'admin', 'course'] },
-  { href: '/admin', label: 'Admin', roles: ['admin'] },
-  { href: '/course', label: 'Course', roles: ['admin', 'course'] },
+type TabFlag = 'always' | 'admin' | 'course';
+
+const TABS: { href: string; label: string; flag: TabFlag }[] = [
+  { href: '/dashboard', label: 'Tee Time', flag: 'always' },
+  { href: '/leaderboard', label: 'Scorecard', flag: 'always' },
+  { href: '/roster', label: 'Roster', flag: 'always' },
+  { href: '/admin', label: 'Admin', flag: 'admin' },
+  { href: '/course', label: 'Course', flag: 'course' },
 ];
 
 /** Desktop tab strip, lives in the header above lg breakpoint. */
-export default function HeaderNav({ role }: { role: AppRole | null }) {
+export default function HeaderNav({
+  signedIn,
+  showAdmin,
+  showCourse,
+}: HeaderNavProps) {
   const pathname = usePathname();
-  if (!role) return null;
-  const visible = TABS.filter((t) => t.roles.includes(role));
+  if (!signedIn) return null;
+  const visible = TABS.filter((t) => {
+    if (t.flag === 'always') return true;
+    if (t.flag === 'admin') return showAdmin;
+    if (t.flag === 'course') return showCourse;
+    return false;
+  });
 
   return (
     <nav className="hidden lg:flex items-center gap-1">

@@ -3,6 +3,14 @@
     {
       "path": "/api/cron/keep-alive",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/send-emails",
+      "schedule": "30 12 * * *"
+    },
+    {
+      "path": "/api/cron/rsvp-reminders",
+      "schedule": "0 13 * * *"
     }
   ]
 }

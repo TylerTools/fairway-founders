@@ -3,6 +3,8 @@
 import { revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
+import { canAccessAdmin } from '@/lib/auth';
+import { queueEmail } from '@/lib/email-queue';
 import { generateGroups, pairKey, type PairingHistory } from '@/lib/groups';
 import type { CourseConfig } from '@/lib/schedule';
 
@@ -14,7 +16,7 @@ export interface GroupActionState {
 
 async function requireAdmin() {
   const me = await getAppUser();
-  if (!me || me.app_role !== 'super_admin') throw new Error('Admins only.');
+  if (!me || !(await canAccessAdmin())) throw new Error('Admins only.');
   return me;
 }
 
@@ -115,6 +117,13 @@ export async function runGroupGeneration(eventId: string): Promise<GroupActionSt
     }
   }
 
+  // Best-effort: queue a "your group is set" email per RSVPed member.
+  try {
+    await queueFoursomesGeneratedEmails(eventId);
+  } catch {
+    // never block the action on the notification
+  }
+
   revalidatePath('/');
   revalidatePath('/admin');
   return {
@@ -164,4 +173,83 @@ export async function swapPlayers(
   revalidatePath('/');
   revalidatePath('/admin');
   return { ok: true };
+}
+
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://fairwayfounders.org';
+
+async function queueFoursomesGeneratedEmails(eventId: string): Promise<void> {
+  const evt = await supabase
+    .from('events')
+    .select('id, date, course:course_id(name)')
+    .eq('id', eventId)
+    .maybeSingle();
+  if (!evt.data) return;
+  const courseInfo = Array.isArray(evt.data.course)
+    ? evt.data.course[0]
+    : evt.data.course;
+  const courseName = courseInfo?.name ?? 'the course';
+
+  const dateStr = new Date(evt.data.date).toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  });
+
+  const fmRes = await supabase
+    .from('foursomes')
+    .select('hole, tier, foursome_members(cart_number, user:user_id(id, name, email))')
+    .eq('event_id', eventId);
+  if (fmRes.error || !fmRes.data) return;
+
+  for (const f of fmRes.data) {
+    const tierTag = f.tier !== 'A' ? ` · Tier ${f.tier}` : '';
+    const cartMap = new Map<number, { id: string; name: string; email: string }[]>();
+    for (const m of f.foursome_members ?? []) {
+      const u = Array.isArray(m.user) ? m.user[0] : m.user;
+      if (!u) continue;
+      const list = cartMap.get(m.cart_number) ?? [];
+      list.push(u);
+      cartMap.set(m.cart_number, list);
+    }
+    const allMembers = [...cartMap.values()].flat();
+    for (const [cartNum, mems] of cartMap.entries()) {
+      for (const target of mems) {
+        const cartmates = mems.filter((x) => x.id !== target.id).map((x) => x.name);
+        const others = allMembers
+          .filter((x) => x.id !== target.id && !mems.some((c) => c.id === x.id))
+          .map((x) => x.name);
+        const first = target.name.split(' ')[0] || 'there';
+        const cartLine =
+          cartmates.length > 0
+            ? `Cart ${cartNum} with ${cartmates.join(' & ')}`
+            : `Cart ${cartNum} (solo)`;
+        const groupLine = others.length
+          ? `Your foursome: you, ${cartmates.join(', ')}${
+              cartmates.length ? ', ' : ''
+            }${others.join(', ')}`
+          : `You're riding solo this round.`;
+        await queueEmail({
+          kind: 'foursomes_generated',
+          toEmail: target.email,
+          toUserId: target.id,
+          subject: `Your tee time is set — ${dateStr}`,
+          body: [
+            `Hi ${first},`,
+            '',
+            `Your foursome for ${dateStr} at ${courseName} is set.`,
+            '',
+            `Starting hole: ${f.hole}${tierTag}`,
+            cartLine,
+            groupLine,
+            '',
+            `Full details: ${SITE_URL}/dashboard`,
+            '',
+            '— Fairway Founders',
+          ].join('\n'),
+          eventId,
+        });
+      }
+    }
+  }
 }

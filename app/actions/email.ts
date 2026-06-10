@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
+import { canAccessAdmin } from '@/lib/auth';
 import type { Database } from '@/lib/database.types';
 
 type Audience = Database['public']['Enums']['email_audience'];
@@ -113,7 +114,7 @@ const AUDIENCE_LABELS: Record<Audience, string> = {
 
 export async function previewAudience(audience: Audience): Promise<number> {
   const me = await getAppUser();
-  if (!me || me.app_role !== 'super_admin') return 0;
+  if (!me || !(await canAccessAdmin())) return 0;
   const recipients = await resolveAudience(audience);
   return recipients.length;
 }
@@ -123,7 +124,7 @@ export async function queueAdminBlast(
   formData: FormData,
 ): Promise<BlastFormState> {
   const me = await getAppUser();
-  if (!me || me.app_role !== 'super_admin') {
+  if (!me || !(await canAccessAdmin())) {
     return { ok: false, error: 'Admins only.' };
   }
 
@@ -168,3 +169,36 @@ export async function queueAdminBlast(
 }
 
 export { AUDIENCE_LABELS };
+
+export async function queueProShopEmail({
+  to,
+  subject,
+  body,
+  eventId,
+}: {
+  to: string;
+  subject: string;
+  body: string;
+  eventId: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  const me = await getAppUser();
+  if (!me || !(await canAccessAdmin())) {
+    return { ok: false, error: 'Admins only.' };
+  }
+  if (!to.trim()) return { ok: false, error: 'No recipient.' };
+
+  const res = await supabase.from('email_log').insert({
+    kind: 'pro_shop_confirmation',
+    status: 'queued',
+    audience: 'one',
+    to_email: to,
+    subject,
+    body,
+    event_id: eventId,
+    sent_by: me.id,
+  });
+  if (res.error) return { ok: false, error: res.error.message };
+
+  revalidatePath('/admin/email');
+  return { ok: true };
+}

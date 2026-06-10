@@ -5,7 +5,7 @@ import { ClerkProvider, Show } from '@clerk/nextjs';
 import HeaderUserButton from '@/components/HeaderUserButton';
 import { getAppUser } from '@/lib/current-user';
 import { getViewMode } from '@/lib/view-mode';
-import { canAccessCourseOps } from '@/lib/auth';
+import { canAccessCourseOps, canAccessAdmin } from '@/lib/auth';
 import { getCurrentLeague, getMyLeagues } from '@/lib/league-context';
 import BottomNav from '@/components/BottomNav';
 import HeaderNav from '@/components/HeaderNav';
@@ -17,6 +17,7 @@ import OnboardingWizard from '@/components/OnboardingWizard';
 import DeniedScreen from '@/components/DeniedScreen';
 import NotificationBell from '@/components/NotificationBell';
 import HeaderLogo from '@/components/HeaderLogo';
+import HideOnHome from '@/components/HideOnHome';
 import PlayNowBall from '@/components/PlayNowBall';
 import EventSidebar from '@/components/EventSidebar';
 import { fetchEvents } from '@/lib/events';
@@ -107,10 +108,13 @@ export default async function RootLayout({
   const actualRole = appUser?.app_role ?? null;
   const viewRole = await getViewMode(actualRole);
   const isActuallyAdmin = actualRole === 'super_admin';
-  const showAdminChrome = viewRole === 'admin';
   const accessStatus = appUser?.access_status ?? null;
   const isApproved = !appUser || accessStatus === 'approved';
   const isSignedInApproved = !!appUser && accessStatus === 'approved';
+  // Super admins respect the view toggle (they can preview "member" view).
+  // League admins always see the admin tab (no toggle).
+  const hasAdminAccess = isSignedInApproved ? await canAccessAdmin() : false;
+  const showAdminChrome = isActuallyAdmin ? viewRole === 'admin' : hasAdminAccess;
   const showCourseTab = isSignedInApproved ? await canAccessCourseOps() : false;
   const currentLeague = isSignedInApproved ? await getCurrentLeague() : null;
   const myLeagues = isSignedInApproved ? await getMyLeagues() : [];
@@ -155,40 +159,42 @@ export default async function RootLayout({
             },
           }}
         >
-          <header className="flex items-center justify-between gap-6 border-b border-[color:var(--color-gold)]/30 px-6 py-4 sticky top-0 z-10 bg-[color:var(--color-cream)]">
-            <Link href="/" className="flex items-center gap-2 leading-none shrink-0">
-              <HeaderLogo size={appUser ? 'large' : 'small'} />
-              <span className="sr-only">Fairway Founders Network</span>
-            </Link>
-            <HeaderNav
-              signedIn={isSignedInApproved}
-              showAdmin={showAdminChrome}
-              showCourse={showCourseTab}
-            />
-            <div className="flex items-center gap-3 shrink-0">
-              {isSignedInApproved && currentLeague && (
-                <LeagueSwitcher
-                  current={{
-                    id: currentLeague.id,
-                    name: currentLeague.name,
-                    short_name: currentLeague.short_name,
-                  }}
-                  options={myLeagues.map((l) => ({
-                    id: l.id,
-                    name: l.name,
-                    short_name: l.short_name,
-                  }))}
-                />
-              )}
-              {isActuallyAdmin && isApproved && (
-                <ViewToggle current={viewRole === 'admin' ? 'admin' : 'member'} />
-              )}
-              {isSignedInApproved && <NotificationBell />}
-              <Show when="signed-in">
-                <HeaderUserButton />
-              </Show>
-            </div>
-          </header>
+          <HideOnHome>
+            <header className="flex items-center justify-between gap-6 border-b border-[color:var(--color-gold)]/30 px-6 py-4 sticky top-0 z-10 bg-[color:var(--color-cream)]">
+              <Link href="/" className="flex items-center gap-2 leading-none shrink-0">
+                <HeaderLogo size={appUser ? 'large' : 'small'} />
+                <span className="sr-only">Fairway Founders Network</span>
+              </Link>
+              <HeaderNav
+                signedIn={isSignedInApproved}
+                showAdmin={showAdminChrome}
+                showCourse={showCourseTab}
+              />
+              <div className="flex items-center gap-3 shrink-0">
+                {isSignedInApproved && currentLeague && (
+                  <LeagueSwitcher
+                    current={{
+                      id: currentLeague.id,
+                      name: currentLeague.name,
+                      short_name: currentLeague.short_name,
+                    }}
+                    options={myLeagues.map((l) => ({
+                      id: l.id,
+                      name: l.name,
+                      short_name: l.short_name,
+                    }))}
+                  />
+                )}
+                {isActuallyAdmin && isApproved && (
+                  <ViewToggle current={viewRole === 'admin' ? 'admin' : 'member'} />
+                )}
+                {isSignedInApproved && <NotificationBell />}
+                <Show when="signed-in">
+                  <HeaderUserButton />
+                </Show>
+              </div>
+            </header>
+          </HideOnHome>
           <div className="flex-1 lg:pb-0 pb-24 flex">
             {isSignedInApproved && <EventSidebar events={filteredSidebarEvents} />}
             <div className="flex-1 min-w-0">

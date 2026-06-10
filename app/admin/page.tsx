@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
 import { getViewMode } from '@/lib/view-mode';
+import { canAccessAdmin } from '@/lib/auth';
 import { selectEvent } from '@/lib/events';
 import { getCurrentLeague } from '@/lib/league-context';
 import { COURSE_OPTIONS, fmtMoney, liveStatus } from '@/lib/schedule';
@@ -24,7 +25,7 @@ export default async function AdminHome({
   const me = await getAppUser();
   const view = await getViewMode(me?.app_role ?? null);
   if (!me) redirect('/');
-  if (me.app_role !== 'super_admin' || view !== 'admin') redirect('/dashboard');
+  if (view !== 'admin' || !(await canAccessAdmin())) redirect('/dashboard');
 
   const { event: requestedId } = await searchParams;
   const { event, events } = await selectEvent(requestedId);

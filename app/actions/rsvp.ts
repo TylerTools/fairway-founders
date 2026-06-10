@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
+import { canAccessAdmin } from '@/lib/auth';
 
 export async function toggleRsvp(eventId: string): Promise<void> {
   const me = await getAppUser();
@@ -27,7 +28,7 @@ export async function toggleRsvp(eventId: string): Promise<void> {
 
 export async function adminToggleRsvp(eventId: string, userId: string): Promise<void> {
   const me = await getAppUser();
-  if (!me || me.app_role !== 'super_admin') throw new Error('Admins only.');
+  if (!me || !(await canAccessAdmin())) throw new Error('Admins only.');
 
   const existing = await supabase
     .from('rsvps')

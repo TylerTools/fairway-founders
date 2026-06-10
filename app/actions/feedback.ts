@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
+import { canAccessAdmin } from '@/lib/auth';
 import { notifyAdminsOfFeedback } from '@/lib/notify';
 import type { Database } from '@/lib/database.types';
 
@@ -64,7 +65,7 @@ export async function updateFeedbackStatus(
   status: FeedbackStatus,
 ): Promise<void> {
   const me = await getAppUser();
-  if (!me || me.app_role !== 'super_admin') throw new Error('Admins only.');
+  if (!me || !(await canAccessAdmin())) throw new Error('Admins only.');
 
   await supabase.from('feedback').update({ status }).eq('id', id);
   revalidatePath('/admin');

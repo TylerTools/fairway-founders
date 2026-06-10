@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
+import { canAccessAdmin } from '@/lib/auth';
 import type { Database } from '@/lib/database.types';
 
 type CourseConfig = Database['public']['Enums']['course_config'];
@@ -15,7 +16,7 @@ export interface EventFormState {
 
 async function requireAdmin() {
   const me = await getAppUser();
-  if (!me || me.app_role !== 'super_admin') throw new Error('Admins only.');
+  if (!me || !(await canAccessAdmin())) throw new Error('Admins only.');
   return me;
 }
 

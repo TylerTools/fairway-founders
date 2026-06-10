@@ -67,7 +67,7 @@ export default async function Home() {
                 href="/dashboard"
                 className="block w-full rounded-lg bg-[color:var(--color-navy)] text-[color:var(--color-gold)] py-4 text-center text-sm font-semibold tracking-[0.1em] uppercase shadow-lg shadow-[color:var(--color-navy)]/25 hover:opacity-90"
               >
-                Go to your dashboard →
+                Back to the course →
               </Link>
               <p className="mt-3 text-[11px] text-[color:var(--color-ink)]/70 italic text-center">
                 Welcome back, {me!.name.split(' ')[0]}.

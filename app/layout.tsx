@@ -196,7 +196,11 @@ export default async function RootLayout({
             </header>
           </HideOnHome>
           <div className="flex-1 lg:pb-0 pb-24 flex">
-            {isSignedInApproved && <EventSidebar events={filteredSidebarEvents} />}
+            {isSignedInApproved && (
+              <HideOnHome>
+                <EventSidebar events={filteredSidebarEvents} />
+              </HideOnHome>
+            )}
             <div className="flex-1 min-w-0">
               {!appUser || isApproved ? (
                 children
@@ -209,14 +213,24 @@ export default async function RootLayout({
               )}
             </div>
           </div>
-          {appUser && accessStatus === 'approved' && <PlayNowBall me={appUser} />}
-          {appUser && isApproved && <FeedbackButton />}
+          {appUser && accessStatus === 'approved' && (
+            <HideOnHome>
+              <PlayNowBall me={appUser} />
+            </HideOnHome>
+          )}
+          {appUser && isApproved && (
+            <HideOnHome>
+              <FeedbackButton />
+            </HideOnHome>
+          )}
           {isApproved && (
-            <BottomNav
-              signedIn={isSignedInApproved}
-              showAdmin={showAdminChrome}
-              showCourse={showCourseTab}
-            />
+            <HideOnHome>
+              <BottomNav
+                signedIn={isSignedInApproved}
+                showAdmin={showAdminChrome}
+                showCourse={showCourseTab}
+              />
+            </HideOnHome>
           )}
         </ClerkProvider>
       </body>

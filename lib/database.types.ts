@@ -208,7 +208,7 @@ export type Database = {
         Row: {
           closes_at: string
           course_config: Database["public"]["Enums"]["course_config"]
-          course_id: string | null
+          course_id: string
           created_at: string
           date: string
           fee_cents: number
@@ -221,7 +221,7 @@ export type Database = {
         Insert: {
           closes_at: string
           course_config?: Database["public"]["Enums"]["course_config"]
-          course_id?: string | null
+          course_id: string
           created_at?: string
           date: string
           fee_cents?: number
@@ -234,7 +234,7 @@ export type Database = {
         Update: {
           closes_at?: string
           course_config?: Database["public"]["Enums"]["course_config"]
-          course_id?: string | null
+          course_id?: string
           created_at?: string
           date?: string
           fee_cents?: number

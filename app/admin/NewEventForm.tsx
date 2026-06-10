@@ -5,20 +5,52 @@ import { createEvent, type EventFormState } from '@/app/actions/events';
 
 const initial: EventFormState = { ok: true };
 
-export default function NewEventForm() {
+export interface CourseOption {
+  id: string;
+  name: string;
+  default_pro_shop_email: string | null;
+}
+
+export default function NewEventForm({
+  courses,
+}: {
+  courses: CourseOption[];
+}) {
   const [state, formAction, pending] = useActionState(createEvent, initial);
   const [open, setOpen] = useState(false);
   const [recurrence, setRecurrence] = useState<'once' | 'weekly'>('once');
+  const [courseId, setCourseId] = useState<string>(
+    courses.length > 0 ? courses[0].id : '',
+  );
+  const selectedCourse = courses.find((c) => c.id === courseId);
+  const defaultEmail = selectedCourse?.default_pro_shop_email ?? '';
 
   if (!open) {
     return (
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="text-xs tracking-[0.1em] uppercase font-semibold text-[color:var(--color-gold)] border border-[color:var(--color-gold)]/60 rounded-full px-3 py-1.5"
+        disabled={courses.length === 0}
+        className="text-xs tracking-[0.1em] uppercase font-semibold text-[color:var(--color-gold)] border border-[color:var(--color-gold)]/60 rounded-full px-3 py-1.5 disabled:opacity-50"
+        title={courses.length === 0 ? 'Add a course to this league first' : undefined}
       >
         + New event
       </button>
+    );
+  }
+
+  if (courses.length === 0) {
+    return (
+      <div className="rounded-xl border border-[color:var(--color-gold)] bg-white p-4 text-sm">
+        <p>Add a course to this league before scheduling events.</p>
+        <button
+          type="button"
+          onClick={() => setOpen(false)}
+          className="mt-2 text-xs tracking-[0.1em] uppercase text-[color:var(--color-mute)]"
+        >
+          Close
+        </button>
+      </div>
     );
   }
 
@@ -30,6 +62,25 @@ export default function NewEventForm() {
       <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-gold)] font-semibold">
         Schedule a new round
       </p>
+
+      <label className="block">
+        <span className="text-[10px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] font-semibold">
+          Course
+        </span>
+        <select
+          name="course_id"
+          value={courseId}
+          onChange={(e) => setCourseId(e.target.value)}
+          className="mt-1 w-full border border-[color:#e8e2d2] rounded-md px-2.5 py-2 text-sm bg-white focus:outline-none focus:border-[color:var(--color-gold)]"
+        >
+          {courses.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+      </label>
+
       <Field
         label="Tee time (ET)"
         name="date"
@@ -110,10 +161,10 @@ export default function NewEventForm() {
         defaultValue="40"
       />
       <Field
-        label="Pro-shop email"
+        label="Pro-shop email (override)"
         name="pro_shop_email"
         type="email"
-        defaultValue="proshop@legacygolfclub.com"
+        defaultValue={defaultEmail}
       />
       {state.error && <p className="text-xs text-[color:#a13c3c]">{state.error}</p>}
       <div className="flex gap-2">

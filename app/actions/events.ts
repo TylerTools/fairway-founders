@@ -54,6 +54,7 @@ export async function createEvent(
   }
 
   const dateRaw = formData.get('date') as string | null;
+  const courseId = formData.get('course_id') as string | null;
   const courseConfig = (formData.get('course_config') as CourseConfig) ?? 'front';
   const feeDollarsRaw = formData.get('fee_dollars') as string | null;
   const proShopEmail = (formData.get('pro_shop_email') as string | null) ?? null;
@@ -65,6 +66,7 @@ export async function createEvent(
   );
 
   if (!dateRaw) return { ok: false, error: 'Date is required.' };
+  if (!courseId) return { ok: false, error: 'Course is required.' };
 
   let firstDate: Date;
   try {
@@ -85,6 +87,7 @@ export async function createEvent(
       date: date.toISOString(),
       opens_at: opensAt.toISOString(),
       closes_at: closesAt.toISOString(),
+      course_id: courseId,
       course_config: courseConfig,
       fee_cents,
       pro_shop_email: proShopEmail || null,

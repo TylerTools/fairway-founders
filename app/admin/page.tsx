@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
 import { getViewMode } from '@/lib/view-mode';
 import { selectEvent } from '@/lib/events';
+import { getCurrentLeague } from '@/lib/league-context';
 import { COURSE_OPTIONS, fmtMoney, liveStatus } from '@/lib/schedule';
 import AdminRsvpList from './AdminRsvpList';
 import GenerateButton from './GenerateButton';
@@ -28,6 +29,17 @@ export default async function AdminHome({
   const { event: requestedId } = await searchParams;
   const { event, events } = await selectEvent(requestedId);
 
+  const league = await getCurrentLeague();
+  const coursesRes = league
+    ? await supabase
+        .from('courses')
+        .select('id, name, default_pro_shop_email')
+        .eq('league_id', league.id)
+        .eq('is_active', true)
+        .order('name')
+    : { data: [] };
+  const courseOptions = coursesRes.data ?? [];
+
   if (!event) {
     return (
       <main className="px-6 py-8 max-w-md lg:max-w-3xl mx-auto">
@@ -42,7 +54,7 @@ export default async function AdminHome({
         </h1>
         <p className="mt-3 text-sm text-[color:#5a5a4a]">Schedule the first round:</p>
         <div className="mt-4">
-          <NewEventForm />
+          <NewEventForm courses={courseOptions} />
         </div>
       </main>
     );
@@ -128,7 +140,7 @@ export default async function AdminHome({
         >
           {dateStr}
         </h1>
-        <NewEventForm />
+        <NewEventForm courses={courseOptions} />
       </div>
       <p className="text-[11px] uppercase tracking-[0.1em] text-[color:var(--color-mute)] mt-1">
         Status · {status} · {COURSE_OPTIONS[event.course_config].label} ·{' '}

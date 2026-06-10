@@ -6,8 +6,10 @@ import HeaderUserButton from '@/components/HeaderUserButton';
 import { getAppUser } from '@/lib/current-user';
 import { getViewMode } from '@/lib/view-mode';
 import { canAccessCourseOps } from '@/lib/auth';
+import { getCurrentLeague, getMyLeagues } from '@/lib/league-context';
 import BottomNav from '@/components/BottomNav';
 import HeaderNav from '@/components/HeaderNav';
+import LeagueSwitcher from '@/components/LeagueSwitcher';
 import ViewToggle from '@/components/ViewToggle';
 import FeedbackButton from '@/components/FeedbackButton';
 import PendingScreen from '@/components/PendingScreen';
@@ -110,7 +112,12 @@ export default async function RootLayout({
   const isApproved = !appUser || accessStatus === 'approved';
   const isSignedInApproved = !!appUser && accessStatus === 'approved';
   const showCourseTab = isSignedInApproved ? await canAccessCourseOps() : false;
+  const currentLeague = isSignedInApproved ? await getCurrentLeague() : null;
+  const myLeagues = isSignedInApproved ? await getMyLeagues() : [];
   const sidebarEvents = isSignedInApproved ? await fetchEvents() : [];
+  const filteredSidebarEvents = currentLeague
+    ? sidebarEvents.filter((e) => e.course?.league?.id === currentLeague.id)
+    : sidebarEvents;
 
   return (
     <html
@@ -159,6 +166,20 @@ export default async function RootLayout({
               showCourse={showCourseTab}
             />
             <div className="flex items-center gap-3 shrink-0">
+              {isSignedInApproved && currentLeague && (
+                <LeagueSwitcher
+                  current={{
+                    id: currentLeague.id,
+                    name: currentLeague.name,
+                    short_name: currentLeague.short_name,
+                  }}
+                  options={myLeagues.map((l) => ({
+                    id: l.id,
+                    name: l.name,
+                    short_name: l.short_name,
+                  }))}
+                />
+              )}
               {isActuallyAdmin && isApproved && (
                 <ViewToggle current={viewRole === 'admin' ? 'admin' : 'member'} />
               )}
@@ -169,7 +190,7 @@ export default async function RootLayout({
             </div>
           </header>
           <div className="flex-1 lg:pb-0 pb-24 flex">
-            {isSignedInApproved && <EventSidebar events={sidebarEvents} />}
+            {isSignedInApproved && <EventSidebar events={filteredSidebarEvents} />}
             <div className="flex-1 min-w-0">
               {!appUser || isApproved ? (
                 children

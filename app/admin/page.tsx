@@ -141,6 +141,15 @@ export default async function AdminHome({
         <div className="space-y-6">
           <div className="grid gap-2">
             <Link
+              href="/admin/courses"
+              className="flex items-center justify-between rounded-xl border border-[color:#e8e2d2] bg-white px-4 py-3 hover:border-[color:var(--color-gold)]"
+            >
+              <span className="text-sm font-semibold">Courses</span>
+              <span className="text-[10px] tracking-[0.1em] uppercase text-[color:var(--color-mute)]">
+                manage →
+              </span>
+            </Link>
+            <Link
               href="/admin/access"
               className="flex items-center justify-between rounded-xl border border-[color:#e8e2d2] bg-white px-4 py-3 hover:border-[color:var(--color-gold)]"
             >

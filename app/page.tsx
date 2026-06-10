@@ -61,13 +61,6 @@ export default async function Home() {
             priority
             className="w-56 sm:w-72 md:w-80 h-auto drop-shadow-[0_8px_24px_rgba(26,58,46,0.25)]"
           />
-          <p
-            className="mt-2 text-base sm:text-lg italic text-[color:var(--color-ink)]/80"
-            style={{ fontFamily: 'var(--font-display)' }}
-          >
-            Tee off at half-past two.
-          </p>
-
           {isSignedInApproved ? (
             <div className="mt-8 w-full max-w-sm">
               <Link
@@ -318,13 +311,6 @@ export default async function Home() {
       {/* FOOTER */}
       <footer className="border-t border-[color:#e8e2d2] bg-[color:var(--color-cream)] px-6 py-10">
         <div className="max-w-4xl mx-auto flex flex-col items-center gap-5">
-          <p
-            className="text-base italic text-[color:var(--color-ink)]/80"
-            style={{ fontFamily: 'var(--font-display)' }}
-          >
-            Tee off at half-past two.
-          </p>
-
           <div className="flex items-center gap-3">
             {SOCIAL_LINKS.map((s) => (
               <a

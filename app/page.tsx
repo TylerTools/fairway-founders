@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { SignInButton, SignUpButton } from '@clerk/nextjs';
 import { getAppUser } from '@/lib/current-user';
@@ -79,34 +80,59 @@ export default async function Home() {
         </svg>
 
         {/* Top — wordmark + nav */}
-        <div className="flex items-center justify-between gap-6">
-          <div className="flex flex-col leading-[0.92]">
-            <span
-              className="font-extrabold"
-              style={{
-                fontFamily: 'var(--font-sans), system-ui, sans-serif',
-                fontSize: 22,
-                letterSpacing: '0.14em',
-                color: 'var(--ff-cream)',
-              }}
-            >
-              FAIRWAY
-            </span>
-            <span
-              className="my-1.5 rounded-sm"
-              style={{ width: 26, height: 3, background: 'var(--ff-gold)' }}
+        <div className="flex items-start justify-between gap-6">
+          {/* Brand badge — full-color logo on an ivory crest plate */}
+          <div
+            className="inline-flex flex-col items-center rounded-2xl px-6 py-5 sm:px-7 sm:py-6"
+            style={{
+              background: 'var(--ff-cream)',
+              border: '1px solid var(--ff-border)',
+              boxShadow: 'var(--shadow-raised)',
+            }}
+          >
+            <Image
+              src="/logo.png"
+              alt="Fairway Founders Network"
+              width={520}
+              height={520}
+              priority
+              className="h-44 w-44 sm:h-52 sm:w-52"
             />
-            <span
-              className="font-bold"
-              style={{
-                fontFamily: 'var(--font-sans), system-ui, sans-serif',
-                fontSize: 11,
-                letterSpacing: '0.26em',
-                color: 'var(--ff-gold)',
-              }}
+            <div
+              className="mt-4 flex w-full items-center justify-center gap-2.5 pt-3"
+              style={{ borderTop: '1px solid var(--ff-hairline)' }}
             >
-              FOUNDERS&nbsp;NETWORK
-            </span>
+              <Image
+                src="/gln-mark.png"
+                alt="Golf Links Network"
+                width={313}
+                height={192}
+                className="h-7 w-auto"
+              />
+              <div className="text-left leading-tight">
+                <p
+                  className="m-0 font-bold uppercase"
+                  style={{
+                    fontSize: 8,
+                    letterSpacing: '0.18em',
+                    color: 'var(--ff-taupe)',
+                    fontFamily: 'var(--font-sans), system-ui, sans-serif',
+                  }}
+                >
+                  Powered by
+                </p>
+                <p
+                  className="m-0 font-semibold"
+                  style={{
+                    fontSize: 11,
+                    color: 'var(--ff-ink-soft)',
+                    fontFamily: 'var(--font-sans), system-ui, sans-serif',
+                  }}
+                >
+                  Golf Links Network
+                </p>
+              </div>
+            </div>
           </div>
 
           <nav className="hidden sm:flex gap-7">

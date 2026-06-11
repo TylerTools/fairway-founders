@@ -768,6 +768,7 @@ export type Database = {
           kind: Database["public"]["Enums"]["sponsorship_kind"]
           league_id: string | null
           note: string | null
+          placements: Database["public"]["Enums"]["sponsor_placement"][]
           requested_at: string
           starts_at: string | null
           status: Database["public"]["Enums"]["sponsorship_status"]
@@ -782,6 +783,7 @@ export type Database = {
           kind: Database["public"]["Enums"]["sponsorship_kind"]
           league_id?: string | null
           note?: string | null
+          placements?: Database["public"]["Enums"]["sponsor_placement"][]
           requested_at?: string
           starts_at?: string | null
           status?: Database["public"]["Enums"]["sponsorship_status"]
@@ -796,6 +798,7 @@ export type Database = {
           kind?: Database["public"]["Enums"]["sponsorship_kind"]
           league_id?: string | null
           note?: string | null
+          placements?: Database["public"]["Enums"]["sponsor_placement"][]
           requested_at?: string
           starts_at?: string | null
           status?: Database["public"]["Enums"]["sponsorship_status"]
@@ -976,6 +979,11 @@ export type Database = {
         | "sponsorship_request"
         | "sponsorship_approved"
         | "sponsorship_declined"
+      sponsor_placement:
+        | "roster_pin"
+        | "dashboard_strip"
+        | "homepage_section"
+        | "sponsors_page"
       sponsorship_kind: "featured" | "round"
       sponsorship_status: "requested" | "active" | "declined" | "expired"
     }
@@ -1163,6 +1171,12 @@ export const Constants = {
         "sponsorship_request",
         "sponsorship_approved",
         "sponsorship_declined",
+      ],
+      sponsor_placement: [
+        "roster_pin",
+        "dashboard_strip",
+        "homepage_section",
+        "sponsors_page",
       ],
       sponsorship_kind: ["featured", "round"],
       sponsorship_status: ["requested", "active", "declined", "expired"],

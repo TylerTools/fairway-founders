@@ -1,3 +1,44 @@
+# Agent Coordination
+
+Async board for AI agents working this repo in parallel. A committed file (not a
+live chat) is the source of truth for "who's touching what," because agents
+aren't reliably on the same channel.
+
+> Every agent: at session START, read the *Active claims* table + the *Recent
+> log* (newest-first — you only need ~the last 2 weeks). Update it when you
+> start/finish a chunk. You do NOT need the archived history under
+> docs/agent-log/ unless chasing something specific.
+
+## How to use
+1. Before editing, scan Active claims. If your work overlaps a claim, pick
+   non-overlapping work or coordinate in the log (relayed via your human
+   operator if agents can't message each other directly).
+2. Claim your area — add/maintain a row in Active claims.
+3. Release when you pause/finish — remove your row or note it in the log.
+4. Write terse — fewest words possible. Log entries are 1–2 sentences max: state
+   the decision/claim/hand-off and stop. No reasoning, recap, or paragraphs —
+   verbosity here is the #1 way this always-loaded file bloats context. Newest
+   first; every entry MUST begin with its date YYYY-MM-DD (load-bearing — makes
+   "recent vs. archive" a mechanical date cut). @name a peer.
+5. Self-maintain on read. You already pull this file at session start — so on
+   the way through, move any Recent-log entry older than ~2 weeks into
+   docs/agent-log/<YYYY-MM>.md (grouped by the entry's month; create if missing).
+   The read you already do IS the cleanup — no script, no cron. The archive is
+   read on-demand only.
+
+## Active claims
+| Agent | Area / files | Status |
+|---|---|---|
+| @claude-members | Members/networking: `app/network/*`, `app/me/*`, `app/roster/*`, `app/actions/{interactions,analytics,stats,profile}.ts`, `app/api/vcard/*`, networking `components/*` (MemberCard, MemberDirectory, CountTags, InteractionIcons, ProfileInteractionButtons, ProfileAnalytics, NetworkLeaderboard, Track*) | wrapping up — M1–M5 + sponsor/club value reports shipped |
+| @claude-design | Design system (`BRAND.md`, `ff-card`/`ff-btn` in `app/globals.css`), admin cockpit (`app/admin/*`), sponsorship placements (`lib/sponsorship-placements.ts`, `/sponsors`) | ongoing |
+
+## Recent log
+_(last ~2 weeks, newest first — older entries rotate to docs/agent-log/<YYYY-MM>.md)_
+
+- **2026-06-10 — @claude-members → @claude-design:** Members M1–M5 + sponsor/club value reports on `main` (e4f5bf6); review fixes landed in `app/actions/interactions.ts` + `profile.ts` — rebase before you commit. Your untracked `app/admin/events/page.tsx` has a tsc error (partial `events` Row).
+
+---
+
 # Building UI? Read BRAND.md first
 
 Before writing or changing any member- or admin-facing UI, read

@@ -17,6 +17,17 @@ Non-negotiables (full rules + copy-paste recipes + a pre-flight checklist in `BR
 - **No emoji or decorative glyphs** — only `✓`, `←`, `→`. No photography in the app
   (silhouette avatars); golden-hour photo/video is allowed **only** on the public sign-in page.
 
+## Multi-agent coordination
+
+Other AI agents may work this repo in parallel. At session start, read
+[`AGENTS.md`](AGENTS.md) — the Active claims table + the Recent log (newest-first;
+~last 2 weeks only; you do NOT need the archive under `docs/agent-log/`). Update
+it when you start/finish a chunk — write terse, 1–2 sentences max per entry, no
+reasoning or recap (verbosity bloats the always-read file). Since you're already
+reading it, self-maintain: rotate any log entry older than ~2 weeks (by its
+`YYYY-MM-DD` prefix) into `docs/agent-log/<YYYY-MM>.md`. Stay out of files another
+agent has claimed unless you coordinate.
+
 ## What we're building
 
 Fairway Founders is a private, weekly networking app for ~16–30 founders and operators who play a 9-hole scramble together. Members RSVP through Tuesday evening; at cutoff the system auto-builds foursomes that minimize repeat pairings and spread professions, then assigns each group a cart pairing and a starting hole for a 2:30 PM Thursday shotgun. During the round an admin posts hole-by-hole scores to a live, handicap-net leaderboard. The course pro shop gets a printable cart-label PDF and a draft confirmation email so check-in is one tap. The product feel is a quiet, editorial members club — Fraunces serif headlines on navy/gold/cream — not a spreadsheet.

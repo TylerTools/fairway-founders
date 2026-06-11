@@ -1,99 +1,99 @@
-import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
-import Avatar from '@/components/Avatar';
+import { getMyLeagues } from '@/lib/league-context';
 import InviteFriend from '@/components/InviteFriend';
-import type { Database } from '@/lib/database.types';
-
-type AppRole = Database['public']['Enums']['app_role'];
-type AccessStatus = Database['public']['Enums']['access_status'];
-
-const ROLE_LABEL: Record<AppRole, string> = {
-  member: 'Member',
-  super_admin: 'Admin',
-};
+import MemberDirectory from '@/components/MemberDirectory';
+import type { DirectoryMember } from '@/components/MemberCard';
 
 export default async function RosterPage() {
   const me = await getAppUser();
-  const canInvite = !!me && me.access_status === 'approved';
+  const isApproved = !!me && me.access_status === 'approved';
   const isAdmin = me?.app_role === 'super_admin';
 
   let q = supabase
     .from('users')
-    .select('id, name, professional_role, company, handicap, app_role, access_status')
+    .select(
+      'id, name, professional_role, company, tagline, photo_url, handicap, app_role, access_status',
+    )
     .order('name', { ascending: true });
   if (!isAdmin) q = q.eq('access_status', 'approved');
   const res = await q;
   const members = res.data ?? [];
 
-  const approvedCount = members.filter((m) => m.access_status === 'approved').length;
+  // League tags per member (one query, folded).
+  const lmRes = await supabase
+    .from('league_memberships')
+    .select('user_id, league:league_id(name, short_name, slug)');
+  const leagueByUser = new Map<string, { slug: string; label: string }[]>();
+  for (const row of lmRes.data ?? []) {
+    const l = Array.isArray(row.league) ? row.league[0] : row.league;
+    if (!l) continue;
+    const arr = leagueByUser.get(row.user_id) ?? [];
+    arr.push({ slug: l.slug, label: l.short_name || l.name });
+    leagueByUser.set(row.user_id, arr);
+  }
+
+  // Accepted-interaction counts for every member (one query, folded).
+  const intRes = await supabase
+    .from('interactions')
+    .select('kind, from_user_id, to_user_id')
+    .eq('status', 'accepted');
+  const counts = new Map<string, { fours: number; links: number; birdies: number }>();
+  const bump = (uid: string, k: 'fours' | 'links' | 'birdies') => {
+    const c = counts.get(uid) ?? { fours: 0, links: 0, birdies: 0 };
+    c[k] += 1;
+    counts.set(uid, c);
+  };
+  for (const r of intRes.data ?? []) {
+    if (r.kind === 'four') bump(r.from_user_id, 'fours');
+    else if (r.kind === 'link') {
+      bump(r.from_user_id, 'links');
+      bump(r.to_user_id, 'links');
+    } else if (r.kind === 'birdie') {
+      bump(r.from_user_id, 'birdies');
+      bump(r.to_user_id, 'birdies');
+    }
+  }
+
+  const enriched: DirectoryMember[] = members.map((m) => ({
+    id: m.id,
+    name: m.name,
+    professional_role: m.professional_role,
+    company: m.company,
+    tagline: m.tagline,
+    photo_url: m.photo_url,
+    handicap: m.handicap,
+    app_role: m.app_role,
+    access_status: m.access_status,
+    leagues: leagueByUser.get(m.id) ?? [],
+    counts: counts.get(m.id) ?? { fours: 0, links: 0, birdies: 0 },
+    isMe: me?.id === m.id,
+  }));
+
+  const approvedCount = enriched.filter((m) => m.access_status === 'approved').length;
+
+  const leagues = await getMyLeagues();
+  const leagueFilters = leagues.map((l) => ({
+    slug: l.slug,
+    label: l.short_name || l.name,
+  }));
 
   return (
     <main className="px-6 py-8 max-w-md lg:max-w-5xl mx-auto w-full">
       <div className="flex items-center justify-between gap-3 mb-3">
         <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)]">
-          Roster · {approvedCount} member{approvedCount === 1 ? '' : 's'}
-          {isAdmin && members.length > approvedCount && (
+          Members · {approvedCount} member{approvedCount === 1 ? '' : 's'}
+          {isAdmin && enriched.length > approvedCount && (
             <span className="text-[color:var(--color-gold)]">
               {' '}
-              · {members.length - approvedCount} other
+              · {enriched.length - approvedCount} other
             </span>
           )}
         </p>
-        {canInvite && <InviteFriend inviterName={me.name} />}
+        {isApproved && me && <InviteFriend inviterName={me.name} />}
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
-        {members.map((m) => {
-          const role = m.app_role as AppRole;
-          const status = m.access_status as AccessStatus;
-          const showRoleChip = role !== 'member';
-          const showStatusChip = isAdmin && status !== 'approved';
-          return (
-            <Link
-              key={m.id}
-              href={`/roster/${m.id}`}
-              className={`bg-white border rounded-xl p-3.5 hover:border-[color:var(--color-gold)] ${
-                showStatusChip
-                  ? 'border-[color:#a13c3c]/40'
-                  : 'border-[color:#e8e2d2]'
-              }`}
-            >
-              <div className="flex justify-between items-start mb-2">
-                <Avatar size={40} />
-                {m.handicap != null && (
-                  <span className="text-[9px] bg-[color:var(--color-navy)] text-[color:var(--color-gold)] rounded-md px-1.5 py-0.5 font-bold tracking-wide">
-                    HCP {m.handicap}
-                  </span>
-                )}
-              </div>
-              <p className="text-[13px] font-semibold leading-tight">
-                {m.name}
-                {me && me.id === m.id && (
-                  <span className="text-[color:var(--color-gold)] font-normal"> (you)</span>
-                )}
-              </p>
-              <p className="text-[11px] text-[color:var(--color-mute)] mt-0.5">
-                {m.professional_role}
-              </p>
-              {(showRoleChip || showStatusChip) && (
-                <div className="mt-1.5 flex flex-wrap gap-1">
-                  {showRoleChip && (
-                    <span className="text-[8px] tracking-[0.12em] uppercase font-bold bg-[color:var(--color-navy)] text-[color:var(--color-gold)] rounded-full px-1.5 py-0.5">
-                      {ROLE_LABEL[role]}
-                    </span>
-                  )}
-                  {showStatusChip && (
-                    <span className="text-[8px] tracking-[0.12em] uppercase font-bold bg-[color:#a13c3c] text-white rounded-full px-1.5 py-0.5">
-                      {status}
-                    </span>
-                  )}
-                </div>
-              )}
-            </Link>
-          );
-        })}
-      </div>
+      <MemberDirectory members={enriched} leagues={leagueFilters} isAdmin={isAdmin} />
     </main>
   );
 }

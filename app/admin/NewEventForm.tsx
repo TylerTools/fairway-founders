@@ -41,7 +41,7 @@ export default function NewEventForm({
 
   if (courses.length === 0) {
     return (
-      <div className="rounded-xl border border-[color:var(--color-gold)] bg-white p-4 text-sm">
+      <div className="rounded-xl border border-[color:var(--color-gold)] bg-white ff-card p-4 text-sm">
         <p>Add a course to this league before scheduling events.</p>
         <button
           type="button"
@@ -57,7 +57,7 @@ export default function NewEventForm({
   return (
     <form
       action={formAction}
-      className="rounded-xl border border-[color:var(--color-gold)] bg-white p-4 space-y-3"
+      className="rounded-xl border border-[color:var(--color-gold)] bg-white ff-card p-4 space-y-3"
     >
       <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-gold)] font-semibold">
         Schedule a new round

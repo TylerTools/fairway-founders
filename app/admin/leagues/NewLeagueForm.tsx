@@ -24,7 +24,7 @@ export default function NewLeagueForm() {
   return (
     <form
       action={formAction}
-      className="w-full sm:w-auto sm:min-w-[360px] rounded-xl border border-[color:var(--color-gold)] bg-white p-4 space-y-3"
+      className="w-full sm:w-auto sm:min-w-[360px] rounded-xl border border-[color:var(--color-gold)] bg-white ff-card p-4 space-y-3"
     >
       <p className="text-[10px] tracking-[0.15em] uppercase font-semibold text-[color:var(--color-gold)]">
         Add a league

@@ -91,7 +91,7 @@ export default async function CoursesIndex() {
             <Link
               key={c.id}
               href={`/admin/courses/${c.id}`}
-              className={`rounded-xl border bg-white p-4 hover:border-[color:var(--color-gold)] ${
+              className={`rounded-xl border bg-white ff-card p-4 hover:border-[color:var(--color-gold)] ${
                 c.is_active
                   ? 'border-[color:#e8e2d2]'
                   : 'border-[color:#e8e2d2] opacity-60'

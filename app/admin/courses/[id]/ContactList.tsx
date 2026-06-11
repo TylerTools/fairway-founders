@@ -60,7 +60,7 @@ export default function ContactList({
           {contacts.map((c) => (
             <li
               key={c.id}
-              className={`rounded-xl border bg-white p-4 ${
+              className={`rounded-xl border bg-white ff-card p-4 ${
                 c.is_primary ? 'border-[color:var(--color-gold)]' : 'border-[color:#e8e2d2]'
               }`}
             >
@@ -127,7 +127,7 @@ export default function ContactList({
       {adding ? (
         <form
           action={formAction}
-          className="rounded-xl border border-[color:var(--color-gold)] bg-white p-4 space-y-3"
+          className="rounded-xl border border-[color:var(--color-gold)] bg-white ff-card p-4 space-y-3"
         >
           <Field label="Name" name="name" required />
           <Field label="Role / title" name="role" placeholder="Head Pro, Manager…" />

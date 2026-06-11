@@ -86,7 +86,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function StatGrid({ items }: { items: { n: number | string; label: string }[] }) {
   return (
-    <div className="rounded-xl border border-[color:#e8e2d2] bg-white p-4 grid grid-cols-3 gap-y-4 gap-x-2">
+    <div className="rounded-xl border border-[color:#e8e2d2] bg-white ff-card p-4 grid grid-cols-3 gap-y-4 gap-x-2">
       {items.map((it) => (
         <div key={it.label} className="text-center">
           <p className="text-xl font-semibold" style={{ fontFamily: 'var(--font-display)' }}>

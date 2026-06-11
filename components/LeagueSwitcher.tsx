@@ -12,9 +12,13 @@ export interface LeagueSwitcherLeague {
 export default function LeagueSwitcher({
   current,
   options,
+  variant = 'header',
 }: {
   current: LeagueSwitcherLeague;
   options: LeagueSwitcherLeague[];
+  /** 'header' is the small chip in the app header; 'inline' is the larger
+   *  cockpit pill (gold hairline, always visible, used on /admin landing). */
+  variant?: 'header' | 'inline';
 }) {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -29,7 +33,10 @@ export default function LeagueSwitcher({
   }, [open]);
 
   if (options.length <= 1) {
-    // Just show the current league name as a static label.
+    // Header chip falls back to a small static label so the user still knows
+    // which league they're in. Inline variant hides — the cockpit already
+    // shows the league name in its headline so a non-clickable echo is noise.
+    if (variant === 'inline') return null;
     return (
       <span className="hidden sm:inline-flex items-center text-[10px] tracking-[0.12em] uppercase font-semibold text-[color:var(--color-mute)]">
         {current.short_name ?? current.name}
@@ -46,15 +53,24 @@ export default function LeagueSwitcher({
     });
   }
 
+  const buttonClass =
+    variant === 'inline'
+      ? 'inline-flex items-center gap-2 rounded-full border border-[color:var(--color-gold)] bg-white px-4 py-2 text-[11px] font-semibold tracking-[0.12em] uppercase text-[color:var(--color-navy)] hover:bg-[color:#f5f1e8]/40 disabled:opacity-60'
+      : 'inline-flex items-center gap-1.5 rounded-full border border-[color:#e8e2d2] bg-white px-3 py-1 text-[10px] font-semibold tracking-[0.12em] uppercase text-[color:var(--color-ink)] hover:border-[color:var(--color-gold)] disabled:opacity-60';
+  const labelPrefix = variant === 'inline' ? 'Switch league · ' : '';
+
   return (
     <div ref={ref} className="relative">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         disabled={pending}
-        className="inline-flex items-center gap-1.5 rounded-full border border-[color:#e8e2d2] bg-white px-3 py-1 text-[10px] font-semibold tracking-[0.12em] uppercase text-[color:var(--color-ink)] hover:border-[color:var(--color-gold)] disabled:opacity-60"
+        className={buttonClass}
       >
-        <span>{current.short_name ?? current.name}</span>
+        <span>
+          {labelPrefix}
+          {current.short_name ?? current.name}
+        </span>
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M6 9l6 6 6-6" />
         </svg>

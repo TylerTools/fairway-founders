@@ -2,13 +2,16 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getAppUser } from '@/lib/current-user';
 import { getMyAppProfile } from '@/app/actions/profile';
+import { getMySponsorship } from '@/app/actions/sponsorships';
 import ProfileEditor from './ProfileEditor';
+import SponsorshipRequest from '@/components/SponsorshipRequest';
 
 export default async function MePage() {
   const me = await getAppUser();
   if (!me) redirect('/');
   const profile = await getMyAppProfile();
   if (!profile) redirect('/');
+  const sponsorship = await getMySponsorship();
 
   return (
     <main className="px-6 py-8 max-w-md lg:max-w-2xl mx-auto w-full">
@@ -33,6 +36,10 @@ export default async function MePage() {
         photoUrl={profile.photo_url}
         logoUrl={profile.logo_url}
       />
+
+      <div className="mt-3">
+        <SponsorshipRequest current={sponsorship} />
+      </div>
     </main>
   );
 }

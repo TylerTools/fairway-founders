@@ -5,6 +5,7 @@ import { getMyLeagues } from '@/lib/league-context';
 import InviteFriend from '@/components/InviteFriend';
 import MemberDirectory from '@/components/MemberDirectory';
 import type { DirectoryMember } from '@/components/MemberCard';
+import { getActiveFeaturedUserIds } from '@/app/actions/sponsorships';
 
 export default async function RosterPage() {
   const me = await getAppUser();
@@ -56,6 +57,8 @@ export default async function RosterPage() {
     }
   }
 
+  const featuredIds = new Set(await getActiveFeaturedUserIds());
+
   const enriched: DirectoryMember[] = members.map((m) => ({
     id: m.id,
     name: m.name,
@@ -69,7 +72,13 @@ export default async function RosterPage() {
     leagues: leagueByUser.get(m.id) ?? [],
     counts: counts.get(m.id) ?? { fours: 0, links: 0, birdies: 0 },
     isMe: me?.id === m.id,
+    featured: featuredIds.has(m.id),
   }));
+
+  // Featured members pinned to the top, then the existing name order (stable).
+  enriched.sort(
+    (a, b) => Number(b.featured) - Number(a.featured) || a.name.localeCompare(b.name),
+  );
 
   const approvedCount = enriched.filter((m) => m.access_status === 'approved').length;
 

@@ -15,6 +15,7 @@ export interface DirectoryMember {
   leagues: { slug: string; label: string }[];
   counts: { fours: number; links: number; birdies: number };
   isMe: boolean;
+  featured: boolean;
 }
 
 const ROLE_LABEL: Record<'member' | 'super_admin', string> = {
@@ -32,14 +33,24 @@ export default function MemberCard({
   const showRoleChip = m.app_role !== 'member';
   const showStatusChip = isAdmin && m.access_status !== 'approved';
   const subtitle = m.tagline || m.professional_role;
+  const borderCls = m.featured
+    ? 'border-[color:var(--color-gold)]'
+    : showStatusChip
+      ? 'border-[color:#a13c3c]/40'
+      : 'border-[color:#e8e2d2]';
 
   return (
     <Link
       href={`/roster/${m.id}`}
-      className={`bg-white border rounded-xl p-3.5 hover:border-[color:var(--color-gold)] transition-colors ${
-        showStatusChip ? 'border-[color:#a13c3c]/40' : 'border-[color:#e8e2d2]'
+      className={`border rounded-xl p-3.5 hover:border-[color:var(--color-gold)] transition-colors ${borderCls} ${
+        m.featured ? 'bg-[color:#fdfbf4]' : 'bg-white'
       }`}
     >
+      {m.featured && (
+        <p className="mb-1.5 text-[8px] tracking-[0.15em] uppercase font-bold text-[color:var(--color-gold)]">
+          ★ Featured
+        </p>
+      )}
       <div className="flex justify-between items-start mb-2">
         <Avatar size={44} photoUrl={m.photo_url} rounded="xl" />
         {m.handicap != null && (

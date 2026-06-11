@@ -14,6 +14,14 @@ const KIND_LABEL: Record<MyNotification['kind'], string> = {
   broadcast: 'Message',
   access_request: 'Access request',
   feedback: 'Feedback',
+  four_received: 'Four',
+  link_request: 'Link',
+  birdie_request: 'Birdie',
+  interaction_accepted: 'Confirmed',
+  interaction_declined: 'Declined',
+  sponsorship_request: 'Sponsorship',
+  sponsorship_approved: 'Sponsorship approved',
+  sponsorship_declined: 'Sponsorship declined',
 };
 
 function timeAgo(iso: string): string {

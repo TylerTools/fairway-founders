@@ -1,844 +1,493 @@
-import Image from 'next/image';
-import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { SignInButton, SignUpButton } from '@clerk/nextjs';
 import { getAppUser } from '@/lib/current-user';
-import { supabase } from '@/lib/supabase';
-import { COURSE_OPTIONS } from '@/lib/schedule';
-import type { EventRow } from '@/lib/events';
-import HowItWorksStep from '@/components/HowItWorksStep';
 
 export const dynamic = 'force-dynamic';
 
-const SPONSORS: { name: string; logo?: string; href?: string }[] = [
-  { name: 'Sponsor One' },
-  { name: 'Sponsor Two' },
-  { name: 'Sponsor Three' },
-  { name: 'Sponsor Four' },
-  { name: 'Sponsor Five' },
-  { name: 'Sponsor Six' },
-];
-
-const SOCIAL_LINKS: { label: string; href: string; icon: 'instagram' | 'x' | 'linkedin' }[] = [
-  { label: 'Instagram', href: '#', icon: 'instagram' },
-  { label: 'X', href: '#', icon: 'x' },
-  { label: 'LinkedIn', href: '#', icon: 'linkedin' },
-];
-
 export default async function Home() {
   const me = await getAppUser();
-  const isSignedInApproved = !!me && me.access_status === 'approved';
-
-  const eventsRes = await supabase
-    .from('events')
-    .select('*, course:course_id(id, name, short_name, city, state)')
-    .gte('date', new Date().toISOString().slice(0, 10))
-    .order('date', { ascending: true })
-    .limit(3);
-  const upcoming = (eventsRes.data ?? []) as (EventRow & {
-    course: { id: string; name: string; short_name: string | null; city: string | null; state: string | null } | null;
-  })[];
+  if (me && me.access_status === 'approved') redirect('/dashboard');
 
   return (
-    <main className="flex-1">
-      {/* HERO */}
-      <section className="relative overflow-hidden">
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="metadata"
-          className="absolute inset-0 w-full h-full object-cover opacity-40 pointer-events-none"
-        >
-          <source src="/hero.mp4" type="video/mp4" />
-          <source src="/hero.webm" type="video/webm" />
-        </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-[color:var(--color-cream)]/60 via-[color:var(--color-cream)]/30 to-[color:var(--color-cream)]/85 pointer-events-none" />
+    <div
+      className="grid lg:grid-cols-[1.15fr_1fr] min-h-screen w-full"
+      style={{ background: 'var(--ff-cream)' }}
+    >
+      {/* LEFT — Pine photographic hero */}
+      <section
+        className="relative overflow-hidden flex flex-col justify-between gap-7 px-6 sm:px-10 lg:px-14 py-9 sm:py-10 lg:py-11 min-h-[360px] lg:min-h-screen"
+        style={{
+          color: 'var(--ff-cream)',
+          isolation: 'isolate',
+        }}
+      >
+        {/* Pine gradient backdrop */}
+        <div
+          aria-hidden
+          className="absolute inset-0 -z-10"
+          style={{
+            background: 'var(--ff-pine-deep)',
+          }}
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0 -z-10"
+          style={{
+            background: `
+              linear-gradient(180deg, rgba(13,31,23,0.55) 0%, rgba(13,31,23,0.30) 38%, rgba(13,31,23,0.78) 100%),
+              radial-gradient(120% 80% at 70% 20%, rgba(42,79,60,0.65), rgba(13,31,23,0) 60%)
+            `,
+          }}
+        />
 
-        <div className="relative z-10 max-w-6xl mx-auto px-6 py-20 md:py-28 lg:py-32 text-center lg:text-left">
-          <div className="max-w-2xl mx-auto lg:mx-0">
-            <p className="text-[11px] tracking-[0.2em] uppercase text-[color:var(--color-mute)] font-semibold">
-              The weekly meetup
-            </p>
-            <h1
-              className="mt-4 text-4xl sm:text-5xl lg:text-6xl leading-[1.05] tracking-tight text-[color:var(--color-ink)]"
-              style={{ fontFamily: 'var(--font-display)' }}
+        {/* Faint flag watermark, bottom-right */}
+        <svg
+          aria-hidden
+          viewBox="0 0 120 120"
+          className="absolute -right-10 -bottom-8 w-[280px] lg:w-[360px] opacity-[0.07] pointer-events-none -z-10"
+        >
+          <ellipse cx="60" cy="98" rx="50" ry="9" fill="#f5f1e8" />
+          <line
+            x1="74"
+            y1="98"
+            x2="74"
+            y2="22"
+            stroke="#f5f1e8"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+          />
+          <path
+            d="M 74 24 Q 90 30 100 26 Q 92 38 100 50 Q 90 46 74 50 Z"
+            fill="#f5f1e8"
+          />
+          <circle cx="48" cy="96" r="4.5" fill="#f5f1e8" />
+        </svg>
+
+        {/* Top — wordmark + nav */}
+        <div className="flex items-center justify-between gap-6">
+          <div className="flex flex-col leading-[0.92]">
+            <span
+              className="font-extrabold"
+              style={{
+                fontFamily: 'var(--font-sans), system-ui, sans-serif',
+                fontSize: 22,
+                letterSpacing: '0.14em',
+                color: 'var(--ff-cream)',
+              }}
             >
-              Where business meets{' '}
-              <span className="italic text-[color:var(--color-gold)]">the fairway.</span>
-            </h1>
-            <p className="mt-5 text-base sm:text-lg leading-relaxed text-[color:#3a3a30] max-w-xl mx-auto lg:mx-0">
-              A Thursday-afternoon meetup of founders and operators who&rsquo;d
-              rather build relationships in nine holes than across a conference
-              table.
-            </p>
-
-            <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
-              {isSignedInApproved ? (
-                <Link
-                  href="/dashboard"
-                  className="rounded-lg bg-[color:var(--color-navy)] text-[color:var(--color-gold)] px-7 py-4 text-center text-sm font-semibold tracking-[0.1em] uppercase shadow-lg shadow-[color:var(--color-navy)]/25 hover:opacity-90"
-                >
-                  Back to the course →
-                </Link>
-              ) : (
-                <>
-                  <SignInButton>
-                    <button className="rounded-lg bg-[color:var(--color-navy)] text-[color:var(--color-gold)] px-7 py-4 text-sm font-semibold tracking-[0.1em] uppercase shadow-lg shadow-[color:var(--color-navy)]/25 hover:opacity-90">
-                      Book a tee time
-                    </button>
-                  </SignInButton>
-                  <SignUpButton>
-                    <button className="rounded-lg border border-[color:var(--color-gold)] bg-white/80 text-[color:var(--color-ink)] px-7 py-4 text-sm font-semibold tracking-[0.1em] uppercase shadow-md hover:bg-white">
-                      Join the network
-                    </button>
-                  </SignUpButton>
-                </>
-              )}
-            </div>
-
-            {isSignedInApproved ? (
-              <p className="mt-4 text-[11px] text-[color:var(--color-ink)]/70 italic text-center lg:text-left">
-                Welcome back, {me!.name.split(' ')[0]}.
-              </p>
-            ) : (
-              <p className="mt-4 text-[10px] text-[color:var(--color-ink)]/60 text-center lg:text-left">
-                By joining, you agree to our{' '}
-                <Link href="/terms" className="underline hover:text-[color:var(--color-gold)]">
-                  Terms of Service
-                </Link>{' '}
-                and{' '}
-                <Link href="/privacy" className="underline hover:text-[color:var(--color-gold)]">
-                  Privacy Policy
-                </Link>
-                . An admin reviews every new member.
-              </p>
-            )}
+              FAIRWAY
+            </span>
+            <span
+              className="my-1.5 rounded-sm"
+              style={{ width: 26, height: 3, background: 'var(--ff-gold)' }}
+            />
+            <span
+              className="font-bold"
+              style={{
+                fontFamily: 'var(--font-sans), system-ui, sans-serif',
+                fontSize: 11,
+                letterSpacing: '0.26em',
+                color: 'var(--ff-gold)',
+              }}
+            >
+              FOUNDERS&nbsp;NETWORK
+            </span>
           </div>
+
+          <nav className="hidden sm:flex gap-7">
+            {['The Club', 'Membership', 'The Round'].map((label) => (
+              <a
+                key={label}
+                href="#"
+                className="text-[11px] font-semibold uppercase pb-1 border-b border-transparent hover:border-[color:var(--ff-gold)] transition-colors"
+                style={{
+                  letterSpacing: '0.16em',
+                  color: 'rgba(245,241,232,0.82)',
+                  fontFamily: 'var(--font-sans), system-ui, sans-serif',
+                }}
+              >
+                {label}
+              </a>
+            ))}
+          </nav>
         </div>
+
+        {/* Middle — eyebrow + headline + sub */}
+        <div className="max-w-[520px]">
+          <p
+            className="font-bold uppercase mb-5"
+            style={{
+              fontSize: 11,
+              letterSpacing: '0.28em',
+              color: 'var(--ff-gold)',
+              fontFamily: 'var(--font-sans), system-ui, sans-serif',
+            }}
+          >
+            Invitation Only · Est. 2024
+          </p>
+          <h1
+            className="m-0"
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontOpticalSizing: 'auto',
+              fontSize: 'clamp(38px, 4.4vw, 58px)',
+              fontWeight: 400,
+              lineHeight: 1.03,
+              letterSpacing: '-0.025em',
+              textWrap: 'balance' as React.CSSProperties['textWrap'],
+            }}
+          >
+            Where deals are made{' '}
+            <em
+              style={{
+                fontStyle: 'italic',
+                color: 'var(--ff-gold)',
+              }}
+            >
+              between the tee and the green.
+            </em>
+          </h1>
+          <p
+            className="mt-5 max-w-[440px]"
+            style={{
+              fontSize: 15,
+              lineHeight: 1.6,
+              color: 'rgba(245,241,232,0.80)',
+            }}
+          >
+            A private circle of founders and operators. Nine holes, one
+            shotgun, every Thursday at half-past two &mdash; the foursomes do
+            the networking for you.
+          </p>
+        </div>
+
+        {/* Bottom — quote */}
+        <figure className="flex gap-4 items-start max-w-[460px] m-0">
+          <div
+            className="self-stretch shrink-0"
+            style={{
+              width: 2,
+              background: 'var(--ff-gold)',
+              opacity: 0.7,
+            }}
+            aria-hidden
+          />
+          <div>
+            <blockquote
+              className="m-0"
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontStyle: 'italic',
+                fontSize: 17,
+                lineHeight: 1.5,
+                color: 'rgba(245,241,232,0.92)',
+              }}
+            >
+              &ldquo;Two rounds in, I&rsquo;d closed a build, found my CPA, and
+              made a friend. The course does what a conference never could.&rdquo;
+            </blockquote>
+            <figcaption
+              className="mt-3 font-bold uppercase"
+              style={{
+                fontFamily: 'var(--font-sans), system-ui, sans-serif',
+                fontSize: 10,
+                letterSpacing: '0.18em',
+                color: 'var(--ff-gold)',
+                fontStyle: 'normal',
+              }}
+            >
+              &mdash; Founding Member, Round 6
+            </figcaption>
+          </div>
+        </figure>
       </section>
 
-      {/* ABOUT */}
-      <section id="about" className="px-6 py-16 md:py-20 max-w-3xl mx-auto text-center scroll-mt-20">
-        <p className="text-[11px] tracking-[0.2em] uppercase text-[color:var(--color-mute)]">
-          The weekly meetup
-        </p>
-        <h2
-          className="mt-3 text-3xl md:text-4xl leading-tight"
-          style={{ fontFamily: 'var(--font-display)' }}
-        >
-          A round of golf,{' '}
-          <span className="italic text-[color:var(--color-gold)]">a room full of founders.</span>
-        </h2>
-        <p className="mt-5 text-[15px] leading-relaxed text-[color:#5a5a4a]">
-          Fairway Founders is a recurring Thursday-afternoon meetup of founders
-          and operators who'd rather build relationships in nine holes than
-          across a conference table. Every week, the algorithm pairs you with
-          three people you haven't played with — spread across professions, so
-          every cart is a new conversation.
-        </p>
-
-        <div className="mt-10 grid grid-cols-3 gap-4 md:gap-8">
-          <Stat label="Weekly" value="Thursdays" sub="2:30 PM shotgun" />
-          <Stat label="Format" value="Scramble" sub="9-hole, handicapped" />
-          <Stat label="Group" value="16–30" sub="Founders & operators" />
-        </div>
-      </section>
-
-      {/* HOW IT WORKS */}
-      <section id="how-it-works" className="bg-[color:#f5f1e8]/60 px-6 py-16 md:py-20 scroll-mt-20">
-        <div className="max-w-6xl mx-auto">
-          <p className="text-[11px] tracking-[0.2em] uppercase text-[color:var(--color-mute)] text-center font-semibold">
-            How it works
+      {/* RIGHT — Sign-in column */}
+      <section
+        className="flex items-center justify-center px-6 sm:px-10 lg:px-12 py-14"
+        style={{ background: 'var(--ff-cream)' }}
+      >
+        <div className="w-full max-w-[380px]">
+          <p
+            className="font-bold uppercase"
+            style={{
+              fontSize: 10,
+              letterSpacing: '0.22em',
+              color: 'var(--ff-taupe)',
+              fontFamily: 'var(--font-sans), system-ui, sans-serif',
+            }}
+          >
+            Members
           </p>
           <h2
-            className="mt-3 text-2xl md:text-3xl text-center"
-            style={{ fontFamily: 'var(--font-display)' }}
+            className="mt-2.5 mb-1.5 leading-none"
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontOpticalSizing: 'auto',
+              fontSize: 34,
+              fontWeight: 500,
+              letterSpacing: '-0.02em',
+              color: 'var(--ff-pine)',
+            }}
           >
-            Four steps. No spreadsheet required.
+            Welcome back
           </h2>
+          <p
+            className="mb-7"
+            style={{
+              fontSize: 14,
+              color: 'var(--ff-ink-soft)',
+              lineHeight: 1.55,
+            }}
+          >
+            Sign in to RSVP for Thursday&rsquo;s round, see your foursome, and
+            follow the live net leaderboard.
+          </p>
 
-          {/* Mobile + tablet: stacked grid, no chevrons */}
-          <div className="mt-10 grid grid-cols-1 md:grid-cols-2 lg:hidden gap-5">
-            <HowItWorksStep
-              n="1"
-              title="Join"
-              body="Apply to the network; an admin reviews every request."
-              icon={<JoinIcon />}
-            />
-            <HowItWorksStep
-              n="2"
-              title="Book"
-              body="RSVP by Tuesday for the next Thursday round."
-              icon={<BookIcon />}
-            />
-            <HowItWorksStep
-              n="3"
-              title="Connect"
-              body="The algorithm pairs you with three new people, spread across professions."
-              icon={<ConnectIcon />}
-            />
-            <HowItWorksStep
-              n="4"
-              title="Grow"
-              body="Build relationships in nine holes that pay off off the course."
-              icon={<GrowIcon />}
-            />
+          {/* Email + password (decorative — Clerk modal handles real auth) */}
+          <div className="mb-[18px]">
+            <FieldLabel>Email</FieldLabel>
+            <Field type="email" placeholder="you@company.com" name="email" />
           </div>
-
-          {/* Desktop: 4-up row with chevrons between cards */}
-          <div className="hidden lg:flex items-stretch gap-3 mt-10">
-            <HowItWorksStep
-              n="1"
-              title="Join"
-              body="Apply to the network; an admin reviews every request."
-              icon={<JoinIcon />}
-            />
-            <ChevronGap />
-            <HowItWorksStep
-              n="2"
-              title="Book"
-              body="RSVP by Tuesday for the next Thursday round."
-              icon={<BookIcon />}
-            />
-            <ChevronGap />
-            <HowItWorksStep
-              n="3"
-              title="Connect"
-              body="The algorithm pairs you with three new people, spread across professions."
-              icon={<ConnectIcon />}
-            />
-            <ChevronGap />
-            <HowItWorksStep
-              n="4"
-              title="Grow"
-              body="Build relationships in nine holes that pay off off the course."
-              icon={<GrowIcon />}
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* UPCOMING EVENTS + SIDE CTA */}
-      <section id="events" className="px-6 py-16 md:py-20 max-w-6xl mx-auto scroll-mt-20">
-        <div className="grid lg:grid-cols-[1.6fr_1fr] gap-8 lg:gap-10">
-          {/* LEFT: events */}
-          <div>
-            <p className="text-[11px] tracking-[0.2em] uppercase text-[color:var(--color-mute)] font-semibold">
-              Upcoming events
-            </p>
-            <h2
-              className="mt-2 text-2xl md:text-3xl leading-tight"
-              style={{ fontFamily: 'var(--font-display)' }}
-            >
-              The next few Thursdays
-            </h2>
-
-            {upcoming.length === 0 ? (
-              <p className="mt-8 text-sm text-[color:var(--color-mute)] italic">
-                New schedule drops soon. Sign up to be the first to RSVP.
-              </p>
-            ) : (
-              <div className="mt-6 space-y-3">
-                {upcoming.map((e) => {
-                  const d = new Date(e.date);
-                  const monthShort = d
-                    .toLocaleDateString('en-US', { month: 'short' })
-                    .toUpperCase();
-                  const day = d.toLocaleDateString('en-US', { day: 'numeric' });
-                  const weekday = d.toLocaleDateString('en-US', {
-                    weekday: 'long',
-                  });
-                  const courseName = e.course?.name ?? 'Legacy Golf Club';
-                  return (
-                    <article
-                      key={e.id}
-                      className="rounded-xl border border-[color:#e8e2d2] bg-white overflow-hidden flex flex-col sm:flex-row hover:border-[color:var(--color-gold)] transition-colors"
-                    >
-                      <div className="sm:w-40 shrink-0 bg-[color:#e8e9d8] aspect-[5/3] sm:aspect-auto flex items-center justify-center">
-                        <CourseIllustration />
-                      </div>
-                      <div className="flex-1 flex items-stretch">
-                        <div className="px-4 py-4 text-center border-r border-[color:#f0ebd8] flex flex-col justify-center min-w-[64px]">
-                          <p className="text-[10px] tracking-[0.15em] uppercase font-bold text-[color:var(--color-gold)]">
-                            {monthShort}
-                          </p>
-                          <p
-                            className="text-2xl leading-none text-[color:var(--color-ink)]"
-                            style={{ fontFamily: 'var(--font-display)' }}
-                          >
-                            {day}
-                          </p>
-                        </div>
-                        <div className="px-5 py-4 flex-1 min-w-0 flex flex-col justify-center">
-                          <p
-                            className="text-base leading-tight text-[color:var(--color-ink)] truncate"
-                            style={{ fontFamily: 'var(--font-display)' }}
-                          >
-                            {courseName}
-                          </p>
-                          <p className="mt-1 text-xs text-[color:#5a5a4a]">
-                            {weekday} · 2:30 PM shotgun ·{' '}
-                            {COURSE_OPTIONS[e.course_config].label}
-                          </p>
-                          <p className="mt-2 text-[10px] tracking-[0.15em] uppercase font-semibold text-[color:var(--color-gold)]">
-                            View event →
-                          </p>
-                        </div>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            )}
-
-            <div className="mt-6">
+          <div className="mb-[18px]">
+            <div className="flex items-center justify-between mb-1.5">
+              <span
+                className="font-semibold uppercase"
+                style={{
+                  fontSize: 10,
+                  letterSpacing: '0.1em',
+                  color: 'var(--ff-taupe)',
+                  fontFamily: 'var(--font-sans), system-ui, sans-serif',
+                }}
+              >
+                Password
+              </span>
               <SignInButton>
-                <button className="rounded-md border border-[color:var(--color-gold)] bg-white text-[color:var(--color-ink)] px-5 py-2.5 text-[11px] font-semibold tracking-[0.1em] uppercase hover:bg-[color:#f5f1e8]/40">
-                  Sign in to RSVP
+                <button
+                  type="button"
+                  className="font-semibold hover:underline"
+                  style={{
+                    fontSize: 11,
+                    color: 'var(--ff-gold)',
+                    background: 'transparent',
+                    border: 'none',
+                    padding: 0,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Forgot?
                 </button>
               </SignInButton>
-              <p className="mt-3 text-[11px] text-[color:var(--color-mute)]">
-                RSVPs open Sunday · close Tuesday at 8 PM.
-              </p>
             </div>
+            <Field type="password" placeholder="••••••••" name="password" />
           </div>
 
-          {/* RIGHT: elevate-your-network CTA */}
-          <aside className="rounded-xl bg-[color:var(--color-navy)] text-[color:var(--color-cream)] p-7 lg:p-8 flex flex-col items-center text-center relative overflow-hidden">
-            <div
-              className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-[color:var(--color-gold)]/10 pointer-events-none"
-              aria-hidden
+          <div className="mt-2">
+            <SignInButton>
+              <GoldButton>Sign In to the Club</GoldButton>
+            </SignInButton>
+          </div>
+
+          {/* Divider */}
+          <div className="flex items-center gap-3.5 my-7">
+            <span
+              className="flex-1 h-px"
+              style={{ background: 'var(--ff-hairline)' }}
             />
-            <div className="relative z-10 flex flex-col items-center w-full">
-              <CrownIcon />
-              <h3
-                className="mt-4 text-2xl md:text-3xl leading-tight"
-                style={{ fontFamily: 'var(--font-display)' }}
-              >
-                Ready to elevate your network?
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-[color:#d8d3bf] max-w-xs">
-                Join Fairway Founders and start building connections that
-                actually move the ball.
-              </p>
-              {isSignedInApproved ? (
-                <Link
-                  href="/dashboard"
-                  className="mt-6 w-full max-w-[220px] rounded-lg bg-[color:var(--color-gold)] text-[color:var(--color-navy)] px-6 py-3 text-center text-[11px] font-bold tracking-[0.12em] uppercase hover:opacity-90"
-                >
-                  Back to the course →
-                </Link>
-              ) : (
-                <SignUpButton>
-                  <button className="mt-6 w-full max-w-[220px] rounded-lg bg-[color:var(--color-gold)] text-[color:var(--color-navy)] px-6 py-3 text-[11px] font-bold tracking-[0.12em] uppercase hover:opacity-90">
-                    Join now
-                  </button>
-                </SignUpButton>
-              )}
-            </div>
-          </aside>
-        </div>
-      </section>
+            <span
+              className="font-bold uppercase"
+              style={{
+                fontSize: 10,
+                letterSpacing: '0.18em',
+                color: 'var(--ff-taupe)',
+                fontFamily: 'var(--font-sans), system-ui, sans-serif',
+              }}
+            >
+              Not a member yet
+            </span>
+            <span
+              className="flex-1 h-px"
+              style={{ background: 'var(--ff-hairline)' }}
+            />
+          </div>
 
-      {/* VIDEO PLACEHOLDER */}
-      <section className="bg-[color:var(--color-navy)] px-6 py-16 md:py-20">
-        <div className="max-w-3xl mx-auto text-center">
-          <p className="text-[11px] tracking-[0.2em] uppercase text-[color:var(--color-gold)]">
-            See it in action
-          </p>
-          <h2
-            className="mt-3 text-2xl md:text-3xl text-[color:var(--color-cream)]"
-            style={{ fontFamily: 'var(--font-display)' }}
+          {/* Invite card */}
+          <div
+            className="text-center"
+            style={{
+              border: '1px solid var(--ff-border)',
+              borderRadius: 12,
+              background: 'var(--ff-white)',
+              boxShadow: 'var(--shadow-card)',
+              padding: '18px 20px',
+            }}
           >
-            What a Thursday looks like
-          </h2>
-          <p className="mt-3 text-sm text-[color:#a8a596]">
-            A short reel of what the round, the carts, and the after-round
-            conversation actually look like.
-          </p>
-          <div className="mt-8 aspect-video w-full rounded-xl border border-[color:var(--color-gold)]/30 bg-black/40 flex items-center justify-center overflow-hidden">
-            <div className="text-center px-6">
-              <PlayIcon />
-              <p className="mt-3 text-[10px] tracking-[0.2em] uppercase text-[color:var(--color-gold)] font-semibold">
-                Video coming soon
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* SPONSORS */}
-      <section id="sponsors" className="px-6 py-16 md:py-20 max-w-5xl mx-auto scroll-mt-20">
-        <p className="text-[11px] tracking-[0.2em] uppercase text-[color:var(--color-mute)] text-center">
-          In partnership with
-        </p>
-        <h2
-          className="mt-3 text-2xl md:text-3xl text-center"
-          style={{ fontFamily: 'var(--font-display)' }}
-        >
-          Our sponsors
-        </h2>
-        <p className="mt-3 text-center text-sm text-[color:#5a5a4a]">
-          The companies who help keep the green fee low and the cart drinks cold.
-        </p>
-
-        <div className="mt-10 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-          {SPONSORS.map((s) => {
-            const Card = (
-              <div className="aspect-square rounded-xl border border-[color:#e8e2d2] bg-white flex items-center justify-center p-4 hover:border-[color:var(--color-gold)] transition-colors">
-                {s.logo ? (
-                  <Image
-                    src={s.logo}
-                    alt={s.name}
-                    width={120}
-                    height={120}
-                    className="max-w-full max-h-full object-contain"
-                  />
-                ) : (
-                  <div className="text-center">
-                    <p className="text-[10px] tracking-[0.12em] uppercase text-[color:var(--color-mute)] font-semibold">
-                      Your logo
-                    </p>
-                    <p className="mt-1 text-xs text-[color:#5a5a4a]">{s.name}</p>
-                  </div>
-                )}
-              </div>
-            );
-            return s.href ? (
-              <a
-                key={s.name}
-                href={s.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block"
-              >
-                {Card}
-              </a>
-            ) : (
-              <div key={s.name}>{Card}</div>
-            );
-          })}
-        </div>
-
-        <p className="mt-8 text-center text-xs text-[color:var(--color-mute)] italic">
-          Want to sponsor a Thursday? Reach out at hello@fairwayfounders.org.
-        </p>
-      </section>
-
-      {/* FOOTER */}
-      <footer id="contact" className="border-t border-[color:#e8e2d2] bg-[color:var(--color-cream)] scroll-mt-20">
-        <div className="max-w-6xl mx-auto px-6 py-12 md:py-14">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-10">
-            {/* Col 1: brand + social */}
-            <div className="col-span-2 md:col-span-1">
-              <Link
-                href="/"
-                className="text-lg font-semibold text-[color:var(--color-ink)]"
-                style={{ fontFamily: 'var(--font-display)' }}
-              >
-                Fairway Founders
-              </Link>
-              <p className="mt-3 text-xs text-[color:#5a5a4a] leading-relaxed max-w-[14rem]">
-                A weekly meetup of founders and operators who&rsquo;d rather
-                build relationships in nine holes than across a conference
-                table.
-              </p>
-              <div className="mt-5 flex items-center gap-2">
-                {SOCIAL_LINKS.map((s) => (
-                  <a
-                    key={s.label}
-                    href={s.href}
-                    aria-label={s.label}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center w-9 h-9 rounded-full border border-[color:#e8e2d2] bg-white text-[color:var(--color-ink)] hover:border-[color:var(--color-gold)] hover:text-[color:var(--color-gold)]"
-                  >
-                    <SocialIcon kind={s.icon} />
-                  </a>
-                ))}
-              </div>
-            </div>
-
-            {/* Col 2: Quick Links */}
-            <div>
-              <p className="text-[10px] tracking-[0.15em] uppercase font-bold text-[color:var(--color-ink)]">
-                Quick links
-              </p>
-              <ul className="mt-4 space-y-2 text-[13px] text-[color:#5a5a4a]">
-                <li>
-                  <a href="#about" className="hover:text-[color:var(--color-gold)]">
-                    About
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#how-it-works"
-                    className="hover:text-[color:var(--color-gold)]"
-                  >
-                    How it works
-                  </a>
-                </li>
-                <li>
-                  <a href="#events" className="hover:text-[color:var(--color-gold)]">
-                    Events
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#sponsors"
-                    className="hover:text-[color:var(--color-gold)]"
-                  >
-                    Sponsors
-                  </a>
-                </li>
-                {isSignedInApproved ? (
-                  <li>
-                    <Link
-                      href="/dashboard"
-                      className="hover:text-[color:var(--color-gold)]"
-                    >
-                      Dashboard
-                    </Link>
-                  </li>
-                ) : (
-                  <li>
-                    <SignInButton>
-                      <button className="hover:text-[color:var(--color-gold)]">
-                        Sign in
-                      </button>
-                    </SignInButton>
-                  </li>
-                )}
-              </ul>
-            </div>
-
-            {/* Col 3: Resources */}
-            <div>
-              <p className="text-[10px] tracking-[0.15em] uppercase font-bold text-[color:var(--color-ink)]">
-                Resources
-              </p>
-              <ul className="mt-4 space-y-2 text-[13px] text-[color:#5a5a4a]">
-                <li>
-                  <Link
-                    href="/roster"
-                    className="hover:text-[color:var(--color-gold)]"
-                  >
-                    Member directory
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/terms"
-                    className="hover:text-[color:var(--color-gold)]"
-                  >
-                    Terms of Service
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/privacy"
-                    className="hover:text-[color:var(--color-gold)]"
-                  >
-                    Privacy Policy
-                  </Link>
-                </li>
-                {!isSignedInApproved && (
-                  <li>
-                    <SignUpButton>
-                      <button className="hover:text-[color:var(--color-gold)]">
-                        Request access
-                      </button>
-                    </SignUpButton>
-                  </li>
-                )}
-              </ul>
-            </div>
-
-            {/* Col 4: Contact */}
-            <div>
-              <p className="text-[10px] tracking-[0.15em] uppercase font-bold text-[color:var(--color-ink)]">
-                Contact
-              </p>
-              <ul className="mt-4 space-y-2 text-[13px] text-[color:#5a5a4a]">
-                <li>Bradenton, FL</li>
-                <li>
-                  <a
-                    href="mailto:hello@fairwayfounders.org"
-                    className="hover:text-[color:var(--color-gold)] break-all"
-                  >
-                    hello@fairwayfounders.org
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#sponsors"
-                    className="hover:text-[color:var(--color-gold)]"
-                  >
-                    Sponsor a Thursday →
-                  </a>
-                </li>
-              </ul>
-            </div>
+            <p
+              className="m-0"
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 17,
+                fontWeight: 500,
+                color: 'var(--ff-pine)',
+              }}
+            >
+              Membership is by invitation
+            </p>
+            <p
+              className="my-1 mb-3.5"
+              style={{
+                fontSize: 12,
+                color: 'var(--ff-taupe)',
+                lineHeight: 1.5,
+              }}
+            >
+              New seats open between seasons. Request an introduction and
+              we&rsquo;ll be in touch before the next round.
+            </p>
+            <SignUpButton>
+              <SecondaryButton>Request an Invitation</SecondaryButton>
+            </SignUpButton>
           </div>
 
-          <div className="mt-12 pt-6 border-t border-[color:#e8e2d2] text-center">
-            <p className="text-[10px] tracking-[0.15em] uppercase text-[color:var(--color-mute)]">
-              © {new Date().getFullYear()} Fairway Founders Network · Operated
-              by Golf Links Network LLC
+          <div className="mt-9 flex items-center justify-between">
+            <p
+              className="font-semibold uppercase m-0"
+              style={{
+                fontSize: 10,
+                letterSpacing: '0.14em',
+                color: 'var(--ff-taupe)',
+                fontFamily: 'var(--font-sans), system-ui, sans-serif',
+              }}
+            >
+              Powered by{' '}
+              <strong style={{ color: 'var(--ff-ink-soft)' }}>
+                Golf Links Network
+              </strong>
             </p>
           </div>
+
+          {/* Legal microcopy */}
+          <p
+            className="mt-4 text-center"
+            style={{
+              fontSize: 10,
+              color: 'var(--ff-taupe)',
+              lineHeight: 1.5,
+            }}
+          >
+            By signing in you agree to our{' '}
+            <a
+              href="/terms"
+              className="underline hover:no-underline"
+              style={{ color: 'var(--ff-gold)' }}
+            >
+              Terms
+            </a>{' '}
+            and{' '}
+            <a
+              href="/privacy"
+              className="underline hover:no-underline"
+              style={{ color: 'var(--ff-gold)' }}
+            >
+              Privacy Policy
+            </a>
+            .
+          </p>
         </div>
-      </footer>
-    </main>
-  );
-}
-
-function Stat({ label, value, sub }: { label: string; value: string; sub: string }) {
-  return (
-    <div>
-      <p className="text-[10px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] font-semibold">
-        {label}
-      </p>
-      <p
-        className="mt-1 text-xl md:text-2xl"
-        style={{ fontFamily: 'var(--font-display)' }}
-      >
-        {value}
-      </p>
-      <p className="text-[11px] text-[color:#5a5a4a] mt-0.5">{sub}</p>
+      </section>
     </div>
   );
 }
 
-function CourseIllustration() {
+function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
-    <svg
-      viewBox="0 0 160 96"
-      width="100%"
-      height="100%"
-      preserveAspectRatio="xMidYMid slice"
-      aria-hidden
-      className="block"
+    <div
+      className="font-semibold uppercase mb-1.5"
+      style={{
+        fontSize: 10,
+        color: 'var(--ff-taupe)',
+        letterSpacing: '0.1em',
+        fontFamily: 'var(--font-sans), system-ui, sans-serif',
+      }}
     >
-      <rect width="160" height="96" fill="#dbe3c8" />
-      {/* horizon trees */}
-      <ellipse cx="20" cy="44" rx="14" ry="10" fill="#7c9885" />
-      <ellipse cx="36" cy="42" rx="12" ry="8" fill="#5e8169" />
-      <ellipse cx="124" cy="44" rx="16" ry="11" fill="#7c9885" />
-      <ellipse cx="146" cy="42" rx="10" ry="8" fill="#5e8169" />
-      {/* fairway */}
-      <path d="M 0 96 L 0 70 Q 80 50 160 70 L 160 96 Z" fill="#a8c08a" />
-      <path d="M 0 96 L 0 80 Q 80 64 160 80 L 160 96 Z" fill="#8fae72" />
-      {/* green */}
-      <ellipse cx="100" cy="72" rx="34" ry="6" fill="#5e8169" />
-      <ellipse cx="100" cy="70" rx="34" ry="6" fill="#7c9885" />
-      {/* hole */}
-      <ellipse cx="108" cy="68" rx="2.5" ry="1" fill="#1a3a2e" />
-      {/* flagstick */}
-      <line
-        x1="108"
-        y1="68"
-        x2="108"
-        y2="34"
-        stroke="#1a3a2e"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-      {/* flag */}
-      <path d="M 108 34 L 120 38 L 108 42 Z" fill="#c9a961" />
-      {/* sky tint */}
-      <rect width="160" height="42" fill="#f5f1e8" fillOpacity="0.55" />
-    </svg>
-  );
-}
-
-function CrownIcon() {
-  return (
-    <svg
-      width="44"
-      height="44"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="#c9a961"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path d="M2 18 L4 8 L8 12 L12 6 L16 12 L20 8 L22 18 Z" fill="#c9a961" fillOpacity="0.18" />
-      <line x1="2" y1="21" x2="22" y2="21" />
-      <circle cx="4" cy="7" r="1" fill="#c9a961" />
-      <circle cx="20" cy="7" r="1" fill="#c9a961" />
-      <circle cx="12" cy="5" r="1" fill="#c9a961" />
-    </svg>
-  );
-}
-
-function ChevronGap() {
-  return (
-    <div className="flex items-center justify-center shrink-0 w-6 text-[color:var(--color-gold)]">
-      <svg
-        width="18"
-        height="18"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden
-      >
-        <polyline points="9 18 15 12 9 6" />
-      </svg>
+      {children}
     </div>
   );
 }
 
-function JoinIcon() {
+function Field({
+  type,
+  placeholder,
+  name,
+}: {
+  type: string;
+  placeholder: string;
+  name: string;
+}) {
   return (
-    <svg
-      width="30"
-      height="30"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <line x1="19" y1="8" x2="19" y2="14" />
-      <line x1="22" y1="11" x2="16" y2="11" />
-    </svg>
+    <input
+      type={type}
+      name={name}
+      placeholder={placeholder}
+      autoComplete="off"
+      className="w-full focus:outline-none"
+      style={{
+        border: '1px solid var(--ff-border)',
+        borderRadius: 6,
+        padding: '9px 10px',
+        fontSize: 13,
+        fontFamily: 'var(--font-sans), system-ui, sans-serif',
+        color: 'var(--ff-pine)',
+        background: 'var(--ff-white)',
+      }}
+    />
   );
 }
 
-function BookIcon() {
+function GoldButton({ children }: { children: React.ReactNode }) {
   return (
-    <svg
-      width="30"
-      height="30"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
+    <button
+      type="button"
+      className="w-full font-semibold uppercase transition-transform active:translate-y-px"
+      style={{
+        background: 'var(--ff-gold)',
+        color: 'var(--ff-pine)',
+        border: '1px solid #bd9a4f',
+        borderRadius: 10,
+        padding: '14px 20px',
+        fontSize: 14,
+        letterSpacing: '0.08em',
+        fontFamily: 'var(--font-sans), system-ui, sans-serif',
+        boxShadow: 'var(--shadow-btn-gold)',
+        cursor: 'pointer',
+        lineHeight: 1,
+      }}
     >
-      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-      <line x1="16" y1="2" x2="16" y2="6" />
-      <line x1="8" y1="2" x2="8" y2="6" />
-      <line x1="3" y1="10" x2="21" y2="10" />
-    </svg>
+      {children}
+    </button>
   );
 }
 
-function ConnectIcon() {
+function SecondaryButton({ children }: { children: React.ReactNode }) {
   return (
-    <svg
-      width="30"
-      height="30"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
+    <button
+      type="button"
+      className="w-full font-semibold uppercase transition-transform active:translate-y-px"
+      style={{
+        background: 'var(--ff-white)',
+        color: 'var(--ff-pine)',
+        border: '1px solid var(--ff-gold)',
+        borderRadius: 10,
+        padding: '12px 18px',
+        fontSize: 12,
+        letterSpacing: '0.08em',
+        fontFamily: 'var(--font-sans), system-ui, sans-serif',
+        boxShadow: 'var(--shadow-btn-secondary)',
+        cursor: 'pointer',
+        lineHeight: 1,
+      }}
     >
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
-  );
-}
-
-function GrowIcon() {
-  return (
-    <svg
-      width="30"
-      height="30"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-      <polyline points="17 6 23 6 23 12" />
-    </svg>
-  );
-}
-
-function PlayIcon() {
-  return (
-    <svg
-      width="48"
-      height="48"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="#c9a961"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-      className="mx-auto"
-    >
-      <circle cx="12" cy="12" r="10" />
-      <polygon points="10 8 16 12 10 16 10 8" fill="#c9a961" />
-    </svg>
-  );
-}
-
-function SocialIcon({ kind }: { kind: 'instagram' | 'x' | 'linkedin' }) {
-  if (kind === 'instagram') {
-    return (
-      <svg
-        width="18"
-        height="18"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden
-      >
-        <rect x="2" y="2" width="20" height="20" rx="5" />
-        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-      </svg>
-    );
-  }
-  if (kind === 'x') {
-    return (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-        <path d="M18.244 2H21l-6.523 7.453L22 22h-6.79l-4.79-6.27L4.8 22H2.04l6.98-7.97L2 2h6.91l4.32 5.74L18.244 2zm-1.19 18h1.83L7.07 4H5.18l11.874 16z" />
-      </svg>
-    );
-  }
-  return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z" />
-      <rect x="2" y="9" width="4" height="12" />
-      <circle cx="4" cy="4" r="2" />
-    </svg>
+      {children}
+    </button>
   );
 }

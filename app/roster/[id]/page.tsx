@@ -6,6 +6,7 @@ import Avatar from '@/components/Avatar';
 import CountTags from '@/components/CountTags';
 import AdminMemberActions from './AdminMemberActions';
 import { getMemberCountsTags } from '@/app/actions/stats';
+import ProfileInteractionButtons from '@/components/ProfileInteractionButtons';
 
 const ROLE_LABEL: Record<'member' | 'super_admin', string> = {
   member: 'Member',
@@ -199,6 +200,9 @@ export default async function MemberDetail({
             >
               Website
             </a>
+          )}
+          {!isSelf && (
+            <ProfileInteractionButtons toUserId={member.id} toName={member.name} />
           )}
         </div>
       </section>

@@ -9,6 +9,8 @@ import Countdown from '@/components/Countdown';
 import RsvpToggle from '@/components/RsvpToggle';
 import Avatar from '@/components/Avatar';
 import CalendarStrip from '@/components/CalendarStrip';
+import SponsorStrip from '@/components/SponsorStrip';
+import { getCurrentLeagueId } from '@/lib/league-context';
 
 export const dynamic = 'force-dynamic';
 
@@ -297,6 +299,11 @@ export default async function Dashboard({
           </p>
         </div>
       ) : null}
+
+      <SponsorStrip
+        placement="dashboard_strip"
+        leagueId={(await getCurrentLeagueId()) ?? undefined}
+      />
 
       {showAdminChrome && me.app_role === 'super_admin' && (
         <p className="mt-6 text-center text-xs">

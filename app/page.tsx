@@ -2,6 +2,7 @@ import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { SignInButton, SignUpButton } from '@clerk/nextjs';
 import { getAppUser } from '@/lib/current-user';
+import SponsorsSection from '@/components/SponsorsSection';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,6 +11,7 @@ export default async function Home() {
   if (me && me.access_status === 'approved') redirect('/dashboard');
 
   return (
+    <>
     <div
       className="grid lg:grid-cols-[1.15fr_1fr] min-h-screen w-full"
       style={{ background: 'var(--ff-cream)' }}
@@ -439,6 +441,8 @@ export default async function Home() {
         </div>
       </section>
     </div>
+    <SponsorsSection />
+    </>
   );
 }
 

@@ -93,7 +93,8 @@ export default async function AdminCockpit({
     supabase
       .from('sponsorships')
       .select('id', { count: 'exact', head: true })
-      .eq('status', 'requested'),
+      .eq('status', 'requested')
+      .eq('league_id', league.id),
     supabase
       .from('users')
       .select('id', { count: 'exact', head: true })
@@ -275,10 +276,8 @@ export default async function AdminCockpit({
             title="Sponsorships"
             blurb={
               pendingSponsorshipCount > 0
-                ? `${pendingSponsorshipCount} pending request${
-                    pendingSponsorshipCount === 1 ? '' : 's'
-                  } · review + promote to placements`
-                : 'Review featured + round sponsors, promote to placements'
+                ? `${pendingSponsorshipCount} pending in this league · review + promote to placements`
+                : 'This league’s sponsors · review, promote to placements'
             }
             highlight={pendingSponsorshipCount > 0}
           />

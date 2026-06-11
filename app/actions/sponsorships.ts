@@ -53,6 +53,13 @@ export async function requestSponsorship(
   }
 
   const leagueId = await getCurrentLeagueId();
+  if (!leagueId) {
+    return {
+      ok: false,
+      error:
+        'Sponsorships are scoped to a league. Pick a league from the switcher before requesting.',
+    };
+  }
   const ins = await supabase.from('sponsorships').insert({
     user_id: me.id,
     kind,
@@ -100,10 +107,13 @@ export interface PendingSponsorship {
 
 export async function getPendingSponsorships(): Promise<PendingSponsorship[]> {
   if (!(await canAccessAdmin())) return [];
+  const leagueId = await getCurrentLeagueId();
+  if (!leagueId) return [];
   const res = await supabase
     .from('sponsorships')
     .select('id, kind, note, requested_at, user:user_id(id, name, company, photo_url)')
     .eq('status', 'requested')
+    .eq('league_id', leagueId)
     .order('requested_at', { ascending: true });
   return (res.data ?? []).map((r) => {
     const u = Array.isArray(r.user) ? r.user[0] : r.user;
@@ -218,17 +228,19 @@ export async function setSponsorshipPlacements(
   return { ok: true };
 }
 
-/** Featured member IDs currently pinned to the top of the directory.
- *  Wrapper around `getSponsorsForPlacement('roster_pin')` so the /roster
- *  callsite keeps working unchanged. M4 will swap this for the shared
- *  lib/sponsorships.ts helper. */
+/** Featured member IDs currently pinned to the top of the directory for the
+ *  current league. Sponsorships are league-scoped — /roster only shows pins
+ *  from sponsors registered to whichever league the viewer is in. */
 export async function getActiveFeaturedUserIds(): Promise<string[]> {
+  const leagueId = await getCurrentLeagueId();
+  if (!leagueId) return [];
   const nowIso = new Date().toISOString();
   const res = await supabase
     .from('sponsorships')
     .select('user_id, ends_at, placements')
     .eq('status', 'active')
-    .eq('kind', 'featured');
+    .eq('kind', 'featured')
+    .eq('league_id', leagueId);
   const ids = new Set<string>();
   for (const r of res.data ?? []) {
     if (r.ends_at && r.ends_at <= nowIso) continue;
@@ -265,12 +277,15 @@ export interface ActiveSponsorship {
 
 export async function getActiveSponsorships(): Promise<ActiveSponsorship[]> {
   if (!(await canAccessAdmin())) return [];
+  const leagueId = await getCurrentLeagueId();
+  if (!leagueId) return [];
   const res = await supabase
     .from('sponsorships')
     .select(
       'id, kind, status, starts_at, ends_at, amount_cents, placements, user:user_id(id, name, company, photo_url)',
     )
     .eq('status', 'active')
+    .eq('league_id', leagueId)
     .order('starts_at', { ascending: false });
   return (res.data ?? []).map((r) => {
     const u = Array.isArray(r.user) ? r.user[0] : r.user;

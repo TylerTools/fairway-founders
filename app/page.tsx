@@ -427,55 +427,167 @@ export default async function Home() {
       </section>
 
       {/* FOOTER */}
-      <footer id="contact" className="border-t border-[color:#e8e2d2] bg-[color:var(--color-cream)] px-6 py-10 scroll-mt-20">
-        <div className="max-w-4xl mx-auto flex flex-col items-center gap-5">
-          <div className="flex items-center gap-3">
-            {SOCIAL_LINKS.map((s) => (
-              <a
-                key={s.label}
-                href={s.href}
-                aria-label={s.label}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center w-10 h-10 rounded-full border border-[color:#e8e2d2] bg-white text-[color:var(--color-ink)] hover:border-[color:var(--color-gold)] hover:text-[color:var(--color-gold)]"
+      <footer id="contact" className="border-t border-[color:#e8e2d2] bg-[color:var(--color-cream)] scroll-mt-20">
+        <div className="max-w-6xl mx-auto px-6 py-12 md:py-14">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-10">
+            {/* Col 1: brand + social */}
+            <div className="col-span-2 md:col-span-1">
+              <Link
+                href="/"
+                className="text-lg font-semibold text-[color:var(--color-ink)]"
+                style={{ fontFamily: 'var(--font-display)' }}
               >
-                <SocialIcon kind={s.icon} />
-              </a>
-            ))}
+                Fairway Founders
+              </Link>
+              <p className="mt-3 text-xs text-[color:#5a5a4a] leading-relaxed max-w-[14rem]">
+                A weekly meetup of founders and operators who&rsquo;d rather
+                build relationships in nine holes than across a conference
+                table.
+              </p>
+              <div className="mt-5 flex items-center gap-2">
+                {SOCIAL_LINKS.map((s) => (
+                  <a
+                    key={s.label}
+                    href={s.href}
+                    aria-label={s.label}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center w-9 h-9 rounded-full border border-[color:#e8e2d2] bg-white text-[color:var(--color-ink)] hover:border-[color:var(--color-gold)] hover:text-[color:var(--color-gold)]"
+                  >
+                    <SocialIcon kind={s.icon} />
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            {/* Col 2: Quick Links */}
+            <div>
+              <p className="text-[10px] tracking-[0.15em] uppercase font-bold text-[color:var(--color-ink)]">
+                Quick links
+              </p>
+              <ul className="mt-4 space-y-2 text-[13px] text-[color:#5a5a4a]">
+                <li>
+                  <a href="#about" className="hover:text-[color:var(--color-gold)]">
+                    About
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#how-it-works"
+                    className="hover:text-[color:var(--color-gold)]"
+                  >
+                    How it works
+                  </a>
+                </li>
+                <li>
+                  <a href="#events" className="hover:text-[color:var(--color-gold)]">
+                    Events
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#sponsors"
+                    className="hover:text-[color:var(--color-gold)]"
+                  >
+                    Sponsors
+                  </a>
+                </li>
+                {isSignedInApproved ? (
+                  <li>
+                    <Link
+                      href="/dashboard"
+                      className="hover:text-[color:var(--color-gold)]"
+                    >
+                      Dashboard
+                    </Link>
+                  </li>
+                ) : (
+                  <li>
+                    <SignInButton>
+                      <button className="hover:text-[color:var(--color-gold)]">
+                        Sign in
+                      </button>
+                    </SignInButton>
+                  </li>
+                )}
+              </ul>
+            </div>
+
+            {/* Col 3: Resources */}
+            <div>
+              <p className="text-[10px] tracking-[0.15em] uppercase font-bold text-[color:var(--color-ink)]">
+                Resources
+              </p>
+              <ul className="mt-4 space-y-2 text-[13px] text-[color:#5a5a4a]">
+                <li>
+                  <Link
+                    href="/roster"
+                    className="hover:text-[color:var(--color-gold)]"
+                  >
+                    Member directory
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/terms"
+                    className="hover:text-[color:var(--color-gold)]"
+                  >
+                    Terms of Service
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/privacy"
+                    className="hover:text-[color:var(--color-gold)]"
+                  >
+                    Privacy Policy
+                  </Link>
+                </li>
+                {!isSignedInApproved && (
+                  <li>
+                    <SignUpButton>
+                      <button className="hover:text-[color:var(--color-gold)]">
+                        Request access
+                      </button>
+                    </SignUpButton>
+                  </li>
+                )}
+              </ul>
+            </div>
+
+            {/* Col 4: Contact */}
+            <div>
+              <p className="text-[10px] tracking-[0.15em] uppercase font-bold text-[color:var(--color-ink)]">
+                Contact
+              </p>
+              <ul className="mt-4 space-y-2 text-[13px] text-[color:#5a5a4a]">
+                <li>Bradenton, FL</li>
+                <li>
+                  <a
+                    href="mailto:hello@fairwayfounders.org"
+                    className="hover:text-[color:var(--color-gold)] break-all"
+                  >
+                    hello@fairwayfounders.org
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#sponsors"
+                    className="hover:text-[color:var(--color-gold)]"
+                  >
+                    Sponsor a Thursday →
+                  </a>
+                </li>
+              </ul>
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] text-[color:var(--color-mute)]">
-            <Link href="/" className="hover:text-[color:var(--color-gold)]">
-              Home
-            </Link>
-            <span>·</span>
-            <SignInButton>
-              <button className="hover:text-[color:var(--color-gold)]">Sign in</button>
-            </SignInButton>
-            <span>·</span>
-            <SignUpButton>
-              <button className="hover:text-[color:var(--color-gold)]">Request access</button>
-            </SignUpButton>
-            <span>·</span>
-            <Link href="/terms" className="hover:text-[color:var(--color-gold)]">
-              Terms
-            </Link>
-            <span>·</span>
-            <Link href="/privacy" className="hover:text-[color:var(--color-gold)]">
-              Privacy
-            </Link>
-            <span>·</span>
-            <a
-              href="mailto:hello@fairwayfounders.org"
-              className="hover:text-[color:var(--color-gold)]"
-            >
-              hello@fairwayfounders.org
-            </a>
+          <div className="mt-12 pt-6 border-t border-[color:#e8e2d2] text-center">
+            <p className="text-[10px] tracking-[0.15em] uppercase text-[color:var(--color-mute)]">
+              © {new Date().getFullYear()} Fairway Founders Network · Operated
+              by Golf Links Network LLC
+            </p>
           </div>
-
-          <p className="text-[10px] tracking-[0.15em] uppercase text-[color:var(--color-mute)]">
-            © {new Date().getFullYear()} Fairway Founders Network · Operated by Golf Links Network LLC
-          </p>
         </div>
       </footer>
     </main>

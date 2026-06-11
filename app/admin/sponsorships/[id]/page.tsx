@@ -4,6 +4,7 @@ import { canAccessAdmin } from '@/lib/auth';
 import { getSponsorReport } from '@/app/actions/sponsorships';
 import Avatar from '@/components/Avatar';
 import AmountEditor from './AmountEditor';
+import PlacementEditor from './PlacementEditor';
 
 const KIND_LABEL = { featured: 'Featured listing', round: 'Round sponsor' } as const;
 
@@ -85,7 +86,7 @@ export default async function SponsorReportPage({
         />
       </Section>
 
-      <div className="mt-3 rounded-xl border border-[color:#e8e2d2] bg-white p-5">
+      <div className="mt-3 rounded-xl border border-[color:#e8e2d2] bg-white ff-card p-5">
         <p className="text-[10px] tracking-[0.15em] uppercase font-semibold text-[color:var(--color-mute)]">
           Sponsor spend
         </p>
@@ -100,6 +101,14 @@ export default async function SponsorReportPage({
             .
           </p>
         )}
+      </div>
+
+      <div className="mt-3">
+        <PlacementEditor
+          id={id}
+          initial={r.placements}
+          status={r.status}
+        />
       </div>
     </main>
   );

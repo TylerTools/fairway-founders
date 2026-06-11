@@ -7,6 +7,7 @@ import {
 } from '@/app/actions/sponsorships';
 import Avatar from '@/components/Avatar';
 import AdminSponsorship from './AdminSponsorship';
+import { PLACEMENT_LABEL } from '@/lib/sponsorship-placements';
 
 const KIND_LABEL = { featured: 'Featured', round: 'Round sponsor' } as const;
 
@@ -58,11 +59,11 @@ export default async function AdminSponsorshipsPage() {
               <Link
                 key={s.id}
                 href={`/admin/sponsorships/${s.id}`}
-                className="rounded-xl border border-[color:#e8e2d2] bg-white p-4 flex items-center gap-3 hover:border-[color:var(--color-gold)] transition-colors"
+                className="rounded-xl border border-[color:#e8e2d2] bg-white ff-card p-4 flex items-start gap-3 hover:border-[color:var(--color-gold)] transition-colors"
               >
                 <Avatar size={40} photoUrl={s.user.photo_url} rounded="xl" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold flex items-center gap-2">
+                  <p className="text-sm font-semibold flex items-center gap-2 flex-wrap">
                     {s.user.name}
                     <span className="text-[9px] tracking-[0.12em] uppercase font-bold bg-[color:var(--color-navy)] text-[color:var(--color-gold)] rounded-full px-2 py-0.5">
                       {KIND_LABEL[s.kind]}
@@ -74,8 +75,24 @@ export default async function AdminSponsorshipsPage() {
                       ? ` · $${(s.amount_cents / 100).toLocaleString('en-US')}`
                       : ''}
                   </p>
+                  {s.placements.length > 0 ? (
+                    <div className="mt-1.5 flex flex-wrap gap-1">
+                      {s.placements.map((p) => (
+                        <span
+                          key={p}
+                          className="text-[9px] tracking-[0.08em] uppercase font-semibold bg-[color:#f0ebd8] text-[color:#5a5a4a] rounded-full px-2 py-0.5"
+                        >
+                          {PLACEMENT_LABEL[p]}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mt-1.5 text-[10px] tracking-[0.08em] uppercase text-[color:#a87c4f]">
+                      No placements — promote in report
+                    </p>
+                  )}
                 </div>
-                <span className="text-[color:var(--color-gold)] text-xs font-semibold shrink-0">
+                <span className="text-[color:var(--color-gold)] text-xs font-semibold shrink-0 mt-1">
                   Report →
                 </span>
               </Link>

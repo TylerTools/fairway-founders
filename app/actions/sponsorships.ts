@@ -5,6 +5,10 @@ import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
 import { getCurrentLeagueId } from '@/lib/league-context';
 import { canAccessAdmin } from '@/lib/auth';
+import {
+  ALL_PLACEMENTS,
+  type SponsorPlacement,
+} from '@/lib/sponsorship-placements';
 import type { Database } from '@/lib/database.types';
 
 export type SponsorshipKind = Database['public']['Enums']['sponsorship_kind'];
@@ -15,6 +19,7 @@ export interface MySponsorship {
   kind: SponsorshipKind;
   status: SponsorshipStatus;
   ends_at: string | null;
+  placements: SponsorPlacement[];
 }
 
 export async function getMySponsorship(): Promise<MySponsorship | null> {
@@ -22,7 +27,7 @@ export async function getMySponsorship(): Promise<MySponsorship | null> {
   if (!me) return null;
   const res = await supabase
     .from('sponsorships')
-    .select('id, kind, status, ends_at')
+    .select('id, kind, status, ends_at, placements')
     .eq('user_id', me.id)
     .order('requested_at', { ascending: false })
     .limit(1)
@@ -122,6 +127,7 @@ export async function decideSponsorship(
   approve: boolean,
   windowDays = 30,
   amountCents?: number,
+  placements?: SponsorPlacement[],
 ): Promise<{ ok: boolean; error?: string }> {
   if (!(await canAccessAdmin())) return { ok: false, error: 'Admins only.' };
   const me = await getAppUser();
@@ -133,6 +139,13 @@ export async function decideSponsorship(
     .maybeSingle();
   if (!row.data) return { ok: false, error: 'Request not found.' };
   if (row.data.status !== 'requested') return { ok: false, error: 'Already decided.' };
+
+  // Validate placements: only known surfaces, deduped.
+  const cleanPlacements = approve
+    ? Array.from(
+        new Set((placements ?? ['roster_pin']).filter((p) => ALL_PLACEMENTS.includes(p))),
+      )
+    : [];
 
   const now = new Date();
   const ends = new Date(now.getTime() + windowDays * 24 * 60 * 60 * 1000).toISOString();
@@ -146,6 +159,7 @@ export async function decideSponsorship(
             starts_at: now.toISOString(),
             ends_at: ends,
             amount_cents: amountCents ?? null,
+            placements: cleanPlacements,
           }
         : { status: 'declined', approved_by: me?.id ?? null },
     )
@@ -168,23 +182,58 @@ export async function decideSponsorship(
   }
 
   revalidatePath('/admin/sponsorships');
+  revalidatePath('/dashboard');
   revalidatePath('/roster');
+  revalidatePath('/sponsors');
   revalidatePath('/me');
   revalidatePath('/', 'layout');
   return { ok: true };
 }
 
-/** Featured member IDs currently pinned to the top of the directory. */
+/**
+ * Update which in-app surfaces an active sponsorship is promoted onto.
+ * Admin-gated. Used by the placement editor on the sponsor detail page;
+ * each checkbox toggle calls this with the new full array.
+ */
+export async function setSponsorshipPlacements(
+  id: string,
+  placements: SponsorPlacement[],
+): Promise<{ ok: boolean; error?: string }> {
+  if (!(await canAccessAdmin())) return { ok: false, error: 'Admins only.' };
+  const clean = Array.from(
+    new Set(placements.filter((p) => ALL_PLACEMENTS.includes(p))),
+  );
+  const upd = await supabase
+    .from('sponsorships')
+    .update({ placements: clean })
+    .eq('id', id);
+  if (upd.error) return { ok: false, error: upd.error.message };
+
+  revalidatePath('/admin/sponsorships');
+  revalidatePath(`/admin/sponsorships/${id}`);
+  revalidatePath('/dashboard');
+  revalidatePath('/roster');
+  revalidatePath('/sponsors');
+  revalidatePath('/', 'layout');
+  return { ok: true };
+}
+
+/** Featured member IDs currently pinned to the top of the directory.
+ *  Wrapper around `getSponsorsForPlacement('roster_pin')` so the /roster
+ *  callsite keeps working unchanged. M4 will swap this for the shared
+ *  lib/sponsorships.ts helper. */
 export async function getActiveFeaturedUserIds(): Promise<string[]> {
   const nowIso = new Date().toISOString();
   const res = await supabase
     .from('sponsorships')
-    .select('user_id, ends_at')
+    .select('user_id, ends_at, placements')
     .eq('status', 'active')
     .eq('kind', 'featured');
   const ids = new Set<string>();
   for (const r of res.data ?? []) {
-    if (!r.ends_at || r.ends_at > nowIso) ids.add(r.user_id);
+    if (r.ends_at && r.ends_at <= nowIso) continue;
+    if (!r.placements?.includes('roster_pin')) continue;
+    ids.add(r.user_id);
   }
   return [...ids];
 }
@@ -210,6 +259,7 @@ export interface ActiveSponsorship {
   starts_at: string | null;
   ends_at: string | null;
   amount_cents: number | null;
+  placements: SponsorPlacement[];
   user: { id: string; name: string; company: string | null; photo_url: string | null };
 }
 
@@ -218,7 +268,7 @@ export async function getActiveSponsorships(): Promise<ActiveSponsorship[]> {
   const res = await supabase
     .from('sponsorships')
     .select(
-      'id, kind, status, starts_at, ends_at, amount_cents, user:user_id(id, name, company, photo_url)',
+      'id, kind, status, starts_at, ends_at, amount_cents, placements, user:user_id(id, name, company, photo_url)',
     )
     .eq('status', 'active')
     .order('starts_at', { ascending: false });
@@ -231,6 +281,7 @@ export async function getActiveSponsorships(): Promise<ActiveSponsorship[]> {
       starts_at: r.starts_at,
       ends_at: r.ends_at,
       amount_cents: r.amount_cents,
+      placements: r.placements ?? [],
       user: {
         id: u?.id ?? '',
         name: u?.name ?? 'Member',
@@ -248,6 +299,7 @@ export interface SponsorReport {
   startsAt: string | null;
   endsAt: string | null;
   amountCents: number | null;
+  placements: SponsorPlacement[];
   listingViews: number;
   uniqueViewers: number;
   siteClicks: number;
@@ -273,7 +325,7 @@ export async function getSponsorReport(
   const sp = await supabase
     .from('sponsorships')
     .select(
-      'id, user_id, kind, status, starts_at, ends_at, amount_cents, requested_at, user:user_id(id, name, company, photo_url)',
+      'id, user_id, kind, status, starts_at, ends_at, amount_cents, placements, requested_at, user:user_id(id, name, company, photo_url)',
     )
     .eq('id', sponsorshipId)
     .maybeSingle();
@@ -358,6 +410,7 @@ export async function getSponsorReport(
     startsAt: sp.data.starts_at,
     endsAt: sp.data.ends_at,
     amountCents: sp.data.amount_cents,
+    placements: sp.data.placements ?? [],
     listingViews: views.length,
     uniqueViewers: new Set(views.map((v) => v.viewer_id).filter(Boolean)).size,
     siteClicks: clicks.filter(

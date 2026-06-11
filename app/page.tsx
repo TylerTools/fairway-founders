@@ -83,23 +83,25 @@ export default async function Home() {
         <div className="flex items-start justify-between gap-6">
           {/* Brand badge — full-color logo on an ivory crest plate */}
           <div
-            className="inline-flex flex-col items-center rounded-2xl px-6 py-5 sm:px-7 sm:py-6"
+            className="inline-flex flex-col items-center rounded-2xl px-6 py-3 sm:px-7 sm:py-3.5"
             style={{
-              background: 'var(--ff-cream)',
-              border: '1px solid var(--ff-border)',
+              background: 'rgba(245, 241, 232, 0.85)',
+              border: '1px solid rgba(232, 226, 210, 0.6)',
               boxShadow: 'var(--shadow-raised)',
+              backdropFilter: 'blur(3px)',
+              WebkitBackdropFilter: 'blur(3px)',
             }}
           >
             <Image
-              src="/logo.png"
+              src="/logo-hero.png"
               alt="Fairway Founders Network"
-              width={520}
-              height={520}
+              width={1727}
+              height={1008}
               priority
-              className="h-44 w-44 sm:h-52 sm:w-52"
+              className="h-auto w-44 sm:w-56"
             />
             <div
-              className="mt-4 flex w-full items-center justify-center gap-2.5 pt-3"
+              className="mt-3 flex w-full items-center justify-center gap-2.5 pt-2.5"
               style={{ borderTop: '1px solid var(--ff-hairline)' }}
             >
               <Image

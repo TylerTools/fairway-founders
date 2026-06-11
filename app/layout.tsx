@@ -4,6 +4,7 @@ import { Fraunces, Inter } from 'next/font/google';
 import { ClerkProvider, Show } from '@clerk/nextjs';
 import HeaderUserButton from '@/components/HeaderUserButton';
 import { getAppUser } from '@/lib/current-user';
+import { supabase } from '@/lib/supabase';
 import { getViewMode } from '@/lib/view-mode';
 import { canAccessCourseOps, canAccessAdmin } from '@/lib/auth';
 import { getCurrentLeague, getMyLeagues } from '@/lib/league-context';
@@ -111,6 +112,27 @@ export default async function RootLayout({
   const accessStatus = appUser?.access_status ?? null;
   const isApproved = !appUser || accessStatus === 'approved';
   const isSignedInApproved = !!appUser && accessStatus === 'approved';
+
+  // For the PendingScreen, surface which league (if any) the user is
+  // currently waiting on. Cheaper than threading through every page.
+  let pendingMembershipLeagueName: string | null = null;
+  let hasPendingMembership = false;
+  let hasDeclinedMembership = false;
+  if (appUser && accessStatus === 'pending') {
+    const memRes = await supabase
+      .from('league_memberships')
+      .select('status, league:league_id(name)')
+      .eq('user_id', appUser.id);
+    for (const row of memRes.data ?? []) {
+      const league = Array.isArray(row.league) ? row.league[0] : row.league;
+      if (row.status === 'pending') {
+        hasPendingMembership = true;
+        pendingMembershipLeagueName = league?.name ?? null;
+        break;
+      }
+      if (row.status === 'declined') hasDeclinedMembership = true;
+    }
+  }
   // Super admins respect the view toggle (they can preview "member" view).
   // League admins always see the admin tab (no toggle).
   const hasAdminAccess = isSignedInApproved ? await canAccessAdmin() : false;
@@ -209,7 +231,14 @@ export default async function RootLayout({
               ) : !appUser.professional_role || !appUser.company ? (
                 <OnboardingWizard name={appUser.name} />
               ) : (
-                <PendingScreen name={appUser.name} />
+                <PendingScreen
+                  name={appUser.name}
+                  leagueName={pendingMembershipLeagueName ?? undefined}
+                  pendingLeague={hasPendingMembership}
+                  declinedLeague={
+                    !hasPendingMembership && hasDeclinedMembership
+                  }
+                />
               )}
             </div>
           </div>

@@ -96,9 +96,10 @@ export default async function AdminCockpit({
       .eq('status', 'requested')
       .eq('league_id', league.id),
     supabase
-      .from('users')
+      .from('league_memberships')
       .select('id', { count: 'exact', head: true })
-      .eq('access_status', 'pending'),
+      .eq('status', 'pending')
+      .eq('league_id', league.id),
     supabase
       .from('feedback')
       .select('id', { count: 'exact', head: true })

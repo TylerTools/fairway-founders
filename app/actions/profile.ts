@@ -153,12 +153,20 @@ export async function setMyLinks(
     .filter((l) => l.label && l.url)
     .slice(0, 8);
 
-  await supabase.from('member_links').delete().eq('user_id', me.id);
+  // Insert-before-delete so a failed insert can't wipe the existing links.
+  const existing = await supabase
+    .from('member_links')
+    .select('id')
+    .eq('user_id', me.id);
+  const oldIds = (existing.data ?? []).map((r) => r.id);
   if (clean.length) {
     const { error } = await supabase
       .from('member_links')
       .insert(clean.map((l) => ({ ...l, user_id: me.id })));
     if (error) return { ok: false, error: error.message };
+  }
+  if (oldIds.length) {
+    await supabase.from('member_links').delete().in('id', oldIds);
   }
 
   revalidatePath('/me');
@@ -222,12 +230,18 @@ async function uploadImage(
   const { error } = await supabase.from('users').update(patch).eq('id', me.id);
   if (error) return { ok: false, error: error.message };
 
+  // Best-effort cleanup of the previous object — never fail the upload over it,
+  // but log so orphaned objects are traceable.
   const oldPath = pathFromPublicUrl(prevUrl, bucket);
   if (oldPath) {
-    await admin.storage
-      .from(bucket)
-      .remove([oldPath])
-      .catch(() => {});
+    try {
+      const del = await admin.storage.from(bucket).remove([oldPath]);
+      if (del.error) {
+        console.warn(`[media] old ${bucket} cleanup failed for ${oldPath}: ${del.error.message}`);
+      }
+    } catch (e) {
+      console.warn(`[media] old ${bucket} cleanup threw for ${oldPath}: ${(e as Error).message}`);
+    }
   }
 
   revalidatePath('/me');

@@ -160,8 +160,14 @@ export async function respondToInteraction(
     })
     .eq('id', id)
     .eq('to_user_id', me.id)
-    .eq('status', 'pending');
+    .eq('status', 'pending')
+    .select('id');
   if (upd.error) return { ok: false, error: upd.error.message };
+  // The status='pending' filter is the atomic guard: if a concurrent response
+  // already resolved it, 0 rows update here — bail instead of double-notifying.
+  if (!upd.data || upd.data.length === 0) {
+    return { ok: false, error: 'This request was already responded to.' };
+  }
 
   // Best-effort: tell the initiator.
   try {

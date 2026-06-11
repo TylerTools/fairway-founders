@@ -186,19 +186,29 @@ export default async function AdminCockpit({
         >
           {league.name}
         </h1>
-        <LeagueSwitcher
-          variant="inline"
-          current={{
-            id: league.id,
-            name: league.name,
-            short_name: league.short_name,
-          }}
-          options={myLeagues.map((l) => ({
-            id: l.id,
-            name: l.name,
-            short_name: l.short_name,
-          }))}
-        />
+        <div className="flex items-center gap-2 flex-wrap">
+          <LeagueSwitcher
+            variant="inline"
+            current={{
+              id: league.id,
+              name: league.name,
+              short_name: league.short_name,
+            }}
+            options={myLeagues.map((l) => ({
+              id: l.id,
+              name: l.name,
+              short_name: l.short_name,
+            }))}
+          />
+          {isSuperAdmin(me) && (
+            <Link
+              href="/gln"
+              className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--color-gold)] bg-[color:var(--color-navy)] text-[color:var(--color-gold)] px-4 py-2 text-[11px] font-semibold tracking-[0.12em] uppercase hover:opacity-90"
+            >
+              GLN console →
+            </Link>
+          )}
+        </div>
       </div>
       <p className="mt-1 text-[11px] tracking-[0.08em] uppercase text-[color:var(--color-mute)]">
         {league.short_name ?? league.name} · {membersCount} member
@@ -217,7 +227,7 @@ export default async function AdminCockpit({
         <KpiTile href="/admin/courses" label="Courses" value={activeCourses.length} />
         <KpiTile
           href={
-            isSuperAdmin(me) ? `/admin/leagues/${league.id}` : '/admin/courses'
+            isSuperAdmin(me) ? `/gln/leagues/${league.id}` : '/admin/courses'
           }
           label="Members"
           value={membersCount}
@@ -248,13 +258,6 @@ export default async function AdminCockpit({
           League management
         </p>
         <div className="mt-3 grid grid-cols-1 lg:grid-cols-2 gap-3">
-          {isSuperAdmin(me) && (
-            <SectionCard
-              href="/admin/leagues"
-              title="Leagues"
-              blurb="Super admin — add, edit, or remove leagues + memberships"
-            />
-          )}
           <SectionCard
             href="/admin/courses"
             title="Courses"

@@ -88,7 +88,7 @@ export async function createLeague(
     return { ok: false, error: res.error.message };
   }
 
-  revalidatePath('/admin/leagues');
+  revalidatePath('/gln');
   revalidatePath('/admin');
   return { ok: true };
 }
@@ -124,8 +124,8 @@ export async function updateLeague(
     return { ok: false, error: res.error.message };
   }
 
-  revalidatePath('/admin/leagues');
-  revalidatePath(`/admin/leagues/${leagueId}`);
+  revalidatePath('/gln');
+  revalidatePath(`/gln/leagues/${leagueId}`);
   revalidatePath('/', 'layout');
   return { ok: true };
 }
@@ -139,9 +139,9 @@ export async function deleteLeague(leagueId: string): Promise<void> {
       'Cannot delete a league while courses still belong to it. Move or delete the courses first.',
     );
   }
-  revalidatePath('/admin/leagues');
+  revalidatePath('/gln');
   revalidatePath('/admin');
-  redirect('/admin/leagues');
+  redirect('/gln');
 }
 
 // ────────────────────────────────────────────────────────────────
@@ -160,7 +160,7 @@ export async function addLeagueMember(
       { league_id: leagueId, user_id: userId, role },
       { onConflict: 'league_id,user_id' },
     );
-  revalidatePath(`/admin/leagues/${leagueId}`);
+  revalidatePath(`/gln/leagues/${leagueId}`);
 }
 
 export async function removeLeagueMember(
@@ -176,7 +176,7 @@ export async function removeLeagueMember(
     .delete()
     .eq('league_id', leagueId)
     .eq('user_id', userId);
-  revalidatePath(`/admin/leagues/${leagueId}`);
+  revalidatePath(`/gln/leagues/${leagueId}`);
 }
 
 export async function setLeagueMemberRole(
@@ -201,5 +201,5 @@ export async function setLeagueMemberRole(
     .update({ role })
     .eq('league_id', leagueId)
     .eq('user_id', userId);
-  revalidatePath(`/admin/leagues/${leagueId}`);
+  revalidatePath(`/gln/leagues/${leagueId}`);
 }

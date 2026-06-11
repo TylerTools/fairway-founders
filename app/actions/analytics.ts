@@ -2,6 +2,7 @@
 
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
+import { canAccessAdmin } from '@/lib/auth';
 import type { Database } from '@/lib/database.types';
 
 type LinkClickTarget = Database['public']['Enums']['link_click_target'];
@@ -88,5 +89,114 @@ export async function getMyTraffic(): Promise<MyTraffic> {
       (c) => c.target === 'website' || c.target === 'social' || c.target === 'link_hub',
     ).length,
     vcardSaves: clicks.filter((c) => c.target === 'vcard').length,
+  };
+}
+
+export interface ClubValue {
+  members: number;
+  activeMembers: number;
+  newMembers30d: number;
+  leagues: { label: string; members: number }[];
+  closedBusinessCents: number;
+  deals: number;
+  fours: number;
+  links: number;
+  connections: number;
+  profileViews30d: number;
+  siteClicks30d: number;
+  vcardSaves30d: number;
+  roundsPlayed: number;
+  events: number;
+}
+
+/**
+ * Club-wide "state of the club" aggregates for pitching sponsors. Cumulative
+ * totals for the durable story (members, closed business, connections, rounds)
+ * and trailing-30-day figures for traffic/activity. Admin only; counts only.
+ */
+export async function getClubValue(): Promise<ClubValue | null> {
+  if (!(await canAccessAdmin())) return null;
+  const since30 = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+
+  const [membersC, activeC, newC, lmRes, interRes, viewsC, clicksRes, roundsC, eventsC] =
+    await Promise.all([
+      supabase
+        .from('users')
+        .select('id', { count: 'exact', head: true })
+        .eq('access_status', 'approved'),
+      supabase
+        .from('users')
+        .select('id', { count: 'exact', head: true })
+        .eq('access_status', 'approved')
+        .gte('last_active_at', since30),
+      supabase
+        .from('users')
+        .select('id', { count: 'exact', head: true })
+        .eq('access_status', 'approved')
+        .gte('created_at', since30),
+      supabase
+        .from('league_memberships')
+        .select('league:league_id(short_name, name), user:user_id(access_status)'),
+      supabase
+        .from('interactions')
+        .select('kind, from_user_id, to_user_id, value_cents')
+        .eq('status', 'accepted'),
+      supabase
+        .from('profile_views')
+        .select('id', { count: 'exact', head: true })
+        .gte('created_at', since30),
+      supabase.from('link_clicks').select('target').gte('created_at', since30),
+      supabase.from('foursome_members').select('id', { count: 'exact', head: true }),
+      supabase.from('events').select('id', { count: 'exact', head: true }),
+    ]);
+
+  const leagueMap = new Map<string, number>();
+  for (const r of lmRes.data ?? []) {
+    const l = Array.isArray(r.league) ? r.league[0] : r.league;
+    const u = Array.isArray(r.user) ? r.user[0] : r.user;
+    if (!l || u?.access_status !== 'approved') continue;
+    const label = l.short_name || l.name;
+    leagueMap.set(label, (leagueMap.get(label) ?? 0) + 1);
+  }
+  const leagues = [...leagueMap.entries()]
+    .map(([label, members]) => ({ label, members }))
+    .sort((a, b) => b.members - a.members);
+
+  let closedBusinessCents = 0;
+  let deals = 0;
+  let fours = 0;
+  let links = 0;
+  const pairs = new Set<string>();
+  for (const r of interRes.data ?? []) {
+    if (r.kind === 'four') fours += 1;
+    else if (r.kind === 'link') links += 1;
+    else if (r.kind === 'birdie') {
+      deals += 1;
+      closedBusinessCents += r.value_cents ?? 0;
+    }
+    const a = r.from_user_id;
+    const b = r.to_user_id;
+    pairs.add(a < b ? `${a}|${b}` : `${b}|${a}`);
+  }
+
+  const clicks = clicksRes.data ?? [];
+
+  return {
+    members: membersC.count ?? 0,
+    activeMembers: activeC.count ?? 0,
+    newMembers30d: newC.count ?? 0,
+    leagues,
+    closedBusinessCents,
+    deals,
+    fours,
+    links,
+    connections: pairs.size,
+    profileViews30d: viewsC.count ?? 0,
+    siteClicks30d: clicks.filter(
+      (c) => c.target === 'website' || c.target === 'social' || c.target === 'link_hub',
+    ).length,
+    vcardSaves30d: clicks.filter((c) => c.target === 'vcard').length,
+    roundsPlayed: roundsC.count ?? 0,
+    events: eventsC.count ?? 0,
   };
 }

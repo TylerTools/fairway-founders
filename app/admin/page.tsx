@@ -81,6 +81,12 @@ export default async function AdminHome({
     .eq('access_status', 'pending');
   const pendingAccessCount = pendingAccessRes.count ?? 0;
 
+  const pendingSponsorshipRes = await supabase
+    .from('sponsorships')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'requested');
+  const pendingSponsorshipCount = pendingSponsorshipRes.count ?? 0;
+
   const rsvpRes = await supabase
     .from('rsvps')
     .select('user_id')
@@ -200,6 +206,30 @@ export default async function AdminHome({
                   empty
                 </span>
               )}
+            </Link>
+            <Link
+              href="/admin/sponsorships"
+              className="flex items-center justify-between rounded-xl border border-[color:#e8e2d2] bg-white ff-card px-4 py-3 hover:border-[color:var(--color-gold)]"
+            >
+              <span className="text-sm font-semibold">Sponsorships</span>
+              {pendingSponsorshipCount > 0 ? (
+                <span className="text-[10px] tracking-[0.1em] uppercase font-bold bg-[color:var(--color-gold)] text-[color:var(--color-navy)] rounded-full px-2 py-0.5">
+                  {pendingSponsorshipCount} pending
+                </span>
+              ) : (
+                <span className="text-[10px] tracking-[0.1em] uppercase text-[color:var(--color-mute)]">
+                  manage →
+                </span>
+              )}
+            </Link>
+            <Link
+              href="/admin/value"
+              className="flex items-center justify-between rounded-xl border border-[color:#e8e2d2] bg-white ff-card px-4 py-3 hover:border-[color:var(--color-gold)]"
+            >
+              <span className="text-sm font-semibold">Club value report</span>
+              <span className="text-[10px] tracking-[0.1em] uppercase text-[color:var(--color-mute)]">
+                view →
+              </span>
             </Link>
             <BroadcastComposer />
           </div>

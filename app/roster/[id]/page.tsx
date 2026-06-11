@@ -7,6 +7,7 @@ import CountTags from '@/components/CountTags';
 import AdminMemberActions from './AdminMemberActions';
 import { getMemberCountsTags } from '@/app/actions/stats';
 import ProfileInteractionButtons from '@/components/ProfileInteractionButtons';
+import TrackProfileView from '@/components/TrackProfileView';
 
 const ROLE_LABEL: Record<'member' | 'super_admin', string> = {
   member: 'Member',
@@ -94,6 +95,7 @@ export default async function MemberDetail({
       <Link href="/roster" className="text-xs text-[color:var(--color-gold)]">
         ← Members
       </Link>
+      {!isSelf && <TrackProfileView profileId={member.id} />}
 
       {/* Hero */}
       <section className="mt-4 rounded-2xl border border-[color:#e8e2d2] bg-white ff-card p-5 lg:p-6">

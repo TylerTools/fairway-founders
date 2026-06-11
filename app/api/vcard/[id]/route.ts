@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { recordLinkClick } from '@/app/actions/analytics';
 
 // vCard 3.0 text escaping (RFC 2426): backslash, newline, comma, semicolon.
 function esc(v: string): string {
@@ -25,6 +26,9 @@ export async function GET(
   if (!m || m.access_status !== 'approved') {
     return new Response('Not found', { status: 404 });
   }
+
+  // Record the contact save (best-effort, deduped, self-excluded).
+  await recordLinkClick(id, 'vcard');
 
   const parts = (m.name || '').trim().split(/\s+/);
   const last = parts.length > 1 ? parts[parts.length - 1] : '';

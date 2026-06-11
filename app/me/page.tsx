@@ -3,8 +3,10 @@ import Link from 'next/link';
 import { getAppUser } from '@/lib/current-user';
 import { getMyAppProfile } from '@/app/actions/profile';
 import { getMySponsorship } from '@/app/actions/sponsorships';
+import { getMyTraffic } from '@/app/actions/analytics';
 import ProfileEditor from './ProfileEditor';
 import SponsorshipRequest from '@/components/SponsorshipRequest';
+import ProfileAnalytics from '@/components/ProfileAnalytics';
 
 export default async function MePage() {
   const me = await getAppUser();
@@ -12,6 +14,8 @@ export default async function MePage() {
   const profile = await getMyAppProfile();
   if (!profile) redirect('/');
   const sponsorship = await getMySponsorship();
+  const traffic = await getMyTraffic();
+  const monthLabel = new Date().toLocaleString('en-US', { month: 'long' });
 
   return (
     <main className="px-6 py-8 max-w-md lg:max-w-2xl mx-auto w-full">
@@ -29,6 +33,10 @@ export default async function MePage() {
       <p className="mt-1 text-xs text-[color:var(--color-mute)]">
         Your member homepage — what others see in the directory and on your card.
       </p>
+
+      <div className="mt-5">
+        <ProfileAnalytics traffic={traffic} monthLabel={monthLabel} />
+      </div>
 
       <ProfileEditor
         profile={profile}

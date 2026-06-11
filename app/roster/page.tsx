@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
 import { getMyLeagues } from '@/lib/league-context';
@@ -90,7 +91,17 @@ export default async function RosterPage() {
             </span>
           )}
         </p>
-        {isApproved && me && <InviteFriend inviterName={me.name} />}
+        {isApproved && me && (
+          <div className="flex items-center gap-3">
+            <Link
+              href="/me"
+              className="text-[11px] tracking-[0.08em] uppercase font-semibold text-[color:var(--color-gold)] whitespace-nowrap"
+            >
+              Edit my profile
+            </Link>
+            <InviteFriend inviterName={me.name} />
+          </div>
+        )}
       </div>
 
       <MemberDirectory members={enriched} leagues={leagueFilters} isAdmin={isAdmin} />

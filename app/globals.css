@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 @theme inline {
+  /* Brand tokens (Tailwind aliases kept for existing component classes) */
   --color-navy: #1a3a2e;
   --color-gold: #c9a961;
   --color-cream: #f5f1e8;
@@ -13,10 +14,57 @@
 
 :root {
   color-scheme: light;
+
+  /* Fairway Founders Design System — extended palette */
+  --ff-pine: #1a3a2e;
+  --ff-pine-deep: #0d1f17;
+  --ff-gold: #c9a961;
+  --ff-cream: #f5f1e8;
+  --ff-taupe: #8a8576;
+  --ff-white: #ffffff;
+  --ff-sand: #f0ebd8;
+  --ff-border: #e8e2d2;
+  --ff-ink-soft: #5a5a4a;
+  --ff-fog: #a8a596;
+  --ff-sage: #7c9885;
+  --ff-clay: #a87c4f;
+  --ff-brick: #a13c3c;
+  --ff-amber-wash: #fff8e8;
+  --ff-hairline: rgba(201, 169, 97, 0.30);
+
+  /* Tactile shadow system — warm, two-layer lift */
+  --shadow-card:
+    0 1px 2px rgba(26, 58, 46, 0.08),
+    0 10px 24px -8px rgba(26, 58, 46, 0.26);
+  --shadow-raised:
+    0 2px 4px rgba(26, 58, 46, 0.10),
+    0 20px 44px -12px rgba(26, 58, 46, 0.34);
+
+  /* Tactile buttons — distinctly raised, press-down state */
+  --shadow-btn-pine:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 2px 3px rgba(13, 31, 23, 0.24),
+    0 7px 16px -3px rgba(13, 31, 23, 0.40);
+  --shadow-btn-gold:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -2px 0 rgba(120, 90, 30, 0.22),
+    0 2px 3px rgba(120, 90, 30, 0.30),
+    0 8px 18px -3px rgba(120, 90, 30, 0.46);
+  --shadow-btn-secondary:
+    0 1px 2px rgba(26, 58, 46, 0.10),
+    0 5px 12px -3px rgba(26, 58, 46, 0.20);
+  --shadow-btn-pine-down:
+    inset 0 2px 4px rgba(13, 31, 23, 0.38),
+    0 1px 1px rgba(13, 31, 23, 0.18);
+  --shadow-btn-gold-down:
+    inset 0 2px 4px rgba(120, 90, 30, 0.34),
+    0 1px 1px rgba(120, 90, 30, 0.16);
 }
 
 body {
   background: var(--color-cream);
   color: var(--color-ink);
   font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }

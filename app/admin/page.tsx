@@ -241,8 +241,63 @@ export default async function AdminCockpit({
         />
       </div>
 
-      {/* ── Now Playing event ────────────────────────────────────── */}
+      {/* ── League management sub-section cards ──────────────────── */}
       <section className="mt-8">
+        <p className="text-[10px] tracking-[0.15em] uppercase font-semibold text-[color:var(--color-mute)]">
+          League management
+        </p>
+        <div className="mt-3 grid grid-cols-1 lg:grid-cols-2 gap-3">
+          {isSuperAdmin(me) && (
+            <SectionCard
+              href="/admin/leagues"
+              title="Leagues"
+              blurb="Super admin — add, edit, or remove leagues + memberships"
+            />
+          )}
+          <SectionCard
+            href="/admin/courses"
+            title="Courses"
+            blurb={
+              activeCourses.length === 0
+                ? 'No courses yet — add the first one'
+                : `${activeCourses.length} active course${
+                    activeCourses.length === 1 ? '' : 's'
+                  } · pro-shop contacts, default emails, settings`
+            }
+          />
+          <SectionCard
+            href="/admin/events"
+            title="Events"
+            blurb={`${upcomingEventsCount} upcoming · all rounds across courses in this league`}
+          />
+          <SectionCard
+            href="/admin/sponsorships"
+            title="Sponsorships"
+            blurb={
+              pendingSponsorshipCount > 0
+                ? `${pendingSponsorshipCount} pending request${
+                    pendingSponsorshipCount === 1 ? '' : 's'
+                  } · review + promote to placements`
+                : 'Review featured + round sponsors, promote to placements'
+            }
+            highlight={pendingSponsorshipCount > 0}
+          />
+          <SectionCard
+            href="/admin/access"
+            title="Inboxes"
+            blurb={`${pendingAccessCount} access · ${newFeedbackCount} feedback`}
+            highlight={pendingAccessCount + newFeedbackCount > 0}
+          />
+          <SectionCard
+            href="/admin/value"
+            title="Club value report"
+            blurb="Members, business generated, traffic — for pitching sponsors"
+          />
+        </div>
+      </section>
+
+      {/* ── Now Playing event ────────────────────────────────────── */}
+      <section className="mt-10">
         <p className="text-[10px] tracking-[0.15em] uppercase font-semibold text-[color:var(--color-mute)]">
           {event ? 'Now playing' : 'No event scheduled'}
         </p>
@@ -350,63 +405,6 @@ export default async function AdminCockpit({
             </div>
           </div>
         )}
-      </section>
-
-      {/* ── League management sub-section cards ──────────────────── */}
-      <section className="mt-10">
-        <p className="text-[10px] tracking-[0.15em] uppercase font-semibold text-[color:var(--color-mute)]">
-          League management
-        </p>
-        <div className="mt-3 grid grid-cols-1 lg:grid-cols-2 gap-3">
-          <SectionCard
-            href="/admin/courses"
-            title="Courses"
-            blurb={
-              activeCourses.length === 0
-                ? 'No courses yet — add the first one'
-                : `${activeCourses.length} active course${
-                    activeCourses.length === 1 ? '' : 's'
-                  } · pro-shop contacts, default emails, settings`
-            }
-          />
-          <SectionCard
-            href="/admin/events"
-            title="Events"
-            blurb={`${upcomingEventsCount} upcoming · all rounds across courses in this league`}
-          />
-          <SectionCard
-            href="/admin/sponsorships"
-            title="Sponsorships"
-            blurb={
-              pendingSponsorshipCount > 0
-                ? `${pendingSponsorshipCount} pending request${
-                    pendingSponsorshipCount === 1 ? '' : 's'
-                  } · review + promote to placements`
-                : 'Review featured + round sponsors, promote to placements'
-            }
-            highlight={pendingSponsorshipCount > 0}
-          />
-          <SectionCard
-            href="/admin/access"
-            title="Inboxes"
-            blurb={
-              `${pendingAccessCount} access · ${newFeedbackCount} feedback`
-            }
-            highlight={pendingAccessCount + newFeedbackCount > 0}
-          />
-          {isSuperAdmin(me) && (
-            <SectionCard
-              href="/admin/leagues"
-              title="Leagues"
-              blurb="Super-admin — manage all leagues + memberships"
-            />
-          )}
-          <SectionCard
-            href="/admin/value"
-            title="Club value report"
-            blurb="Members, business generated, traffic — for pitching sponsors"
-          />
-        </div>
       </section>
 
       {/* ── Broadcast composer ──────────────────────────────────── */}

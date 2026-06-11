@@ -15,6 +15,7 @@ const TABS: { href: string; label: string; flag: TabFlag }[] = [
   { href: '/dashboard', label: 'Tee Time', flag: 'always' },
   { href: '/leaderboard', label: 'Scorecard', flag: 'always' },
   { href: '/roster', label: 'Members', flag: 'always' },
+  { href: '/network', label: 'Network', flag: 'always' },
   { href: '/admin', label: 'Admin', flag: 'admin' },
   { href: '/course', label: 'Course', flag: 'course' },
 ];

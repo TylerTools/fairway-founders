@@ -263,6 +263,7 @@ export type Database = {
           created_at: string
           id: string
           kind: Database["public"]["Enums"]["feedback_kind"]
+          league_id: string | null
           status: Database["public"]["Enums"]["feedback_status"]
           subject: string | null
           updated_at: string
@@ -274,6 +275,7 @@ export type Database = {
           created_at?: string
           id?: string
           kind: Database["public"]["Enums"]["feedback_kind"]
+          league_id?: string | null
           status?: Database["public"]["Enums"]["feedback_status"]
           subject?: string | null
           updated_at?: string
@@ -285,12 +287,20 @@ export type Database = {
           created_at?: string
           id?: string
           kind?: Database["public"]["Enums"]["feedback_kind"]
+          league_id?: string | null
           status?: Database["public"]["Enums"]["feedback_status"]
           subject?: string | null
           updated_at?: string
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "feedback_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "feedback_user_id_fkey"
             columns: ["user_id"]
@@ -479,6 +489,7 @@ export type Database = {
           joined_at: string
           league_id: string
           role: Database["public"]["Enums"]["league_member_role"]
+          status: Database["public"]["Enums"]["league_membership_status"]
           user_id: string
         }
         Insert: {
@@ -486,6 +497,7 @@ export type Database = {
           joined_at?: string
           league_id: string
           role?: Database["public"]["Enums"]["league_member_role"]
+          status?: Database["public"]["Enums"]["league_membership_status"]
           user_id: string
         }
         Update: {
@@ -493,6 +505,7 @@ export type Database = {
           joined_at?: string
           league_id?: string
           role?: Database["public"]["Enums"]["league_member_role"]
+          status?: Database["public"]["Enums"]["league_membership_status"]
           user_id?: string
         }
         Relationships: [
@@ -950,6 +963,7 @@ export type Database = {
       interaction_kind: "four" | "link" | "birdie"
       interaction_status: "pending" | "accepted" | "declined"
       league_member_role: "member" | "admin"
+      league_membership_status: "pending" | "active" | "declined"
       link_click_target:
         | "website"
         | "social"
@@ -1140,6 +1154,7 @@ export const Constants = {
       interaction_kind: ["four", "link", "birdie"],
       interaction_status: ["pending", "accepted", "declined"],
       league_member_role: ["member", "admin"],
+      league_membership_status: ["pending", "active", "declined"],
       link_click_target: [
         "website",
         "social",

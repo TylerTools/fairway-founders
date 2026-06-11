@@ -9,6 +9,7 @@ import {
 } from '@/lib/scoring';
 import LeaderboardRow, { type LeaderboardRowData } from './LeaderboardRow';
 import CalendarStrip from '@/components/CalendarStrip';
+import LeaderboardRealtime from '@/components/LeaderboardRealtime';
 
 export const dynamic = 'force-dynamic';
 
@@ -128,6 +129,10 @@ export default async function LeaderboardPage({
 
   return (
     <main className="px-6 py-8 max-w-md lg:max-w-3xl mx-auto w-full">
+      <LeaderboardRealtime
+        eventId={event.id}
+        foursomeIds={foursomes.map((f) => f.id)}
+      />
       <CalendarStrip events={events} selectedId={event.id} />
       <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)]">
         Leaderboard · Live

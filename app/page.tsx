@@ -30,11 +30,13 @@ export default async function Home() {
 
   const eventsRes = await supabase
     .from('events')
-    .select('*')
+    .select('*, course:course_id(id, name, short_name, city, state)')
     .gte('date', new Date().toISOString().slice(0, 10))
     .order('date', { ascending: true })
     .limit(3);
-  const upcoming: EventRow[] = eventsRes.data ?? [];
+  const upcoming = (eventsRes.data ?? []) as (EventRow & {
+    course: { id: string; name: string; short_name: string | null; city: string | null; state: string | null } | null;
+  })[];
 
   return (
     <main className="flex-1">
@@ -217,62 +219,126 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* UPCOMING EVENTS */}
-      <section id="events" className="px-6 py-16 md:py-20 max-w-4xl mx-auto scroll-mt-20">
-        <p className="text-[11px] tracking-[0.2em] uppercase text-[color:var(--color-mute)] text-center">
-          Upcoming
-        </p>
-        <h2
-          className="mt-3 text-2xl md:text-3xl text-center"
-          style={{ fontFamily: 'var(--font-display)' }}
-        >
-          The next few Thursdays
-        </h2>
+      {/* UPCOMING EVENTS + SIDE CTA */}
+      <section id="events" className="px-6 py-16 md:py-20 max-w-6xl mx-auto scroll-mt-20">
+        <div className="grid lg:grid-cols-[1.6fr_1fr] gap-8 lg:gap-10">
+          {/* LEFT: events */}
+          <div>
+            <p className="text-[11px] tracking-[0.2em] uppercase text-[color:var(--color-mute)] font-semibold">
+              Upcoming events
+            </p>
+            <h2
+              className="mt-2 text-2xl md:text-3xl leading-tight"
+              style={{ fontFamily: 'var(--font-display)' }}
+            >
+              The next few Thursdays
+            </h2>
 
-        {upcoming.length === 0 ? (
-          <p className="mt-8 text-center text-sm text-[color:var(--color-mute)] italic">
-            New schedule drops soon. Sign up to be the first to RSVP.
-          </p>
-        ) : (
-          <div className="mt-10 grid sm:grid-cols-2 md:grid-cols-3 gap-3">
-            {upcoming.map((e) => {
-              const d = new Date(e.date);
-              const weekday = d.toLocaleDateString('en-US', { weekday: 'long' });
-              const monthDay = d.toLocaleDateString('en-US', {
-                month: 'long',
-                day: 'numeric',
-              });
-              return (
-                <div
-                  key={e.id}
-                  className="rounded-xl border border-[color:#e8e2d2] bg-white p-5"
-                >
-                  <p className="text-[10px] tracking-[0.15em] uppercase text-[color:var(--color-mute)]">
-                    {weekday}
-                  </p>
-                  <p
-                    className="mt-1 text-2xl leading-tight"
-                    style={{ fontFamily: 'var(--font-display)' }}
-                  >
-                    {monthDay}
-                  </p>
-                  <p className="mt-3 text-xs text-[color:#5a5a4a]">
-                    2:30 PM shotgun · {COURSE_OPTIONS[e.course_config].label}
-                  </p>
-                </div>
-              );
-            })}
+            {upcoming.length === 0 ? (
+              <p className="mt-8 text-sm text-[color:var(--color-mute)] italic">
+                New schedule drops soon. Sign up to be the first to RSVP.
+              </p>
+            ) : (
+              <div className="mt-6 space-y-3">
+                {upcoming.map((e) => {
+                  const d = new Date(e.date);
+                  const monthShort = d
+                    .toLocaleDateString('en-US', { month: 'short' })
+                    .toUpperCase();
+                  const day = d.toLocaleDateString('en-US', { day: 'numeric' });
+                  const weekday = d.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                  });
+                  const courseName = e.course?.name ?? 'Legacy Golf Club';
+                  return (
+                    <article
+                      key={e.id}
+                      className="rounded-xl border border-[color:#e8e2d2] bg-white overflow-hidden flex flex-col sm:flex-row hover:border-[color:var(--color-gold)] transition-colors"
+                    >
+                      <div className="sm:w-40 shrink-0 bg-[color:#e8e9d8] aspect-[5/3] sm:aspect-auto flex items-center justify-center">
+                        <CourseIllustration />
+                      </div>
+                      <div className="flex-1 flex items-stretch">
+                        <div className="px-4 py-4 text-center border-r border-[color:#f0ebd8] flex flex-col justify-center min-w-[64px]">
+                          <p className="text-[10px] tracking-[0.15em] uppercase font-bold text-[color:var(--color-gold)]">
+                            {monthShort}
+                          </p>
+                          <p
+                            className="text-2xl leading-none text-[color:var(--color-ink)]"
+                            style={{ fontFamily: 'var(--font-display)' }}
+                          >
+                            {day}
+                          </p>
+                        </div>
+                        <div className="px-5 py-4 flex-1 min-w-0 flex flex-col justify-center">
+                          <p
+                            className="text-base leading-tight text-[color:var(--color-ink)] truncate"
+                            style={{ fontFamily: 'var(--font-display)' }}
+                          >
+                            {courseName}
+                          </p>
+                          <p className="mt-1 text-xs text-[color:#5a5a4a]">
+                            {weekday} · 2:30 PM shotgun ·{' '}
+                            {COURSE_OPTIONS[e.course_config].label}
+                          </p>
+                          <p className="mt-2 text-[10px] tracking-[0.15em] uppercase font-semibold text-[color:var(--color-gold)]">
+                            View event →
+                          </p>
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+
+            <div className="mt-6">
+              <SignInButton>
+                <button className="rounded-md border border-[color:var(--color-gold)] bg-white text-[color:var(--color-ink)] px-5 py-2.5 text-[11px] font-semibold tracking-[0.1em] uppercase hover:bg-[color:#f5f1e8]/40">
+                  Sign in to RSVP
+                </button>
+              </SignInButton>
+              <p className="mt-3 text-[11px] text-[color:var(--color-mute)]">
+                RSVPs open Sunday · close Tuesday at 8 PM.
+              </p>
+            </div>
           </div>
-        )}
 
-        <p className="mt-8 text-center text-xs text-[color:var(--color-mute)]">
-          RSVPs open Sunday and close Tuesday at 8 PM.{' '}
-          <SignInButton>
-            <button className="underline text-[color:var(--color-gold)] cursor-pointer">
-              Sign in to RSVP
-            </button>
-          </SignInButton>
-        </p>
+          {/* RIGHT: elevate-your-network CTA */}
+          <aside className="rounded-xl bg-[color:var(--color-navy)] text-[color:var(--color-cream)] p-7 lg:p-8 flex flex-col items-center text-center relative overflow-hidden">
+            <div
+              className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-[color:var(--color-gold)]/10 pointer-events-none"
+              aria-hidden
+            />
+            <div className="relative z-10 flex flex-col items-center w-full">
+              <CrownIcon />
+              <h3
+                className="mt-4 text-2xl md:text-3xl leading-tight"
+                style={{ fontFamily: 'var(--font-display)' }}
+              >
+                Ready to elevate your network?
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-[color:#d8d3bf] max-w-xs">
+                Join Fairway Founders and start building connections that
+                actually move the ball.
+              </p>
+              {isSignedInApproved ? (
+                <Link
+                  href="/dashboard"
+                  className="mt-6 w-full max-w-[220px] rounded-lg bg-[color:var(--color-gold)] text-[color:var(--color-navy)] px-6 py-3 text-center text-[11px] font-bold tracking-[0.12em] uppercase hover:opacity-90"
+                >
+                  Back to the course →
+                </Link>
+              ) : (
+                <SignUpButton>
+                  <button className="mt-6 w-full max-w-[220px] rounded-lg bg-[color:var(--color-gold)] text-[color:var(--color-navy)] px-6 py-3 text-[11px] font-bold tracking-[0.12em] uppercase hover:opacity-90">
+                    Join now
+                  </button>
+                </SignUpButton>
+              )}
+            </div>
+          </aside>
+        </div>
       </section>
 
       {/* VIDEO PLACEHOLDER */}
@@ -430,6 +496,70 @@ function Stat({ label, value, sub }: { label: string; value: string; sub: string
       </p>
       <p className="text-[11px] text-[color:#5a5a4a] mt-0.5">{sub}</p>
     </div>
+  );
+}
+
+function CourseIllustration() {
+  return (
+    <svg
+      viewBox="0 0 160 96"
+      width="100%"
+      height="100%"
+      preserveAspectRatio="xMidYMid slice"
+      aria-hidden
+      className="block"
+    >
+      <rect width="160" height="96" fill="#dbe3c8" />
+      {/* horizon trees */}
+      <ellipse cx="20" cy="44" rx="14" ry="10" fill="#7c9885" />
+      <ellipse cx="36" cy="42" rx="12" ry="8" fill="#5e8169" />
+      <ellipse cx="124" cy="44" rx="16" ry="11" fill="#7c9885" />
+      <ellipse cx="146" cy="42" rx="10" ry="8" fill="#5e8169" />
+      {/* fairway */}
+      <path d="M 0 96 L 0 70 Q 80 50 160 70 L 160 96 Z" fill="#a8c08a" />
+      <path d="M 0 96 L 0 80 Q 80 64 160 80 L 160 96 Z" fill="#8fae72" />
+      {/* green */}
+      <ellipse cx="100" cy="72" rx="34" ry="6" fill="#5e8169" />
+      <ellipse cx="100" cy="70" rx="34" ry="6" fill="#7c9885" />
+      {/* hole */}
+      <ellipse cx="108" cy="68" rx="2.5" ry="1" fill="#1a3a2e" />
+      {/* flagstick */}
+      <line
+        x1="108"
+        y1="68"
+        x2="108"
+        y2="34"
+        stroke="#1a3a2e"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      {/* flag */}
+      <path d="M 108 34 L 120 38 L 108 42 Z" fill="#c9a961" />
+      {/* sky tint */}
+      <rect width="160" height="42" fill="#f5f1e8" fillOpacity="0.55" />
+    </svg>
+  );
+}
+
+function CrownIcon() {
+  return (
+    <svg
+      width="44"
+      height="44"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#c9a961"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M2 18 L4 8 L8 12 L12 6 L16 12 L20 8 L22 18 Z" fill="#c9a961" fillOpacity="0.18" />
+      <line x1="2" y1="21" x2="22" y2="21" />
+      <circle cx="4" cy="7" r="1" fill="#c9a961" />
+      <circle cx="20" cy="7" r="1" fill="#c9a961" />
+      <circle cx="12" cy="5" r="1" fill="#c9a961" />
+    </svg>
   );
 }
 

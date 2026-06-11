@@ -5,6 +5,7 @@ import { getAppUser } from '@/lib/current-user';
 import { supabase } from '@/lib/supabase';
 import { COURSE_OPTIONS } from '@/lib/schedule';
 import type { EventRow } from '@/lib/events';
+import HowItWorksStep from '@/components/HowItWorksStep';
 
 export const dynamic = 'force-dynamic';
 
@@ -144,31 +145,73 @@ export default async function Home() {
 
       {/* HOW IT WORKS */}
       <section id="how-it-works" className="bg-[color:#f5f1e8]/60 px-6 py-16 md:py-20 scroll-mt-20">
-        <div className="max-w-4xl mx-auto">
-          <p className="text-[11px] tracking-[0.2em] uppercase text-[color:var(--color-mute)] text-center">
+        <div className="max-w-6xl mx-auto">
+          <p className="text-[11px] tracking-[0.2em] uppercase text-[color:var(--color-mute)] text-center font-semibold">
             How it works
           </p>
           <h2
             className="mt-3 text-2xl md:text-3xl text-center"
             style={{ fontFamily: 'var(--font-display)' }}
           >
-            Three steps. No spreadsheet required.
+            Four steps. No spreadsheet required.
           </h2>
-          <div className="mt-10 grid md:grid-cols-3 gap-6">
-            <Step
+
+          {/* Mobile + tablet: stacked grid, no chevrons */}
+          <div className="mt-10 grid grid-cols-1 md:grid-cols-2 lg:hidden gap-5">
+            <HowItWorksStep
               n="1"
-              title="Request access"
-              body="Tell us who you are. An admin reviews every new member."
+              title="Join"
+              body="Apply to the network; an admin reviews every request."
+              icon={<JoinIcon />}
             />
-            <Step
+            <HowItWorksStep
               n="2"
-              title="RSVP by Tuesday"
-              body="Cutoff is Tuesday night. We build foursomes that minimize repeat pairings."
+              title="Book"
+              body="RSVP by Tuesday for the next Thursday round."
+              icon={<BookIcon />}
             />
-            <Step
+            <HowItWorksStep
               n="3"
-              title="Show up Thursday"
-              body="Your hole, cart, and groupmates drop on Wednesday morning."
+              title="Connect"
+              body="The algorithm pairs you with three new people, spread across professions."
+              icon={<ConnectIcon />}
+            />
+            <HowItWorksStep
+              n="4"
+              title="Grow"
+              body="Build relationships in nine holes that pay off off the course."
+              icon={<GrowIcon />}
+            />
+          </div>
+
+          {/* Desktop: 4-up row with chevrons between cards */}
+          <div className="hidden lg:flex items-stretch gap-3 mt-10">
+            <HowItWorksStep
+              n="1"
+              title="Join"
+              body="Apply to the network; an admin reviews every request."
+              icon={<JoinIcon />}
+            />
+            <ChevronGap />
+            <HowItWorksStep
+              n="2"
+              title="Book"
+              body="RSVP by Tuesday for the next Thursday round."
+              icon={<BookIcon />}
+            />
+            <ChevronGap />
+            <HowItWorksStep
+              n="3"
+              title="Connect"
+              body="The algorithm pairs you with three new people, spread across professions."
+              icon={<ConnectIcon />}
+            />
+            <ChevronGap />
+            <HowItWorksStep
+              n="4"
+              title="Grow"
+              body="Build relationships in nine holes that pay off off the course."
+              icon={<GrowIcon />}
             />
           </div>
         </div>
@@ -390,23 +433,105 @@ function Stat({ label, value, sub }: { label: string; value: string; sub: string
   );
 }
 
-function Step({ n, title, body }: { n: string; title: string; body: string }) {
+function ChevronGap() {
   return (
-    <div className="rounded-xl border border-[color:#e8e2d2] bg-white p-5">
-      <p
-        className="text-3xl text-[color:var(--color-gold)]"
-        style={{ fontFamily: 'var(--font-display)' }}
+    <div className="flex items-center justify-center shrink-0 w-6 text-[color:var(--color-gold)]">
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden
       >
-        {n}
-      </p>
-      <p
-        className="mt-2 text-lg leading-tight"
-        style={{ fontFamily: 'var(--font-display)' }}
-      >
-        {title}
-      </p>
-      <p className="mt-2 text-xs text-[color:#5a5a4a] leading-relaxed">{body}</p>
+        <polyline points="9 18 15 12 9 6" />
+      </svg>
     </div>
+  );
+}
+
+function JoinIcon() {
+  return (
+    <svg
+      width="30"
+      height="30"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <line x1="19" y1="8" x2="19" y2="14" />
+      <line x1="22" y1="11" x2="16" y2="11" />
+    </svg>
+  );
+}
+
+function BookIcon() {
+  return (
+    <svg
+      width="30"
+      height="30"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+      <line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
+    </svg>
+  );
+}
+
+function ConnectIcon() {
+  return (
+    <svg
+      width="30"
+      height="30"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
+}
+
+function GrowIcon() {
+  return (
+    <svg
+      width="30"
+      height="30"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+      <polyline points="17 6 23 6 23 12" />
+    </svg>
   );
 }
 

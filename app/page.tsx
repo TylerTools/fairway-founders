@@ -84,7 +84,7 @@ export default async function Home() {
         {/* Top — wordmark + nav */}
         <div className="flex items-start justify-between gap-6">
           {/* Brand lockup — boxless light treatment on the dark hero */}
-          <div className="flex flex-col gap-3.5">
+          <div className="flex flex-col items-center gap-3.5 text-center">
             <Image
               src="/fairway-icon.png"
               alt=""
@@ -93,7 +93,7 @@ export default async function Home() {
               priority
               className="h-[68px] w-auto sm:h-[84px]"
             />
-            <div className="flex flex-col leading-[0.9]">
+            <div className="flex flex-col items-center leading-[0.9]">
               <span
                 className="font-extrabold"
                 style={{

@@ -760,6 +760,7 @@ export type Database = {
       }
       sponsorships: {
         Row: {
+          amount_cents: number | null
           approved_by: string | null
           created_at: string
           ends_at: string | null
@@ -773,6 +774,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          amount_cents?: number | null
           approved_by?: string | null
           created_at?: string
           ends_at?: string | null
@@ -786,6 +788,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          amount_cents?: number | null
           approved_by?: string | null
           created_at?: string
           ends_at?: string | null
@@ -838,6 +841,7 @@ export type Database = {
           handicap: number | null
           helps: string[] | null
           id: string
+          last_active_at: string | null
           leaderboard_opt_out: boolean
           logo_url: string | null
           name: string
@@ -863,6 +867,7 @@ export type Database = {
           handicap?: number | null
           helps?: string[] | null
           id?: string
+          last_active_at?: string | null
           leaderboard_opt_out?: boolean
           logo_url?: string | null
           name: string
@@ -888,6 +893,7 @@ export type Database = {
           handicap?: number | null
           helps?: string[] | null
           id?: string
+          last_active_at?: string | null
           leaderboard_opt_out?: boolean
           logo_url?: string | null
           name?: string

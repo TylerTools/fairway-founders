@@ -121,6 +121,7 @@ export async function decideSponsorship(
   id: string,
   approve: boolean,
   windowDays = 30,
+  amountCents?: number,
 ): Promise<{ ok: boolean; error?: string }> {
   if (!(await canAccessAdmin())) return { ok: false, error: 'Admins only.' };
   const me = await getAppUser();
@@ -144,6 +145,7 @@ export async function decideSponsorship(
             approved_by: me?.id ?? null,
             starts_at: now.toISOString(),
             ends_at: ends,
+            amount_cents: amountCents ?? null,
           }
         : { status: 'declined', approved_by: me?.id ?? null },
     )
@@ -185,4 +187,188 @@ export async function getActiveFeaturedUserIds(): Promise<string[]> {
     if (!r.ends_at || r.ends_at > nowIso) ids.add(r.user_id);
   }
   return [...ids];
+}
+
+export async function setSponsorshipAmount(
+  id: string,
+  amountCents: number | null,
+): Promise<{ ok: boolean; error?: string }> {
+  if (!(await canAccessAdmin())) return { ok: false, error: 'Admins only.' };
+  const upd = await supabase
+    .from('sponsorships')
+    .update({ amount_cents: amountCents })
+    .eq('id', id);
+  if (upd.error) return { ok: false, error: upd.error.message };
+  revalidatePath(`/admin/sponsorships/${id}`);
+  return { ok: true };
+}
+
+export interface ActiveSponsorship {
+  id: string;
+  kind: SponsorshipKind;
+  status: SponsorshipStatus;
+  starts_at: string | null;
+  ends_at: string | null;
+  amount_cents: number | null;
+  user: { id: string; name: string; company: string | null; photo_url: string | null };
+}
+
+export async function getActiveSponsorships(): Promise<ActiveSponsorship[]> {
+  if (!(await canAccessAdmin())) return [];
+  const res = await supabase
+    .from('sponsorships')
+    .select(
+      'id, kind, status, starts_at, ends_at, amount_cents, user:user_id(id, name, company, photo_url)',
+    )
+    .eq('status', 'active')
+    .order('starts_at', { ascending: false });
+  return (res.data ?? []).map((r) => {
+    const u = Array.isArray(r.user) ? r.user[0] : r.user;
+    return {
+      id: r.id,
+      kind: r.kind,
+      status: r.status,
+      starts_at: r.starts_at,
+      ends_at: r.ends_at,
+      amount_cents: r.amount_cents,
+      user: {
+        id: u?.id ?? '',
+        name: u?.name ?? 'Member',
+        company: u?.company ?? null,
+        photo_url: u?.photo_url ?? null,
+      },
+    };
+  });
+}
+
+export interface SponsorReport {
+  member: { id: string; name: string; company: string | null; photo_url: string | null };
+  kind: SponsorshipKind;
+  status: SponsorshipStatus;
+  startsAt: string | null;
+  endsAt: string | null;
+  amountCents: number | null;
+  listingViews: number;
+  uniqueViewers: number;
+  siteClicks: number;
+  vcardSaves: number;
+  foursReceived: number;
+  linksMade: number;
+  birdiesClosed: number;
+  businessReceivedCents: number;
+  clubClosedBusinessCents: number;
+  clubConnections: number;
+}
+
+/**
+ * Per-sponsor value report over the sponsorship window (start → now, or the
+ * full window if expired): the member's listing traffic, the business they
+ * received through the club, and club-wide context to frame the value.
+ */
+export async function getSponsorReport(
+  sponsorshipId: string,
+): Promise<SponsorReport | null> {
+  if (!(await canAccessAdmin())) return null;
+
+  const sp = await supabase
+    .from('sponsorships')
+    .select(
+      'id, user_id, kind, status, starts_at, ends_at, amount_cents, requested_at, user:user_id(id, name, company, photo_url)',
+    )
+    .eq('id', sponsorshipId)
+    .maybeSingle();
+  if (!sp.data) return null;
+
+  const u = Array.isArray(sp.data.user) ? sp.data.user[0] : sp.data.user;
+  const uid = sp.data.user_id;
+  const nowIso = new Date().toISOString();
+  const startIso = sp.data.starts_at ?? sp.data.requested_at;
+  const endIso = sp.data.ends_at && sp.data.ends_at < nowIso ? sp.data.ends_at : nowIso;
+  const eitherParty = `from_user_id.eq.${uid},to_user_id.eq.${uid}`;
+
+  const [viewsRes, clicksRes, interRes, clubBirdieRes, clubPairsRes] = await Promise.all([
+    supabase
+      .from('profile_views')
+      .select('viewer_id')
+      .eq('profile_id', uid)
+      .gte('created_at', startIso)
+      .lte('created_at', endIso),
+    supabase
+      .from('link_clicks')
+      .select('target')
+      .eq('profile_id', uid)
+      .gte('created_at', startIso)
+      .lte('created_at', endIso),
+    supabase
+      .from('interactions')
+      .select('kind, from_user_id, to_user_id, value_cents')
+      .eq('status', 'accepted')
+      .gte('responded_at', startIso)
+      .lte('responded_at', endIso)
+      .or(eitherParty),
+    supabase
+      .from('interactions')
+      .select('value_cents')
+      .eq('status', 'accepted')
+      .eq('kind', 'birdie')
+      .gte('responded_at', startIso)
+      .lte('responded_at', endIso),
+    supabase
+      .from('interactions')
+      .select('from_user_id, to_user_id')
+      .eq('status', 'accepted')
+      .gte('responded_at', startIso)
+      .lte('responded_at', endIso),
+  ]);
+
+  const views = viewsRes.data ?? [];
+  const clicks = clicksRes.data ?? [];
+  let foursReceived = 0;
+  let linksMade = 0;
+  let birdiesClosed = 0;
+  let businessReceivedCents = 0;
+  for (const r of interRes.data ?? []) {
+    if (r.kind === 'four' && r.to_user_id === uid) foursReceived += 1;
+    else if (r.kind === 'link') linksMade += 1;
+    else if (r.kind === 'birdie') {
+      birdiesClosed += 1;
+      businessReceivedCents += r.value_cents ?? 0;
+    }
+  }
+  const clubClosedBusinessCents = (clubBirdieRes.data ?? []).reduce(
+    (s, r) => s + (r.value_cents ?? 0),
+    0,
+  );
+  const pairs = new Set<string>();
+  for (const r of clubPairsRes.data ?? []) {
+    const a = r.from_user_id;
+    const b = r.to_user_id;
+    pairs.add(a < b ? `${a}|${b}` : `${b}|${a}`);
+  }
+
+  return {
+    member: {
+      id: u?.id ?? uid,
+      name: u?.name ?? 'Member',
+      company: u?.company ?? null,
+      photo_url: u?.photo_url ?? null,
+    },
+    kind: sp.data.kind,
+    status: sp.data.status,
+    startsAt: sp.data.starts_at,
+    endsAt: sp.data.ends_at,
+    amountCents: sp.data.amount_cents,
+    listingViews: views.length,
+    uniqueViewers: new Set(views.map((v) => v.viewer_id).filter(Boolean)).size,
+    siteClicks: clicks.filter(
+      (c) => c.target === 'website' || c.target === 'social' || c.target === 'link_hub',
+    ).length,
+    vcardSaves: clicks.filter((c) => c.target === 'vcard').length,
+    foursReceived,
+    linksMade,
+    birdiesClosed,
+    businessReceivedCents,
+    clubClosedBusinessCents,
+    clubConnections: pairs.size,
+  };
 }

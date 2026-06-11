@@ -66,6 +66,7 @@ export async function getAppUser(): Promise<AppUser | null> {
         app_role: 'member',
         access_status: 'pending',
         access_requested_at: new Date().toISOString(),
+        last_active_at: new Date().toISOString(),
       })
       .select('*')
       .single();
@@ -76,6 +77,11 @@ export async function getAppUser(): Promise<AppUser | null> {
   const updates: Partial<AppUser> = {};
   if (clerkName && row.name !== clerkName) updates.name = clerkName;
   if (email && row.email !== email) updates.email = email;
+  // Throttled activity stamp (for active-member / growth metrics).
+  const lastActiveMs = row.last_active_at ? new Date(row.last_active_at).getTime() : 0;
+  if (Date.now() - lastActiveMs > 15 * 60 * 1000) {
+    updates.last_active_at = new Date().toISOString();
+  }
   if (Object.keys(updates).length > 0) {
     const refreshed = await supabase
       .from('users')

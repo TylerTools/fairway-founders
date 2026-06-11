@@ -35,7 +35,7 @@ export default function SponsorshipRequest({
   }
 
   return (
-    <div className="rounded-xl border border-[color:#e8e2d2] bg-white p-5">
+    <div className="rounded-xl border border-[color:#e8e2d2] bg-white ff-card p-5">
       <p className="text-[10px] tracking-[0.15em] uppercase font-semibold text-[color:var(--color-mute)]">
         Sponsorship
       </p>
@@ -67,7 +67,7 @@ export default function SponsorshipRequest({
               type="button"
               onClick={() => req('featured')}
               disabled={pending}
-              className="rounded-md px-4 py-2 text-xs font-semibold tracking-[0.08em] uppercase bg-[color:var(--color-navy)] text-[color:var(--color-gold)] disabled:opacity-60"
+              className="rounded-md px-4 py-2 text-xs font-semibold tracking-[0.08em] uppercase ff-btn ff-btn-pine bg-[color:var(--color-navy)] text-[color:var(--color-gold)] disabled:opacity-60"
             >
               Request featured
             </button>

@@ -56,7 +56,7 @@ export default function RequestsInbox({ initial }: { initial: PendingRequest[] }
         return (
           <div
             key={r.id}
-            className="rounded-xl border border-[color:#e8e2d2] bg-white p-4 flex items-start gap-3"
+            className="rounded-xl border border-[color:#e8e2d2] bg-white ff-card p-4 flex items-start gap-3"
           >
             <Avatar size={40} photoUrl={r.from.photo_url} rounded="xl" />
             <div className="flex-1 min-w-0">
@@ -75,7 +75,7 @@ export default function RequestsInbox({ initial }: { initial: PendingRequest[] }
               <button
                 type="button"
                 onClick={() => respond(r.id, true)}
-                className="rounded-md px-3 py-1.5 text-[11px] font-semibold tracking-[0.06em] uppercase bg-[color:var(--color-navy)] text-[color:var(--color-gold)]"
+                className="rounded-md px-3 py-1.5 text-[11px] font-semibold tracking-[0.06em] uppercase ff-btn ff-btn-pine bg-[color:var(--color-navy)] text-[color:var(--color-gold)]"
               >
                 Accept
               </button>

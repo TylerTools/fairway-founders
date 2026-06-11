@@ -19,7 +19,7 @@ export default function NetworkLeaderboard({
   }
 
   return (
-    <div className="rounded-xl border border-[color:#e8e2d2] bg-white overflow-hidden">
+    <div className="rounded-xl border border-[color:#e8e2d2] bg-white ff-card overflow-hidden">
       {entries.map((e, i) => (
         <Link
           key={e.userId}

@@ -8,6 +8,7 @@ import AdminMemberActions from './AdminMemberActions';
 import { getMemberCountsTags } from '@/app/actions/stats';
 import ProfileInteractionButtons from '@/components/ProfileInteractionButtons';
 import TrackProfileView from '@/components/TrackProfileView';
+import TrackedExternalLink from '@/components/TrackedExternalLink';
 
 const ROLE_LABEL: Record<'member' | 'super_admin', string> = {
   member: 'Member',
@@ -25,6 +26,20 @@ const LINK_LABEL: Record<string, string> = {
   calendly: 'Calendly',
   other: 'Link',
 };
+
+const SOCIAL_KINDS = new Set([
+  'linkedin',
+  'instagram',
+  'facebook',
+  'x',
+  'youtube',
+  'tiktok',
+]);
+function clickTarget(kind: string): 'website' | 'social' | 'link_hub' {
+  if (kind === 'website') return 'website';
+  if (SOCIAL_KINDS.has(kind)) return 'social';
+  return 'link_hub';
+}
 
 export default async function MemberDetail({
   params,
@@ -194,14 +209,14 @@ export default async function MemberDetail({
             </a>
           )}
           {member.website_url && (
-            <a
+            <TrackedExternalLink
+              profileId={member.id}
+              target="website"
               href={member.website_url}
-              target="_blank"
-              rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 border border-[color:var(--color-gold)] text-[color:var(--color-ink)] px-4 py-2 text-xs font-semibold tracking-[0.08em] uppercase rounded-md hover:bg-[color:#f5f1e8]"
             >
               Website
-            </a>
+            </TrackedExternalLink>
           )}
           {!isSelf && (
             <ProfileInteractionButtons toUserId={member.id} toName={member.name} />
@@ -224,11 +239,12 @@ export default async function MemberDetail({
           </p>
           <div className="space-y-1.5">
             {links.map((l) => (
-              <a
+              <TrackedExternalLink
                 key={l.id}
+                profileId={member.id}
+                target={clickTarget(l.kind)}
+                memberLinkId={l.id}
                 href={l.url}
-                target="_blank"
-                rel="noopener noreferrer"
                 className="flex items-center justify-between gap-3 rounded-lg border border-[color:#e8e2d2] px-3.5 py-2.5 hover:border-[color:var(--color-gold)] transition-colors"
               >
                 <span className="text-sm font-medium text-[color:var(--color-ink)] truncate">
@@ -237,7 +253,7 @@ export default async function MemberDetail({
                 <span className="text-[10px] tracking-[0.1em] uppercase text-[color:var(--color-mute)] shrink-0">
                   {LINK_LABEL[l.kind] ?? 'Link'}
                 </span>
-              </a>
+              </TrackedExternalLink>
             ))}
           </div>
         </section>

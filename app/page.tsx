@@ -21,14 +21,29 @@ export default async function Home() {
           isolation: 'isolate',
         }}
       >
-        {/* Pine gradient backdrop */}
+        {/* Solid pine fallback — shows while the video loads or if it fails */}
         <div
           aria-hidden
-          className="absolute inset-0 -z-10"
+          className="absolute inset-0 -z-30"
           style={{
             background: 'var(--ff-pine-deep)',
           }}
         />
+
+        {/* Background video — golden-hour course footage behind the scrim */}
+        <video
+          aria-hidden
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          className="absolute inset-0 -z-20 h-full w-full object-cover"
+        >
+          <source src="/hero.mp4" type="video/mp4" />
+        </video>
+
+        {/* Pine scrim over the video — keeps the cream text legible */}
         <div
           aria-hidden
           className="absolute inset-0 -z-10"
@@ -44,7 +59,7 @@ export default async function Home() {
         <svg
           aria-hidden
           viewBox="0 0 120 120"
-          className="absolute -right-10 -bottom-8 w-[280px] lg:w-[360px] opacity-[0.07] pointer-events-none -z-10"
+          className="absolute -right-10 -bottom-8 w-[280px] lg:w-[360px] opacity-[0.12] pointer-events-none -z-10"
         >
           <ellipse cx="60" cy="98" rx="50" ry="9" fill="#f5f1e8" />
           <line

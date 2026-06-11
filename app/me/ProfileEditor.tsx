@@ -64,7 +64,7 @@ export default function ProfileEditor({
         onDone={() => router.refresh()}
       />
 
-      <form action={formAction} className="rounded-xl border border-[color:#e8e2d2] bg-white p-5 space-y-4">
+      <form action={formAction} className="rounded-xl border border-[color:#e8e2d2] bg-white ff-card p-5 space-y-4">
         <SectionLabel>Identity</SectionLabel>
         <Field name="tagline" label="Tagline" defaultValue={profile.tagline ?? ''} placeholder="What you do, in a line" />
         <div className="grid grid-cols-2 gap-3">
@@ -99,7 +99,7 @@ export default function ProfileEditor({
         <button
           type="submit"
           disabled={pending}
-          className="rounded-md px-5 py-2.5 text-xs font-semibold tracking-[0.08em] uppercase bg-[color:var(--color-navy)] text-[color:var(--color-gold)] disabled:opacity-60"
+          className="rounded-md px-5 py-2.5 text-xs font-semibold tracking-[0.08em] uppercase ff-btn ff-btn-pine bg-[color:var(--color-navy)] text-[color:var(--color-gold)] disabled:opacity-60"
         >
           {pending ? 'Saving…' : 'Save profile'}
         </button>
@@ -141,7 +141,7 @@ function ImageRow({
   }
 
   return (
-    <div className="rounded-xl border border-[color:#e8e2d2] bg-white p-5">
+    <div className="rounded-xl border border-[color:#e8e2d2] bg-white ff-card p-5">
       <div className="flex items-center gap-4">
         <Avatar size={64} photoUrl={url} rounded={rounded} />
         <div className="flex-1">
@@ -215,7 +215,7 @@ function LinkHubEditor({ initial }: { initial: LinkRow[] }) {
   }
 
   return (
-    <div className="rounded-xl border border-[color:#e8e2d2] bg-white p-5 space-y-3">
+    <div className="rounded-xl border border-[color:#e8e2d2] bg-white ff-card p-5 space-y-3">
       <SectionLabel>Link hub</SectionLabel>
       {rows.length === 0 && (
         <p className="text-xs italic text-[color:var(--color-mute)]">
@@ -271,7 +271,7 @@ function LinkHubEditor({ initial }: { initial: LinkRow[] }) {
           type="button"
           onClick={save}
           disabled={pending}
-          className="rounded-md px-4 py-2 text-xs font-semibold tracking-[0.08em] uppercase bg-[color:var(--color-navy)] text-[color:var(--color-gold)] disabled:opacity-60"
+          className="rounded-md px-4 py-2 text-xs font-semibold tracking-[0.08em] uppercase ff-btn ff-btn-pine bg-[color:var(--color-navy)] text-[color:var(--color-gold)] disabled:opacity-60"
         >
           {pending ? 'Saving…' : 'Save links'}
         </button>

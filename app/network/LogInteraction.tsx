@@ -84,7 +84,7 @@ export default function LogInteraction() {
   const active = KINDS.find((k) => k.value === kind)!;
 
   return (
-    <div className="rounded-xl border border-[color:#e8e2d2] bg-white p-5">
+    <div className="rounded-xl border border-[color:#e8e2d2] bg-white ff-card p-5">
       <p className="text-[11px] tracking-[0.15em] uppercase font-bold text-[color:var(--color-ink)] mb-3">
         Log business
       </p>
@@ -197,7 +197,7 @@ export default function LogInteraction() {
           type="button"
           onClick={submit}
           disabled={sending}
-          className="rounded-md px-5 py-2.5 text-xs font-semibold tracking-[0.08em] uppercase bg-[color:var(--color-navy)] text-[color:var(--color-gold)] disabled:opacity-60"
+          className="rounded-md px-5 py-2.5 text-xs font-semibold tracking-[0.08em] uppercase ff-btn ff-btn-pine bg-[color:var(--color-navy)] text-[color:var(--color-gold)] disabled:opacity-60"
         >
           {sending ? 'Sending…' : `Send ${active.label}`}
         </button>

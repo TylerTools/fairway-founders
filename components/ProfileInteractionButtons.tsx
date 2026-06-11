@@ -111,7 +111,7 @@ export default function ProfileInteractionButtons({
               type="button"
               onClick={send}
               disabled={sending}
-              className="rounded-md px-4 py-2 text-xs font-semibold tracking-[0.08em] uppercase bg-[color:var(--color-navy)] text-[color:var(--color-gold)] disabled:opacity-60"
+              className="rounded-md px-4 py-2 text-xs font-semibold tracking-[0.08em] uppercase ff-btn ff-btn-pine bg-[color:var(--color-navy)] text-[color:var(--color-gold)] disabled:opacity-60"
             >
               {sending ? 'Sending…' : `Send ${activeLabel}`}
             </button>

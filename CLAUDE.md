@@ -1,5 +1,22 @@
 # Fairway Founders
 
+## Building UI — read BRAND.md FIRST (required)
+
+**Before writing or changing ANY member- or admin-facing UI, read
+[`BRAND.md`](BRAND.md) and follow it exactly.** The brand is opinionated and easy
+to violate — flat cards and flat buttons are the most common off-brand mistake.
+Non-negotiables (full rules + copy-paste recipes + a pre-flight checklist in `BRAND.md`):
+
+- **Tactile depth:** every card uses `ff-card`; every primary button uses `ff-btn`
+  plus `ff-btn-pine` / `ff-btn-gold` / `ff-btn-secondary` (all defined in
+  [`app/globals.css`](app/globals.css)). Inputs, pills, and segmented controls stay flat.
+- **One brand green** `#1A3A2E` (the `--color-navy` token *is* green — never `#2E5D3A`).
+  No bright colors; no gradients on content.
+- **Type:** Fraunces (`--font-display`) for headlines/numerals; UPPERCASE wide-tracked
+  taupe labels; the middot `·` separates metadata.
+- **No emoji or decorative glyphs** — only `✓`, `←`, `→`. No photography in the app
+  (silhouette avatars); golden-hour photo/video is allowed **only** on the public sign-in page.
+
 ## What we're building
 
 Fairway Founders is a private, weekly networking app for ~16–30 founders and operators who play a 9-hole scramble together. Members RSVP through Tuesday evening; at cutoff the system auto-builds foursomes that minimize repeat pairings and spread professions, then assigns each group a cart pairing and a starting hole for a 2:30 PM Thursday shotgun. During the round an admin posts hole-by-hole scores to a live, handicap-net leaderboard. The course pro shop gets a printable cart-label PDF and a draft confirmation email so check-in is one tap. The product feel is a quiet, editorial members club — Fraunces serif headlines on navy/gold/cream — not a spreadsheet.

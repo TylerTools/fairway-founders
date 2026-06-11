@@ -42,13 +42,13 @@ export default function MemberCard({
   return (
     <Link
       href={`/roster/${m.id}`}
-      className={`border rounded-xl p-3.5 hover:border-[color:var(--color-gold)] transition-colors ${borderCls} ${
+      className={`border rounded-xl p-3.5 ff-card hover:border-[color:var(--color-gold)] transition-colors ${borderCls} ${
         m.featured ? 'bg-[color:#fdfbf4]' : 'bg-white'
       }`}
     >
       {m.featured && (
         <p className="mb-1.5 text-[8px] tracking-[0.15em] uppercase font-bold text-[color:var(--color-gold)]">
-          ★ Featured
+          Featured
         </p>
       )}
       <div className="flex justify-between items-start mb-2">

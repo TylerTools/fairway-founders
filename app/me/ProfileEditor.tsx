@@ -66,6 +66,7 @@ export default function ProfileEditor({
 
       <form action={formAction} className="rounded-xl border border-[color:#e8e2d2] bg-white ff-card p-5 space-y-4">
         <SectionLabel>Identity</SectionLabel>
+        <Field name="name" label="Name" defaultValue={profile.name} placeholder="Your name" />
         <Field name="tagline" label="Tagline" defaultValue={profile.tagline ?? ''} placeholder="What you do, in a line" />
         <div className="grid grid-cols-2 gap-3">
           <Field name="company" label="Company" defaultValue={profile.company ?? ''} />

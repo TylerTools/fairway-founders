@@ -75,7 +75,8 @@ export async function getAppUser(): Promise<AppUser | null> {
 
   // Sync auth-managed fields from Clerk into our row when they drift.
   const updates: Partial<AppUser> = {};
-  if (clerkName && row.name !== clerkName) updates.name = clerkName;
+  // Name is owned by the member's app profile (/me) — don't pull it from Clerk
+  // on each load or it would clobber edits. Email stays Clerk-owned (the login).
   if (email && row.email !== email) updates.email = email;
   // Throttled activity stamp (for active-member / growth metrics).
   const lastActiveMs = row.last_active_at ? new Date(row.last_active_at).getTime() : 0;

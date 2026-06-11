@@ -4,6 +4,7 @@ import { randomUUID } from 'crypto';
 import { revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/supabase';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { clerkClient } from '@clerk/nextjs/server';
 import { getAppUser, type AppUser } from '@/lib/current-user';
 import type { Database } from '@/lib/database.types';
 
@@ -35,6 +36,7 @@ export interface MemberLink {
 }
 
 export interface AppProfileSnapshot {
+  name: string;
   bio: string | null;
   company: string | null;
   professional_role: string | null;
@@ -61,6 +63,7 @@ export async function getMyAppProfile(): Promise<AppProfileSnapshot | null> {
     .order('sort_order', { ascending: true });
 
   return {
+    name: me.name ?? '',
     bio: me.bio,
     company: me.company,
     professional_role: me.professional_role,
@@ -77,6 +80,21 @@ export async function getMyAppProfile(): Promise<AppProfileSnapshot | null> {
   };
 }
 
+/** Best-effort: mirror the member's display name onto their Clerk account so
+ *  the account widget and any Clerk-native surfaces stay in sync. Never throws. */
+async function syncNameToClerk(clerkId: string | null, name: string | null) {
+  if (!clerkId || !name) return;
+  try {
+    const client = await clerkClient();
+    const parts = name.trim().split(/\s+/);
+    const firstName = parts.shift() || undefined;
+    const lastName = parts.length ? parts.join(' ') : undefined;
+    await client.users.updateUser(clerkId, { firstName, lastName });
+  } catch (e) {
+    console.warn(`[profile] Clerk name sync failed: ${(e as Error).message}`);
+  }
+}
+
 export async function updateProfile(
   _prev: ProfileFormState,
   formData: FormData,
@@ -87,6 +105,7 @@ export async function updateProfile(
   const str = (k: string, max: number) =>
     ((formData.get(k) as string | null)?.trim().slice(0, max) || null) ?? null;
 
+  const name = str('name', 120);
   const bio = str('bio', 600);
   const company = str('company', 120);
   const professional_role = str('professional_role', 120);
@@ -113,6 +132,7 @@ export async function updateProfile(
   const { error } = await supabase
     .from('users')
     .update({
+      name: name ?? me.name ?? '',
       bio,
       company,
       professional_role,
@@ -127,6 +147,9 @@ export async function updateProfile(
     .eq('id', me.id);
 
   if (error) return { ok: false, error: error.message };
+
+  // Mirror the display name onto Clerk so the account widget matches (best-effort).
+  await syncNameToClerk(me.clerk_id, name ?? me.name);
 
   revalidatePath('/me');
   revalidatePath('/roster');
@@ -229,6 +252,16 @@ async function uploadImage(
   const patch = column === 'photo_url' ? { photo_url: url } : { logo_url: url };
   const { error } = await supabase.from('users').update(patch).eq('id', me.id);
   if (error) return { ok: false, error: error.message };
+
+  // Mirror a new profile photo onto the Clerk avatar (best-effort).
+  if (column === 'photo_url' && me.clerk_id) {
+    try {
+      const client = await clerkClient();
+      await client.users.updateUserProfileImage(me.clerk_id, { file });
+    } catch (e) {
+      console.warn(`[profile] Clerk avatar sync failed: ${(e as Error).message}`);
+    }
+  }
 
   // Best-effort cleanup of the previous object — never fail the upload over it,
   // but log so orphaned objects are traceable.

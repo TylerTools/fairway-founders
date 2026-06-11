@@ -1,7 +1,6 @@
 'use client';
 
 import { UserButton } from '@clerk/nextjs';
-import FounderProfile from './FounderProfile';
 
 const FlagIcon = () => (
   <svg
@@ -24,21 +23,14 @@ export default function HeaderUserButton() {
   return (
     <UserButton>
       <UserButton.MenuItems>
-        <UserButton.Action
-          label="Founder details"
+        <UserButton.Link
+          label="Member profile"
           labelIcon={<FlagIcon />}
-          open="founder"
+          href="/me"
         />
         <UserButton.Action label="manageAccount" />
         <UserButton.Action label="signOut" />
       </UserButton.MenuItems>
-      <UserButton.UserProfilePage
-        label="Founder details"
-        url="founder"
-        labelIcon={<FlagIcon />}
-      >
-        <FounderProfile />
-      </UserButton.UserProfilePage>
     </UserButton>
   );
 }

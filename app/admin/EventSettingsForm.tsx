@@ -34,7 +34,7 @@ export default function EventSettingsForm({ event }: { event: EventRow }) {
 
   if (!editing) {
     return (
-      <div className="rounded-xl border border-[color:#e8e2d2] bg-white p-4 space-y-1.5">
+      <div className="rounded-xl border border-[color:#e8e2d2] bg-white ff-card p-4 space-y-1.5">
         <Row label="Course layout" value={labelFor(event.course_config)} />
         <Row label="Green fee" value={`$${feeDollars}`} />
         <Row label="Pro-shop email" value={event.pro_shop_email ?? '—'} />
@@ -72,7 +72,7 @@ export default function EventSettingsForm({ event }: { event: EventRow }) {
   return (
     <form
       action={formAction}
-      className="rounded-xl border border-[color:#e8e2d2] bg-white p-4 space-y-3"
+      className="rounded-xl border border-[color:#e8e2d2] bg-white ff-card p-4 space-y-3"
     >
       <Field label="Tee time (ET)" name="date" type="datetime-local" defaultValue={localStr} />
       <div>

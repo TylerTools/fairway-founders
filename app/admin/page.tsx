@@ -155,7 +155,7 @@ export default async function AdminHome({
           <div className="grid gap-2">
             <Link
               href="/admin/leagues"
-              className="flex items-center justify-between rounded-xl border border-[color:#e8e2d2] bg-white px-4 py-3 hover:border-[color:var(--color-gold)]"
+              className="flex items-center justify-between rounded-xl border border-[color:#e8e2d2] bg-white ff-card px-4 py-3 hover:border-[color:var(--color-gold)]"
             >
               <span className="text-sm font-semibold">Leagues</span>
               <span className="text-[10px] tracking-[0.1em] uppercase text-[color:var(--color-mute)]">
@@ -164,7 +164,7 @@ export default async function AdminHome({
             </Link>
             <Link
               href="/admin/courses"
-              className="flex items-center justify-between rounded-xl border border-[color:#e8e2d2] bg-white px-4 py-3 hover:border-[color:var(--color-gold)]"
+              className="flex items-center justify-between rounded-xl border border-[color:#e8e2d2] bg-white ff-card px-4 py-3 hover:border-[color:var(--color-gold)]"
             >
               <span className="text-sm font-semibold">Courses</span>
               <span className="text-[10px] tracking-[0.1em] uppercase text-[color:var(--color-mute)]">
@@ -173,7 +173,7 @@ export default async function AdminHome({
             </Link>
             <Link
               href="/admin/access"
-              className="flex items-center justify-between rounded-xl border border-[color:#e8e2d2] bg-white px-4 py-3 hover:border-[color:var(--color-gold)]"
+              className="flex items-center justify-between rounded-xl border border-[color:#e8e2d2] bg-white ff-card px-4 py-3 hover:border-[color:var(--color-gold)]"
             >
               <span className="text-sm font-semibold">Access requests</span>
               {pendingAccessCount > 0 ? (
@@ -188,7 +188,7 @@ export default async function AdminHome({
             </Link>
             <Link
               href="/admin/feedback"
-              className="flex items-center justify-between rounded-xl border border-[color:#e8e2d2] bg-white px-4 py-3 hover:border-[color:var(--color-gold)]"
+              className="flex items-center justify-between rounded-xl border border-[color:#e8e2d2] bg-white ff-card px-4 py-3 hover:border-[color:var(--color-gold)]"
             >
               <span className="text-sm font-semibold">Feedback & issues inbox</span>
               {newFeedbackCount > 0 ? (
@@ -215,7 +215,7 @@ export default async function AdminHome({
             <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] mb-3">
               RSVPs · {rsvpedIds.length} of {members.length}
             </p>
-            <div className="rounded-xl border border-[color:#e8e2d2] bg-white">
+            <div className="rounded-xl border border-[color:#e8e2d2] bg-white ff-card">
               <AdminRsvpList
                 eventId={event.id}
                 members={members}

@@ -76,7 +76,7 @@ export default async function CourseOpsPage({
         2:30 PM Shotgun · {event.course?.name ?? 'Legacy Golf Club'} · {status}
       </p>
 
-      <section className="mt-6 rounded-xl border border-[color:#e8e2d2] bg-white overflow-hidden">
+      <section className="mt-6 rounded-xl border border-[color:#e8e2d2] bg-white ff-card overflow-hidden">
         <div className="bg-[color:var(--color-navy)] text-[color:var(--color-cream)] px-5 py-3.5">
           <p className="text-[10px] tracking-[0.15em] text-[color:var(--color-gold)] font-semibold">
             EVENT SUMMARY
@@ -135,7 +135,7 @@ export default async function CourseOpsPage({
             return (
               <div
                 key={f.id}
-                className="rounded-xl border border-[color:#e8e2d2] bg-white overflow-hidden"
+                className="rounded-xl border border-[color:#e8e2d2] bg-white ff-card overflow-hidden"
               >
                 <div className="px-4 py-2.5 bg-[color:var(--color-cream)] border-b border-[color:#e8e2d2] flex justify-between">
                   <span className="text-[11px] font-bold tracking-[0.1em]">

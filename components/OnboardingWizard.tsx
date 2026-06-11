@@ -77,7 +77,7 @@ export default function OnboardingWizard({ name }: { name: string }) {
         <button
           type="submit"
           disabled={pending}
-          className="w-full rounded-lg bg-[color:var(--color-navy)] text-[color:var(--color-gold)] py-4 text-sm font-semibold tracking-[0.1em] uppercase shadow-lg shadow-[color:var(--color-navy)]/25 hover:opacity-90 disabled:opacity-60"
+          className="w-full rounded-lg bg-[color:var(--color-navy)] text-[color:var(--color-gold)] py-4 text-sm font-semibold tracking-[0.1em] uppercase ff-btn ff-btn-pine hover:opacity-90 disabled:opacity-60"
         >
           {pending ? 'Submitting…' : 'Submit for review'}
         </button>

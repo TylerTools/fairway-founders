@@ -64,7 +64,7 @@ export const metadata: Metadata = {
       {
         rel: 'mask-icon',
         url: '/safari-pinned-tab.svg',
-        color: '#2E5D3A',
+        color: '#1A3A2E',
       },
     ],
   },
@@ -92,13 +92,13 @@ export const metadata: Metadata = {
     images: ['/og-image.png'],
   },
   other: {
-    'msapplication-TileColor': '#2E5D3A',
+    'msapplication-TileColor': '#1A3A2E',
     'msapplication-config': '/browserconfig.xml',
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: '#2E5D3A',
+  themeColor: '#1A3A2E',
 };
 
 export default async function RootLayout({

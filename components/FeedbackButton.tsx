@@ -28,7 +28,7 @@ export default function FeedbackButton() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed right-4 bottom-[88px] z-30 rounded-full bg-[color:var(--color-navy)] text-[color:var(--color-gold)] px-4 py-2.5 text-[11px] font-semibold tracking-[0.1em] uppercase shadow-lg shadow-[color:var(--color-navy)]/20 hover:opacity-90"
+        className="fixed right-4 bottom-[88px] z-30 rounded-full bg-[color:var(--color-navy)] text-[color:var(--color-gold)] px-4 py-2.5 text-[11px] font-semibold tracking-[0.1em] uppercase ff-btn ff-btn-pine hover:opacity-90"
       >
         Feedback
       </button>
@@ -129,7 +129,7 @@ export default function FeedbackButton() {
                 <button
                   type="submit"
                   disabled={pending}
-                  className="flex-1 bg-[color:var(--color-navy)] text-[color:var(--color-gold)] rounded-lg py-3 text-xs font-semibold tracking-[0.08em] uppercase disabled:opacity-60"
+                  className="flex-1 bg-[color:var(--color-navy)] text-[color:var(--color-gold)] rounded-lg py-3 text-xs font-semibold tracking-[0.08em] uppercase ff-btn ff-btn-pine disabled:opacity-60"
                 >
                   {pending ? 'Sending…' : 'Send'}
                 </button>

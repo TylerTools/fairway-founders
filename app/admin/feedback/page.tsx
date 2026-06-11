@@ -127,7 +127,7 @@ export default async function FeedbackInbox({
             return (
               <article
                 key={r.id}
-                className="rounded-xl border border-[color:#e8e2d2] bg-white p-4"
+                className="rounded-xl border border-[color:#e8e2d2] bg-white ff-card p-4"
               >
                 <div className="flex justify-between items-start gap-3">
                   <div className="min-w-0">

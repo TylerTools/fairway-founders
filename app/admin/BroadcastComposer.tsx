@@ -29,7 +29,7 @@ export default function BroadcastComposer() {
           setOpen(true);
           setState(initial);
         }}
-        className="w-full flex items-center justify-between rounded-xl border border-[color:#e8e2d2] bg-white px-4 py-3 hover:border-[color:var(--color-gold)]"
+        className="w-full flex items-center justify-between rounded-xl border border-[color:#e8e2d2] bg-white ff-card px-4 py-3 hover:border-[color:var(--color-gold)]"
       >
         <span className="text-sm font-semibold">Send a message to the group</span>
         <span className="text-[10px] tracking-[0.1em] uppercase font-bold text-[color:var(--color-gold)]">

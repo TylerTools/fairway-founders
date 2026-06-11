@@ -95,7 +95,7 @@ export default async function MemberDetail({
       </Link>
 
       {/* Hero */}
-      <section className="mt-4 rounded-2xl border border-[color:#e8e2d2] bg-white p-5 lg:p-6">
+      <section className="mt-4 rounded-2xl border border-[color:#e8e2d2] bg-white ff-card p-5 lg:p-6">
         <div className="flex items-start gap-4">
           <div className="relative shrink-0">
             <Avatar size={84} photoUrl={member.photo_url} rounded="xl" />
@@ -205,14 +205,14 @@ export default async function MemberDetail({
 
       {/* Bio */}
       {member.bio && (
-        <section className="mt-3 rounded-xl border border-[color:#e8e2d2] bg-white p-5">
+        <section className="mt-3 rounded-xl border border-[color:#e8e2d2] bg-white ff-card p-5">
           <p className="text-sm leading-relaxed whitespace-pre-wrap">{member.bio}</p>
         </section>
       )}
 
       {/* Link hub */}
       {links.length > 0 && (
-        <section className="mt-3 rounded-xl border border-[color:#e8e2d2] bg-white p-5">
+        <section className="mt-3 rounded-xl border border-[color:#e8e2d2] bg-white ff-card p-5">
           <p className="text-[10px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] mb-3">
             Find me
           </p>
@@ -239,7 +239,7 @@ export default async function MemberDetail({
 
       {/* Can help with */}
       {member.helps && member.helps.length > 0 && (
-        <section className="mt-3 rounded-xl border border-[color:#e8e2d2] bg-white p-5">
+        <section className="mt-3 rounded-xl border border-[color:#e8e2d2] bg-white ff-card p-5">
           <p className="text-[10px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] mb-2">
             Can help with
           </p>
@@ -267,7 +267,7 @@ export default async function MemberDetail({
 
       {/* Past rounds together */}
       {played.length > 0 && (
-        <section className="mt-3 rounded-xl border border-[color:#e8e2d2] bg-white p-5">
+        <section className="mt-3 rounded-xl border border-[color:#e8e2d2] bg-white ff-card p-5">
           <p className="text-[10px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] mb-2">
             Past rounds together
           </p>

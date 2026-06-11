@@ -76,7 +76,7 @@ export default function AdminFoursomes({
         {foursomes.map((f) => (
           <div
             key={f.id}
-            className="rounded-xl border border-[color:#e8e2d2] bg-white overflow-hidden"
+            className="rounded-xl border border-[color:#e8e2d2] bg-white ff-card overflow-hidden"
           >
             <div className="bg-[color:var(--color-navy)] text-[color:var(--color-cream)] px-4 py-2.5 flex justify-between items-center">
               <p

@@ -129,7 +129,7 @@ export default async function CourseDetail({
                   return (
                     <li
                       key={e.id}
-                      className="rounded-lg border border-[color:#e8e2d2] bg-white px-3 py-2 flex justify-between items-center"
+                      className="rounded-lg border border-[color:#e8e2d2] bg-white ff-card px-3 py-2 flex justify-between items-center"
                     >
                       <div>
                         <p className="text-sm font-semibold">

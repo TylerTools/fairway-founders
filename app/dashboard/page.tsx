@@ -156,7 +156,7 @@ export default async function Dashboard({
         (paid at the pro shop)
       </p>
 
-      <div className="mt-5 rounded-xl border border-[color:#e8e2d2] bg-white p-5">
+      <div className="mt-5 rounded-xl border border-[color:#e8e2d2] bg-white ff-card p-5">
         {status === 'open' ? (
           <>
             <div className="flex justify-between items-start mb-4">
@@ -218,7 +218,7 @@ export default async function Dashboard({
           <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] mb-3">
             Your group
           </p>
-          <div className="rounded-xl border border-[color:#e8e2d2] bg-white overflow-hidden">
+          <div className="rounded-xl border border-[color:#e8e2d2] bg-white ff-card overflow-hidden">
             <div className="bg-[color:var(--color-navy)] text-[color:var(--color-cream)] px-5 py-3.5 flex justify-between items-center">
               <div>
                 <p className="text-[10px] tracking-[0.15em] font-semibold text-[color:var(--color-gold)]">

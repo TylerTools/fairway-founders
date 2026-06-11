@@ -39,9 +39,9 @@ export default function GenerateButton({
         type="button"
         onClick={generate}
         disabled={disabled}
-        className="w-full rounded-lg bg-[color:var(--color-navy)] text-[color:var(--color-gold)] py-3.5 text-sm font-semibold tracking-[0.08em] uppercase disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full rounded-lg bg-[color:var(--color-navy)] text-[color:var(--color-gold)] py-3.5 text-sm font-semibold tracking-[0.08em] uppercase ff-btn ff-btn-pine disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {pending ? '…' : `⚡ Generate Groups (${rsvpCount} in)`}
+        {pending ? '…' : `Generate Groups (${rsvpCount} in)`}
       </button>
       {hasFoursomes && (
         <button

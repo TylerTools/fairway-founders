@@ -36,7 +36,7 @@ export default function LeagueSettingsForm({ league }: { league: LeagueRow }) {
 
   if (!editing) {
     return (
-      <div className="rounded-xl border border-[color:#e8e2d2] bg-white p-4 space-y-2 text-sm">
+      <div className="rounded-xl border border-[color:#e8e2d2] bg-white ff-card p-4 space-y-2 text-sm">
         <Row label="Slug" value={league.slug} />
         <Row label="Short name" value={league.short_name ?? '—'} />
         <Row label="Description" value={league.description ?? '—'} multiline />
@@ -64,7 +64,7 @@ export default function LeagueSettingsForm({ league }: { league: LeagueRow }) {
   return (
     <form
       action={formAction}
-      className="rounded-xl border border-[color:#e8e2d2] bg-white p-4 space-y-3"
+      className="rounded-xl border border-[color:#e8e2d2] bg-white ff-card p-4 space-y-3"
     >
       <Field label="Name" name="name" defaultValue={league.name} required />
       <Field

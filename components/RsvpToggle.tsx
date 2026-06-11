@@ -32,10 +32,10 @@ export default function RsvpToggle({
       type="button"
       onClick={onClick}
       disabled={disabled || pending}
-      className={`w-full rounded-lg px-4 py-3.5 text-sm font-semibold tracking-[0.08em] uppercase transition-opacity ${
+      className={`w-full rounded-lg px-4 py-3.5 text-sm font-semibold tracking-[0.08em] uppercase ff-btn ${
         rsvped
-          ? 'bg-[color:var(--color-navy)] text-[color:var(--color-cream)]'
-          : 'bg-[color:var(--color-gold)] text-[color:var(--color-navy)]'
+          ? 'bg-[color:var(--color-navy)] text-[color:var(--color-cream)] ff-btn-pine'
+          : 'bg-[color:var(--color-gold)] text-[color:var(--color-navy)] ff-btn-gold'
       } ${pending ? 'opacity-60 cursor-wait' : 'hover:opacity-90'} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
     >
       {pending ? '…' : label}

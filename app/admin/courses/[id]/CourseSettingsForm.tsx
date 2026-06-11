@@ -36,7 +36,7 @@ export default function CourseSettingsForm({ course }: { course: CourseRow }) {
 
   if (!editing) {
     return (
-      <div className="rounded-xl border border-[color:#e8e2d2] bg-white p-4 space-y-2 text-sm">
+      <div className="rounded-xl border border-[color:#e8e2d2] bg-white ff-card p-4 space-y-2 text-sm">
         <Row label="Short name" value={course.short_name ?? '—'} />
         <Row label="Address" value={course.address ?? '—'} />
         <Row
@@ -75,7 +75,7 @@ export default function CourseSettingsForm({ course }: { course: CourseRow }) {
   return (
     <form
       action={formAction}
-      className="rounded-xl border border-[color:#e8e2d2] bg-white p-4 space-y-3"
+      className="rounded-xl border border-[color:#e8e2d2] bg-white ff-card p-4 space-y-3"
     >
       <Field label="Name" name="name" defaultValue={course.name} required />
       <Field

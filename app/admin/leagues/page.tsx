@@ -72,7 +72,7 @@ export default async function LeaguesIndex() {
             <Link
               key={l.id}
               href={`/admin/leagues/${l.id}`}
-              className="rounded-xl border border-[color:#e8e2d2] bg-white p-4 hover:border-[color:var(--color-gold)]"
+              className="rounded-xl border border-[color:#e8e2d2] bg-white ff-card p-4 hover:border-[color:var(--color-gold)]"
             >
               <p
                 className="text-lg font-semibold leading-tight"

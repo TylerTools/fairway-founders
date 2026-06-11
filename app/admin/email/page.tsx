@@ -126,7 +126,7 @@ export default async function EmailDraftPage({
         Tee time confirmation
       </h1>
 
-      <div className="mt-5 rounded-xl border border-[color:#e8e2d2] bg-white p-4 space-y-3">
+      <div className="mt-5 rounded-xl border border-[color:#e8e2d2] bg-white ff-card p-4 space-y-3">
         <Field label="To">{draft.to ?? '(no pro-shop email set on the event)'}</Field>
         <Field label="Subject">{draft.subject}</Field>
         <Field label="Body">

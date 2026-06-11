@@ -56,7 +56,7 @@ export default function BlastComposer() {
   }
 
   return (
-    <section className="rounded-xl border border-[color:#e8e2d2] bg-white p-5">
+    <section className="rounded-xl border border-[color:#e8e2d2] bg-white ff-card p-5">
       <p
         className="text-xl"
         style={{ fontFamily: 'var(--font-display)' }}

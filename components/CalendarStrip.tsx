@@ -26,7 +26,7 @@ export default function CalendarStrip({
 
   return (
     <div
-      className="sm:hidden flex gap-2 overflow-x-auto pb-1 mb-4"
+      className="sm:hidden flex gap-2 overflow-x-auto pt-0.5 pb-3 mb-3"
       style={{ scrollbarWidth: 'none' }}
     >
       {events.map((e) => {
@@ -61,7 +61,7 @@ export default function CalendarStrip({
             key={e.id}
             type="button"
             onClick={() => select(e.id)}
-            className={`shrink-0 min-w-[96px] text-left rounded-xl px-3 py-2.5 border ${
+            className={`shrink-0 min-w-[96px] text-left rounded-xl px-3 py-2.5 border ff-btn ff-card ${
               isSelected
                 ? 'bg-[color:var(--color-navy)] border-[color:var(--color-navy)] text-[color:var(--color-cream)]'
                 : 'bg-white border-[color:#e8e2d2] text-[color:var(--color-ink)]'

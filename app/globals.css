@@ -68,3 +68,55 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
+
+/* ============================================================
+   Tactile depth — reusable brand utilities.
+   The shadow tokens above are the source of truth; these classes
+   apply them. Compose alongside existing color/size Tailwind
+   classes (e.g. `class="… bg-[color:var(--color-navy)] ff-btn ff-btn-pine"`).
+   Cards lift off the cream; buttons read raised and physically
+   press DOWN + inward on tap (no scale, no color jump).
+   ============================================================ */
+
+/* Card surfaces — a warm two-layer lift off the cream ground. */
+.ff-card {
+  box-shadow: var(--shadow-card);
+}
+
+/* Pressable base — quiet 140ms ease, dips down on active press. */
+.ff-btn {
+  transition:
+    transform 140ms ease,
+    box-shadow 140ms ease,
+    opacity 140ms ease;
+}
+.ff-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.ff-btn:disabled {
+  box-shadow: none;
+}
+
+/* Pine action — gold-on-pine, reads like a struck block of color. */
+.ff-btn-pine {
+  box-shadow: var(--shadow-btn-pine);
+}
+.ff-btn-pine:active:not(:disabled) {
+  box-shadow: var(--shadow-btn-pine-down);
+}
+
+/* Gold action — the brass-plaque CTA (inset highlight + warm drop). */
+.ff-btn-gold {
+  box-shadow: var(--shadow-btn-gold);
+}
+.ff-btn-gold:active:not(:disabled) {
+  box-shadow: var(--shadow-btn-gold-down);
+}
+
+/* Secondary — white field, soft lift. */
+.ff-btn-secondary {
+  box-shadow: var(--shadow-btn-secondary);
+}
+.ff-btn-secondary:active:not(:disabled) {
+  box-shadow: inset 0 1px 2px rgba(26, 58, 46, 0.1);
+}

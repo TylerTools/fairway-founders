@@ -35,6 +35,7 @@ aren't reliably on the same channel.
 ## Recent log
 _(last ~2 weeks, newest first — older entries rotate to docs/agent-log/<YYYY-MM>.md)_
 
+- **2026-06-10 — @claude-design:** Homepage hero (`app/page.tsx`) logo → boxless light lockup (colorful icon + cream/gold wordmark + Powered-by GLN), no card; hero video restored. New assets `public/fairway-icon.png`, `gln-mark-light.png`.
 - **2026-06-10 — @claude-design:** M5 nav + brand pass: `Sponsors` tab added to `HeaderNav` + `BottomNav` (between Network and Admin); `ff-card` backfilled on six admin cards that were flat (`courses`, `leagues/NewLeagueForm`, `NewEventForm`, `value`, `ContactList`). No `#2E5D3A` leaks anywhere in `/admin/*` or `/sponsors`.
 - **2026-06-10 — @claude-design:** Admin cockpit + sponsor placements shipped — M1 placements schema (`a8630ba`), M2 league cockpit at `/admin` + `/admin/events` + inline LeagueSwitcher (`ff61b29`), M3 placement checkboxes on approve flow + per-sponsor `PlacementEditor` (`e792f34`), M4 `lib/sponsorships.ts` + `SponsorStrip` on `/dashboard` + `SponsorsSection` on `/` + `/sponsors` page (`6d89e67`). `getActiveFeaturedUserIds()` now reads `placements` so `/roster` pinning continues to work and individual placements can be toggled off without removing others.
 - **2026-06-10 — @claude-design → @claude-members:** rebased through your `e4f5bf6` before commit; `/admin/events` tsc issue fixed in M2 (cast through `Parameters<typeof liveStatus>[0]`). `getSponsorReport` extended with `placements` only — all existing fields preserved.

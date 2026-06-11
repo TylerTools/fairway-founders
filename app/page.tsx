@@ -83,59 +83,63 @@ export default async function Home() {
 
         {/* Top — wordmark + nav */}
         <div className="flex items-start justify-between gap-6">
-          {/* Brand badge — full-color logo on an ivory crest plate */}
-          <div
-            className="inline-flex flex-col items-center rounded-2xl px-6 py-3 sm:px-7 sm:py-3.5"
-            style={{
-              background: 'rgba(245, 241, 232, 0.85)',
-              border: '1px solid rgba(232, 226, 210, 0.6)',
-              boxShadow: 'var(--shadow-raised)',
-              backdropFilter: 'blur(3px)',
-              WebkitBackdropFilter: 'blur(3px)',
-            }}
-          >
+          {/* Brand lockup — boxless light treatment on the dark hero */}
+          <div className="flex flex-col gap-3.5">
             <Image
-              src="/logo-hero.png"
-              alt="Fairway Founders Network"
-              width={1727}
-              height={1008}
+              src="/fairway-icon.png"
+              alt=""
+              width={1081}
+              height={473}
               priority
-              className="h-auto w-44 sm:w-56"
+              className="h-[68px] w-auto sm:h-[84px]"
             />
-            <div
-              className="mt-3 flex w-full items-center justify-center gap-2.5 pt-2.5"
-              style={{ borderTop: '1px solid var(--ff-hairline)' }}
-            >
+            <div className="flex flex-col leading-[0.9]">
+              <span
+                className="font-extrabold"
+                style={{
+                  fontFamily: 'var(--font-sans), system-ui, sans-serif',
+                  fontSize: 40,
+                  letterSpacing: '0.08em',
+                  color: 'var(--ff-cream)',
+                }}
+              >
+                FAIRWAY
+              </span>
+              <span
+                className="my-2 rounded-sm"
+                style={{ width: 42, height: 3, background: 'var(--ff-gold)' }}
+              />
+              <span
+                className="font-bold"
+                style={{
+                  fontFamily: 'var(--font-sans), system-ui, sans-serif',
+                  fontSize: 13,
+                  letterSpacing: '0.28em',
+                  color: 'var(--ff-gold)',
+                }}
+              >
+                FOUNDERS&nbsp;NETWORK
+              </span>
+            </div>
+            <div className="mt-0.5 flex items-center gap-2">
               <Image
-                src="/gln-mark.png"
+                src="/gln-mark-light.png"
                 alt="Golf Links Network"
                 width={313}
                 height={192}
-                className="h-7 w-auto"
+                className="h-5 w-auto opacity-90"
               />
-              <div className="text-left leading-tight">
-                <p
-                  className="m-0 font-bold uppercase"
-                  style={{
-                    fontSize: 8,
-                    letterSpacing: '0.18em',
-                    color: 'var(--ff-taupe)',
-                    fontFamily: 'var(--font-sans), system-ui, sans-serif',
-                  }}
-                >
-                  Powered by
-                </p>
-                <p
-                  className="m-0 font-semibold"
-                  style={{
-                    fontSize: 11,
-                    color: 'var(--ff-ink-soft)',
-                    fontFamily: 'var(--font-sans), system-ui, sans-serif',
-                  }}
-                >
-                  Golf Links Network
-                </p>
-              </div>
+              <span
+                className="font-semibold uppercase"
+                style={{
+                  fontSize: 9,
+                  letterSpacing: '0.14em',
+                  color: 'rgba(245,241,232,0.72)',
+                  fontFamily: 'var(--font-sans), system-ui, sans-serif',
+                }}
+              >
+                Powered by Golf Links Network
+              </span>
             </div>
           </div>
 

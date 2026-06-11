@@ -18,6 +18,7 @@ import DeniedScreen from '@/components/DeniedScreen';
 import NotificationBell from '@/components/NotificationBell';
 import HeaderLogo from '@/components/HeaderLogo';
 import HideOnHome from '@/components/HideOnHome';
+import MarketingHeader from '@/components/MarketingHeader';
 import PlayNowBall from '@/components/PlayNowBall';
 import EventSidebar from '@/components/EventSidebar';
 import { fetchEvents } from '@/lib/events';
@@ -159,6 +160,7 @@ export default async function RootLayout({
             },
           }}
         >
+          <MarketingHeader signedInApproved={isSignedInApproved} />
           <HideOnHome>
             <header className="flex items-center justify-between gap-6 border-b border-[color:var(--color-gold)]/30 px-6 py-4 sticky top-0 z-10 bg-[color:var(--color-cream)]">
               <Link href="/" className="flex items-center gap-2 leading-none shrink-0">

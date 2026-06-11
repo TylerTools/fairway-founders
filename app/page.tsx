@@ -38,60 +38,69 @@ export default async function Home() {
   return (
     <main className="flex-1">
       {/* HERO */}
-      <section className="relative flex flex-col items-center justify-center text-center px-6 overflow-hidden py-16 md:py-24">
+      <section className="relative overflow-hidden">
         <video
           autoPlay
           muted
           loop
           playsInline
           preload="metadata"
-          className="absolute inset-0 w-full h-full object-cover opacity-35 pointer-events-none"
+          className="absolute inset-0 w-full h-full object-cover opacity-40 pointer-events-none"
         >
           <source src="/hero.mp4" type="video/mp4" />
           <source src="/hero.webm" type="video/webm" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-[color:var(--color-cream)]/60 via-[color:var(--color-cream)]/20 to-[color:var(--color-cream)]/80 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[color:var(--color-cream)]/60 via-[color:var(--color-cream)]/30 to-[color:var(--color-cream)]/85 pointer-events-none" />
 
-        <div className="relative z-10 flex flex-col items-center w-full max-w-lg">
-          <Image
-            src="/logo.png"
-            alt="Fairway Founders Network"
-            width={1024}
-            height={1024}
-            priority
-            className="w-56 sm:w-72 md:w-80 h-auto drop-shadow-[0_8px_24px_rgba(26,58,46,0.25)]"
-          />
-          {isSignedInApproved ? (
-            <div className="mt-8 w-full max-w-sm">
-              <Link
-                href="/dashboard"
-                className="block w-full rounded-lg bg-[color:var(--color-navy)] text-[color:var(--color-gold)] py-4 text-center text-sm font-semibold tracking-[0.1em] uppercase shadow-lg shadow-[color:var(--color-navy)]/25 hover:opacity-90"
-              >
-                Back to the course →
-              </Link>
-              <p className="mt-3 text-[11px] text-[color:var(--color-ink)]/70 italic text-center">
+        <div className="relative z-10 max-w-6xl mx-auto px-6 py-20 md:py-28 lg:py-32 text-center lg:text-left">
+          <div className="max-w-2xl mx-auto lg:mx-0">
+            <p className="text-[11px] tracking-[0.2em] uppercase text-[color:var(--color-mute)] font-semibold">
+              The weekly meetup
+            </p>
+            <h1
+              className="mt-4 text-4xl sm:text-5xl lg:text-6xl leading-[1.05] tracking-tight text-[color:var(--color-ink)]"
+              style={{ fontFamily: 'var(--font-display)' }}
+            >
+              Where business meets{' '}
+              <span className="italic text-[color:var(--color-gold)]">the fairway.</span>
+            </h1>
+            <p className="mt-5 text-base sm:text-lg leading-relaxed text-[color:#3a3a30] max-w-xl mx-auto lg:mx-0">
+              A Thursday-afternoon meetup of founders and operators who&rsquo;d
+              rather build relationships in nine holes than across a conference
+              table.
+            </p>
+
+            <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
+              {isSignedInApproved ? (
+                <Link
+                  href="/dashboard"
+                  className="rounded-lg bg-[color:var(--color-navy)] text-[color:var(--color-gold)] px-7 py-4 text-center text-sm font-semibold tracking-[0.1em] uppercase shadow-lg shadow-[color:var(--color-navy)]/25 hover:opacity-90"
+                >
+                  Back to the course →
+                </Link>
+              ) : (
+                <>
+                  <SignInButton>
+                    <button className="rounded-lg bg-[color:var(--color-navy)] text-[color:var(--color-gold)] px-7 py-4 text-sm font-semibold tracking-[0.1em] uppercase shadow-lg shadow-[color:var(--color-navy)]/25 hover:opacity-90">
+                      Book a tee time
+                    </button>
+                  </SignInButton>
+                  <SignUpButton>
+                    <button className="rounded-lg border border-[color:var(--color-gold)] bg-white/80 text-[color:var(--color-ink)] px-7 py-4 text-sm font-semibold tracking-[0.1em] uppercase shadow-md hover:bg-white">
+                      Join the network
+                    </button>
+                  </SignUpButton>
+                </>
+              )}
+            </div>
+
+            {isSignedInApproved ? (
+              <p className="mt-4 text-[11px] text-[color:var(--color-ink)]/70 italic text-center lg:text-left">
                 Welcome back, {me!.name.split(' ')[0]}.
               </p>
-            </div>
-          ) : (
-            <>
-              <div className="mt-8 grid grid-cols-2 gap-3 w-full max-w-sm">
-                <SignUpButton>
-                  <button className="rounded-lg bg-[color:var(--color-navy)] text-[color:var(--color-gold)] py-4 text-sm font-semibold tracking-[0.1em] uppercase shadow-lg shadow-[color:var(--color-navy)]/25 hover:opacity-90">
-                    Sign up
-                  </button>
-                </SignUpButton>
-                <SignInButton>
-                  <button className="rounded-lg border border-[color:var(--color-gold)] bg-white text-[color:var(--color-ink)] py-4 text-sm font-semibold tracking-[0.1em] uppercase shadow-md hover:bg-[color:#f5f1e8]/40">
-                    Sign in
-                  </button>
-                </SignInButton>
-              </div>
-              <p className="mt-3 text-[11px] text-[color:var(--color-ink)]/70 italic">
-                New here? Sign up — an admin will approve your request before you can RSVP.
-              </p>
-              <p className="mt-2 text-[10px] text-[color:var(--color-ink)]/60">
-                By signing up, you agree to our{' '}
+            ) : (
+              <p className="mt-4 text-[10px] text-[color:var(--color-ink)]/60 text-center lg:text-left">
+                By joining, you agree to our{' '}
                 <Link href="/terms" className="underline hover:text-[color:var(--color-gold)]">
                   Terms of Service
                 </Link>{' '}
@@ -99,15 +108,15 @@ export default async function Home() {
                 <Link href="/privacy" className="underline hover:text-[color:var(--color-gold)]">
                   Privacy Policy
                 </Link>
-                .
+                . An admin reviews every new member.
               </p>
-            </>
-          )}
+            )}
+          </div>
         </div>
       </section>
 
       {/* ABOUT */}
-      <section className="px-6 py-16 md:py-20 max-w-3xl mx-auto text-center">
+      <section id="about" className="px-6 py-16 md:py-20 max-w-3xl mx-auto text-center scroll-mt-20">
         <p className="text-[11px] tracking-[0.2em] uppercase text-[color:var(--color-mute)]">
           The weekly meetup
         </p>
@@ -134,7 +143,7 @@ export default async function Home() {
       </section>
 
       {/* HOW IT WORKS */}
-      <section className="bg-[color:#f5f1e8]/60 px-6 py-16 md:py-20">
+      <section id="how-it-works" className="bg-[color:#f5f1e8]/60 px-6 py-16 md:py-20 scroll-mt-20">
         <div className="max-w-4xl mx-auto">
           <p className="text-[11px] tracking-[0.2em] uppercase text-[color:var(--color-mute)] text-center">
             How it works
@@ -166,7 +175,7 @@ export default async function Home() {
       </section>
 
       {/* UPCOMING EVENTS */}
-      <section className="px-6 py-16 md:py-20 max-w-4xl mx-auto">
+      <section id="events" className="px-6 py-16 md:py-20 max-w-4xl mx-auto scroll-mt-20">
         <p className="text-[11px] tracking-[0.2em] uppercase text-[color:var(--color-mute)] text-center">
           Upcoming
         </p>
@@ -251,7 +260,7 @@ export default async function Home() {
       </section>
 
       {/* SPONSORS */}
-      <section className="px-6 py-16 md:py-20 max-w-5xl mx-auto">
+      <section id="sponsors" className="px-6 py-16 md:py-20 max-w-5xl mx-auto scroll-mt-20">
         <p className="text-[11px] tracking-[0.2em] uppercase text-[color:var(--color-mute)] text-center">
           In partnership with
         </p>
@@ -309,7 +318,7 @@ export default async function Home() {
       </section>
 
       {/* FOOTER */}
-      <footer className="border-t border-[color:#e8e2d2] bg-[color:var(--color-cream)] px-6 py-10">
+      <footer id="contact" className="border-t border-[color:#e8e2d2] bg-[color:var(--color-cream)] px-6 py-10 scroll-mt-20">
         <div className="max-w-4xl mx-auto flex flex-col items-center gap-5">
           <div className="flex items-center gap-3">
             {SOCIAL_LINKS.map((s) => (

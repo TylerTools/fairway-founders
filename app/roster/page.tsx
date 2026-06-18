@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
-import { getMyLeagues } from '@/lib/league-context';
+import { getCurrentLeague, getMyLeagues } from '@/lib/league-context';
 import InviteFriend from '@/components/InviteFriend';
 import MemberDirectory from '@/components/MemberDirectory';
 import type { DirectoryMember } from '@/components/MemberCard';
@@ -12,6 +12,24 @@ export default async function RosterPage() {
   const isApproved = !!me && me.access_status === 'approved';
   const isAdmin = me?.app_role === 'super_admin';
 
+  // Per-league: non-GLN-admins only see active members of their current league.
+  // GLN admins keep the cross-league view so they can manage anywhere.
+  const currentLeague = await getCurrentLeague();
+  let allowedUserIds: Set<string> | null = null;
+  if (!isAdmin && currentLeague) {
+    const lmCurrentRes = await supabase
+      .from('league_memberships')
+      .select('user_id')
+      .eq('league_id', currentLeague.id)
+      .eq('status', 'active');
+    allowedUserIds = new Set(
+      (lmCurrentRes.data ?? []).map((r) => r.user_id),
+    );
+    // Always include self in the directory even before the membership flips
+    // active — keeps /me → "view public" from 404-ing for new members.
+    if (me) allowedUserIds.add(me.id);
+  }
+
   let q = supabase
     .from('users')
     .select(
@@ -19,6 +37,12 @@ export default async function RosterPage() {
     )
     .order('name', { ascending: true });
   if (!isAdmin) q = q.eq('access_status', 'approved');
+  if (allowedUserIds && allowedUserIds.size > 0) {
+    q = q.in('id', [...allowedUserIds]);
+  } else if (allowedUserIds) {
+    // No active members in current league at all → empty result.
+    q = q.eq('id', '00000000-0000-0000-0000-000000000000');
+  }
   const res = await q;
   const members = res.data ?? [];
 
@@ -92,7 +116,12 @@ export default async function RosterPage() {
     <main className="px-6 py-8 max-w-md lg:max-w-5xl mx-auto w-full">
       <div className="flex items-center justify-between gap-3 mb-3">
         <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)]">
-          Members · {approvedCount} member{approvedCount === 1 ? '' : 's'}
+          {currentLeague ? (
+            <>
+              {currentLeague.short_name ?? currentLeague.name} ·{' '}
+            </>
+          ) : null}
+          {approvedCount} member{approvedCount === 1 ? '' : 's'}
           {isAdmin && enriched.length > approvedCount && (
             <span className="text-[color:var(--color-gold)]">
               {' '}

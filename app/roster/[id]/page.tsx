@@ -55,6 +55,27 @@ export default async function MemberDetail({
   const member = res.data;
   if (!member) notFound();
 
+  // Per-league visibility: a viewer can only see profiles that share at
+  // least one active league with them (or are themselves). GLN admins see
+  // everyone. Members trying to view an out-of-league profile get 404.
+  if (!isAdmin && !isSelf && me) {
+    const [mineRes, theirsRes] = await Promise.all([
+      supabase
+        .from('league_memberships')
+        .select('league_id')
+        .eq('user_id', me.id)
+        .eq('status', 'active'),
+      supabase
+        .from('league_memberships')
+        .select('league_id')
+        .eq('user_id', id)
+        .eq('status', 'active'),
+    ]);
+    const mine = new Set((mineRes.data ?? []).map((r) => r.league_id));
+    const shared = (theirsRes.data ?? []).some((r) => mine.has(r.league_id));
+    if (!shared) notFound();
+  }
+
   const [linksRes, leaguesRes, counts] = await Promise.all([
     supabase
       .from('member_links')

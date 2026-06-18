@@ -110,15 +110,22 @@ export interface PendingRequest {
   from: { id: string; name: string; photo_url: string | null };
 }
 
-export async function getMyPendingRequests(): Promise<PendingRequest[]> {
+export async function getMyPendingRequests(
+  leagueId?: string | null,
+): Promise<PendingRequest[]> {
   const me = await getAppUser();
   if (!me) return [];
-  const res = await supabase
+  let q = supabase
     .from('interactions')
     .select('id, kind, note, value_cents, created_at, from:from_user_id(id, name, photo_url)')
     .eq('to_user_id', me.id)
-    .eq('status', 'pending')
-    .order('created_at', { ascending: false });
+    .eq('status', 'pending');
+  // Per-league scoping: filter to the current league, but legacy rows with
+  // league_id IS NULL (pre-rebuild) still surface in every league context.
+  if (leagueId) {
+    q = q.or(`league_id.eq.${leagueId},league_id.is.null`);
+  }
+  const res = await q.order('created_at', { ascending: false });
   return (res.data ?? []).map((r) => {
     const f = Array.isArray(r.from) ? r.from[0] : r.from;
     return {

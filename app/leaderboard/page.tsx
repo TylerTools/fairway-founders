@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
+import { canAccessAdmin } from '@/lib/auth';
 import { selectEvent } from '@/lib/events';
 import { COURSE_OPTIONS } from '@/lib/schedule';
 import {
@@ -19,7 +20,7 @@ export default async function LeaderboardPage({
   searchParams: Promise<{ event?: string }>;
 }) {
   const me = await getAppUser();
-  const canEdit = me?.app_role === 'super_admin';
+  const isAdmin = await canAccessAdmin();
 
   const { event: requestedId } = await searchParams;
   const { event, events } = await selectEvent(requestedId);
@@ -35,6 +36,7 @@ export default async function LeaderboardPage({
   const cfg = COURSE_OPTIONS[event.course_config];
   const holes = cfg.holes;
   const par = holes.length === 9 ? 36 : 72;
+  const isGross = event.scoring_mode === 'gross';
 
   const foursomeRes = await supabase
     .from('foursomes')
@@ -79,7 +81,7 @@ export default async function LeaderboardPage({
     scores: scoresByFoursome[f.id] ?? {},
   }));
 
-  const ranked = buildLeaderboard(foursomes, holes.length);
+  const ranked = buildLeaderboard(foursomes, holes.length, event.scoring_mode);
 
   const rows: LeaderboardRowData[] = ranked.map((r) => ({
     foursomeId: r.foursome.id,
@@ -89,9 +91,11 @@ export default async function LeaderboardPage({
     groupIndex: r.foursome.groupIndex,
     teamHcp: r.teamHcp,
     holesIn: r.holesIn,
+    gross: r.gross,
     net: r.net,
     toPar: r.toPar,
     rank: r.rank,
+    showHcp: !isGross,
     isMine: me ? r.foursome.members.some((m) => m.id === me.id) : false,
     memberNames: r.foursome.members.map((m) => m.name),
     members: r.foursome.members,
@@ -144,7 +148,7 @@ export default async function LeaderboardPage({
         {dateStr}
       </h1>
       <p className="text-xs text-[color:var(--color-mute)] mt-1">
-        {cfg.label} · Par {par} · scramble · net scoring
+        {cfg.label} · Par {par} · scramble · {isGross ? 'gross' : 'net'} scoring
       </p>
 
       {myRow && (
@@ -167,7 +171,11 @@ export default async function LeaderboardPage({
                 {myRow.holesIn > 0 ? fmtToPar(myRow.toPar) : '—'}
               </p>
               <p className="text-[10px] text-[color:#a8a596] mt-0.5">
-                net · hcp {myRow.teamHcp}
+                {isGross
+                  ? myRow.holesIn > 0
+                    ? `gross ${myRow.gross}`
+                    : 'gross'
+                  : `net · hcp ${myRow.teamHcp}`}
               </p>
             </div>
           </div>
@@ -179,28 +187,37 @@ export default async function LeaderboardPage({
           <span className="inline-block w-2 h-2 rounded-full bg-[color:var(--color-gold)] mr-2 animate-pulse" />
           <span className="text-xs text-[color:#5a5a4a] align-middle">
             Waiting for first scores ·{' '}
-            {canEdit ? 'tap any group to enter' : 'admin will post during the round'}
+            {isAdmin
+              ? 'tap any group to enter'
+              : myRow
+                ? 'tap your group to enter your team’s score'
+                : 'scores post here during the round'}
           </span>
         </div>
       )}
 
       <div className="mt-4">
-        {rows.map((row, i) => (
-          <LeaderboardRow
-            key={row.foursomeId}
-            row={row}
-            holes={holes}
-            canEdit={canEdit}
-            defaultOpen={i === 0 && canEdit}
-          />
-        ))}
+        {rows.map((row, i) => {
+          const rowCanEdit = isAdmin || row.isMine;
+          return (
+            <LeaderboardRow
+              key={row.foursomeId}
+              row={row}
+              holes={holes}
+              canEdit={rowCanEdit}
+              defaultOpen={row.isMine || (isAdmin && i === 0)}
+            />
+          );
+        })}
       </div>
 
-      <p className="mt-5 text-[10px] text-[color:var(--color-mute)] italic text-center leading-relaxed">
-        Net = team gross − team handicap.
-        <br />
-        Team handicap uses USGA scramble formula (25/20/15/10%) scaled to {holes.length} holes.
-      </p>
+      {!isGross && (
+        <p className="mt-5 text-[10px] text-[color:var(--color-mute)] italic text-center leading-relaxed">
+          Net = team gross − team handicap.
+          <br />
+          Team handicap uses USGA scramble formula (25/20/15/10%) scaled to {holes.length} holes.
+        </p>
+      )}
     </main>
   );
 }

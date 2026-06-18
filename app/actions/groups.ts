@@ -27,7 +27,10 @@ export async function clearGroups(eventId: string): Promise<void> {
   revalidatePath('/admin');
 }
 
-export async function runGroupGeneration(eventId: string): Promise<GroupActionState> {
+export async function runGroupGeneration(
+  eventId: string,
+  options: { skipEmail?: boolean } = {},
+): Promise<GroupActionState> {
   await requireAdmin();
 
   const evtRes = await supabase
@@ -118,10 +121,13 @@ export async function runGroupGeneration(eventId: string): Promise<GroupActionSt
   }
 
   // Best-effort: queue a "your group is set" email per RSVPed member.
-  try {
-    await queueFoursomesGeneratedEmails(eventId);
-  } catch {
-    // never block the action on the notification
+  // The test-game flow opts out so it doesn't email real testers.
+  if (!options.skipEmail) {
+    try {
+      await queueFoursomesGeneratedEmails(eventId);
+    } catch {
+      // never block the action on the notification
+    }
   }
 
   revalidatePath('/');

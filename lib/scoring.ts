@@ -22,6 +22,8 @@ export interface FoursomeForScoring {
   scores: Record<number, number>;
 }
 
+export type ScoringMode = 'gross' | 'net';
+
 export interface LeaderboardRow {
   foursome: FoursomeForScoring;
   teamHcp: number;
@@ -36,10 +38,16 @@ export interface LeaderboardRow {
 export function buildLeaderboard(
   foursomes: FoursomeForScoring[],
   holesPlayed: number,
+  mode: ScoringMode = 'net',
 ): LeaderboardRow[] {
   const par = holesPlayed === 9 ? 36 : 72;
   const rows: LeaderboardRow[] = foursomes.map((f) => {
-    const hcp = teamHandicap(f.members.map((m) => m.handicap), holesPlayed);
+    // Gross mode ignores handicaps entirely: hcp 0 makes net === gross and the
+    // ranking fall back to raw team total (used by the live test-game flow).
+    const hcp =
+      mode === 'gross'
+        ? 0
+        : teamHandicap(f.members.map((m) => m.handicap), holesPlayed);
     const strokes = Object.values(f.scores).filter((v) => typeof v === 'number' && v > 0);
     const gross = strokes.reduce((a, h) => a + h, 0);
     const holesIn = strokes.length;

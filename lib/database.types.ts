@@ -217,6 +217,7 @@ export type Database = {
           id: string
           opens_at: string
           pro_shop_email: string | null
+          scoring_mode: Database["public"]["Enums"]["scoring_mode"]
           status: Database["public"]["Enums"]["event_status"]
           updated_at: string
         }
@@ -230,6 +231,7 @@ export type Database = {
           id?: string
           opens_at: string
           pro_shop_email?: string | null
+          scoring_mode?: Database["public"]["Enums"]["scoring_mode"]
           status?: Database["public"]["Enums"]["event_status"]
           updated_at?: string
         }
@@ -243,6 +245,7 @@ export type Database = {
           id?: string
           opens_at?: string
           pro_shop_email?: string | null
+          scoring_mode?: Database["public"]["Enums"]["scoring_mode"]
           status?: Database["public"]["Enums"]["event_status"]
           updated_at?: string
         }
@@ -993,6 +996,7 @@ export type Database = {
         | "sponsorship_request"
         | "sponsorship_approved"
         | "sponsorship_declined"
+      scoring_mode: "gross" | "net"
       sponsor_placement:
         | "roster_pin"
         | "dashboard_strip"
@@ -1187,6 +1191,7 @@ export const Constants = {
         "sponsorship_approved",
         "sponsorship_declined",
       ],
+      scoring_mode: ["gross", "net"],
       sponsor_placement: [
         "roster_pin",
         "dashboard_strip",

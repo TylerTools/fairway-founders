@@ -16,7 +16,19 @@ export async function upsertHoleScore(
   strokes: number | null,
 ): Promise<ScoreActionState> {
   const me = await getAppUser();
-  if (!me || !(await canAccessAdmin())) return { ok: false, error: 'Admins only.' };
+  if (!me) return { ok: false, error: 'Not signed in.' };
+  // A scramble group shares one card: admins can score any group; everyone else
+  // can only score the group they belong to (foursome_members).
+  const isAdmin = await canAccessAdmin();
+  if (!isAdmin) {
+    const mine = await supabase
+      .from('foursome_members')
+      .select('id')
+      .eq('foursome_id', foursomeId)
+      .eq('user_id', me.id)
+      .maybeSingle();
+    if (!mine.data) return { ok: false, error: 'Not your group.' };
+  }
   if (hole < 1 || hole > 18) return { ok: false, error: 'Invalid hole.' };
 
   if (strokes == null || Number.isNaN(strokes) || strokes <= 0) {

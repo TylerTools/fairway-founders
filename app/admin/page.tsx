@@ -296,6 +296,11 @@ export default async function AdminCockpit({
             title="Club value report"
             blurb="Members, business generated, traffic — for pitching sponsors"
           />
+          <SectionCard
+            href="/admin/test"
+            title="Test game"
+            blurb="Spin up a live scramble to test scoring — open + gross, groups built instantly"
+          />
         </div>
       </section>
 

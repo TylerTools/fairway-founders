@@ -13,9 +13,11 @@ export interface LeaderboardRowData {
   groupIndex: number;
   teamHcp: number;
   holesIn: number;
+  gross: number;
   net: number | null;
   toPar: number | null;
   rank: number | null;
+  showHcp: boolean;
   isMine: boolean;
   memberNames: string[];
   members: { id: string; name: string; handicap: number | null }[];
@@ -67,7 +69,8 @@ export default function LeaderboardRow({
           </p>
           <p className="text-[10px] text-[color:var(--color-mute)] mt-0.5 tracking-[0.05em]">
             HOLE {row.hole}
-            {row.hasTier ? ` · TIER ${row.tier}` : ''} · TEAM HCP {row.teamHcp}
+            {row.hasTier ? ` · TIER ${row.tier}` : ''}
+            {row.showHcp ? ` · TEAM HCP ${row.teamHcp}` : ''}
           </p>
         </div>
         <div className="text-right shrink-0">
@@ -81,7 +84,11 @@ export default function LeaderboardRow({
             {row.holesIn > 0 ? fmtToPar(row.toPar) : '—'}
           </p>
           <p className="text-[10px] text-[color:var(--color-mute)] mt-0.5">
-            {row.holesIn > 0 ? `thru ${row.holesIn} · net ${row.net}` : 'no scores'}
+            {row.holesIn > 0
+              ? `thru ${row.holesIn} · ${
+                  row.showHcp ? `net ${row.net}` : `gross ${row.gross}`
+                }`
+              : 'no scores'}
           </p>
         </div>
       </button>
@@ -91,6 +98,7 @@ export default function LeaderboardRow({
           holes={holes}
           initialScores={row.scores}
           canEdit={canEdit}
+          showHandicap={row.showHcp}
           teamHcp={row.teamHcp}
           members={row.members}
         />

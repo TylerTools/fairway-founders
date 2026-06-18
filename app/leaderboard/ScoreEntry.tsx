@@ -10,6 +10,7 @@ export default function ScoreEntry({
   holes,
   initialScores,
   canEdit,
+  showHandicap = true,
   teamHcp,
   members,
 }: {
@@ -17,6 +18,7 @@ export default function ScoreEntry({
   holes: number[];
   initialScores: Record<number, number>;
   canEdit: boolean;
+  showHandicap?: boolean;
   teamHcp: number;
   members: { id: string; name: string; handicap: number | null }[];
 }) {
@@ -96,27 +98,35 @@ export default function ScoreEntry({
         })}
       </div>
 
-      <div className="mt-3 pt-2 border-t border-[color:#e8e2d2] flex justify-around text-xs">
-        <Stat label="Gross" value={gross || '—'} />
-        <Stat label="− Hcp" value={teamHcp} />
-        <Stat label="Net" value={net ?? '—'} highlight />
-      </div>
-
-      <div className="mt-2 pt-2 border-t border-[color:#e8e2d2]">
-        <p className="text-[10px] tracking-[0.1em] uppercase text-[color:var(--color-mute)] font-semibold mb-1.5">
-          Players · individual hcp
-        </p>
-        <div className="flex flex-wrap gap-1.5">
-          {members.map((m) => (
-            <span
-              key={m.id}
-              className="text-[11px] px-2 py-0.5 bg-white border border-[color:#e8e2d2] rounded-full text-[color:#5a5a4a]"
-            >
-              {m.name.split(' ')[0]} · <strong className="text-[color:var(--color-ink)]">{m.handicap ?? '—'}</strong>
-            </span>
-          ))}
+      {showHandicap ? (
+        <div className="mt-3 pt-2 border-t border-[color:#e8e2d2] flex justify-around text-xs">
+          <Stat label="Gross" value={gross || '—'} />
+          <Stat label="− Hcp" value={teamHcp} />
+          <Stat label="Net" value={net ?? '—'} highlight />
         </div>
-      </div>
+      ) : (
+        <div className="mt-3 pt-2 border-t border-[color:#e8e2d2] flex justify-around text-xs">
+          <Stat label="Total" value={gross || '—'} highlight />
+        </div>
+      )}
+
+      {showHandicap && (
+        <div className="mt-2 pt-2 border-t border-[color:#e8e2d2]">
+          <p className="text-[10px] tracking-[0.1em] uppercase text-[color:var(--color-mute)] font-semibold mb-1.5">
+            Players · individual hcp
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {members.map((m) => (
+              <span
+                key={m.id}
+                className="text-[11px] px-2 py-0.5 bg-white border border-[color:#e8e2d2] rounded-full text-[color:#5a5a4a]"
+              >
+                {m.name.split(' ')[0]} · <strong className="text-[color:var(--color-ink)]">{m.handicap ?? '—'}</strong>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

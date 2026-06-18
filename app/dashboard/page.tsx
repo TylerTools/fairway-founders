@@ -5,13 +5,16 @@ import { getAppUser } from '@/lib/current-user';
 import { getViewMode } from '@/lib/view-mode';
 import { selectEvent } from '@/lib/events';
 import { COURSE_OPTIONS, liveStatus, fmtMoney } from '@/lib/schedule';
+import { getCourseHoles, parByHole, totalPar } from '@/lib/course-holes';
 import Countdown from '@/components/Countdown';
 import RsvpToggle from '@/components/RsvpToggle';
 import CartPartnerPicker from '@/components/CartPartnerPicker';
+import InviteFriend from '@/components/InviteFriend';
 import Avatar from '@/components/Avatar';
 import CalendarStrip from '@/components/CalendarStrip';
 import SponsorStrip from '@/components/SponsorStrip';
-import { getCurrentLeagueId } from '@/lib/league-context';
+import { getCurrentLeague, getCurrentLeagueId } from '@/lib/league-context';
+import { getOrCreateMyReferralCode } from '@/app/actions/referrals';
 
 export const dynamic = 'force-dynamic';
 
@@ -144,6 +147,23 @@ export default async function Dashboard({
     day: 'numeric',
   });
 
+  // Course details surfaced in the event view (replaces the standalone Course
+  // tab): address, par, and one-tap directions/website.
+  const course = event.course;
+  const courseHoles = course ? await getCourseHoles(course.id) : [];
+  const par = totalPar(
+    parByHole(courseHoles),
+    COURSE_OPTIONS[event.course_config].holes,
+  );
+  const mapsQuery = course
+    ? [course.name, course.address, course.city, course.state]
+        .filter(Boolean)
+        .join(' ')
+    : '';
+  const mapsHref = mapsQuery
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapsQuery)}`
+    : null;
+
   return (
     <main className="px-6 py-8 max-w-md lg:max-w-3xl mx-auto w-full">
       <CalendarStrip events={events} selectedId={event.id} />
@@ -230,6 +250,56 @@ export default async function Dashboard({
           {rsvpCount} confirmed
         </p>
       </div>
+
+      {course && (
+        <section className="mt-6">
+          <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] mb-3">
+            The course
+          </p>
+          <div className="rounded-xl border border-[color:#e8e2d2] bg-white ff-card p-5">
+            <p
+              className="text-lg leading-tight"
+              style={{ fontFamily: 'var(--font-display)' }}
+            >
+              {course.name}
+            </p>
+            {(course.address || course.city) && (
+              <p className="mt-1 text-xs text-[color:var(--color-mute)]">
+                {[course.address, course.city, course.state]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </p>
+            )}
+            <p className="mt-1 text-xs text-[color:var(--color-mute)]">
+              {courseLabel} · Par {par} · scramble
+            </p>
+            {(mapsHref || course.website_url) && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {mapsHref && (
+                  <a
+                    href={mapsHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-lg px-4 py-2 text-xs font-semibold tracking-[0.08em] uppercase ff-btn ff-btn-secondary bg-white text-[color:var(--color-navy)] border border-[color:var(--color-gold)]"
+                  >
+                    Directions
+                  </a>
+                )}
+                {course.website_url && (
+                  <a
+                    href={course.website_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-lg px-4 py-2 text-xs font-semibold tracking-[0.08em] uppercase ff-btn ff-btn-secondary bg-white text-[color:var(--color-navy)] border border-[color:var(--color-gold)]"
+                  >
+                    Website
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {myFoursome ? (
         <section className="mt-6">
@@ -324,6 +394,18 @@ export default async function Dashboard({
           </div>
         </div>
       ) : null}
+
+      <div className="mt-8 text-center">
+        <p className="text-xs text-[color:var(--color-mute)] mb-2.5">
+          Know a founder who&apos;d fit in?
+        </p>
+        <InviteFriend
+          inviterName={me.name}
+          referralCode={await getOrCreateMyReferralCode()}
+          leagueSlug={(await getCurrentLeague())?.slug ?? null}
+          leagueName={(await getCurrentLeague())?.name ?? null}
+        />
+      </div>
 
       <SponsorStrip
         placement="dashboard_strip"

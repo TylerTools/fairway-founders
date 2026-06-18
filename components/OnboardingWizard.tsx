@@ -3,49 +3,9 @@
 import { useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { submitOnboarding, type OnboardingState } from '@/app/actions/onboarding';
+import { INDUSTRIES, HELP_OPTIONS, SEEKING_OPTIONS } from '@/lib/onboarding-options';
 
 const initial: OnboardingState = { ok: true };
-
-// Curated taxonomies. "Other" free-add is offered alongside each.
-const INDUSTRIES = [
-  'Software / SaaS',
-  'E-commerce / Retail',
-  'Real Estate',
-  'Finance / Investing',
-  'Healthcare / Wellness',
-  'Marketing / Agency',
-  'Professional Services',
-  'Construction / Trades',
-  'Hospitality / F&B',
-  'Manufacturing / Logistics',
-  'Media / Creative',
-  'Education',
-];
-
-// Give side. Kept parallel to SEEKING so an offer lines up with an ask.
-const HELP_OPTIONS = [
-  'Fundraising & capital',
-  'Hiring & recruiting',
-  'Sales & GTM',
-  'Marketing & brand',
-  'Product & engineering',
-  'Ops & finance',
-  'Legal & compliance',
-  'Intros & partnerships',
-  'Mentorship & advice',
-];
-
-// Ask side.
-const SEEKING_OPTIONS = [
-  'Investors / capital',
-  'Talent to hire',
-  'A role / next move',
-  'Customers / clients',
-  'Co-founders / partners',
-  'Trusted vendors',
-  'Advice / mentorship',
-  'Warm intros',
-];
 
 const STEPS = ['You', 'The network', 'Golf'] as const;
 
@@ -308,7 +268,7 @@ function ChipField({
   addPlaceholder,
 }: {
   label: string;
-  options: string[];
+  options: readonly string[];
   selected: string[];
   onToggle: (value: string) => void;
   onAdd: (value: string) => void;

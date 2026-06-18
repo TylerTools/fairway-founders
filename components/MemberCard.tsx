@@ -7,6 +7,7 @@ export interface DirectoryMember {
   name: string;
   professional_role: string | null;
   company: string | null;
+  industry?: string | null;
   tagline: string | null;
   photo_url: string | null;
   handicap: number | null;
@@ -69,6 +70,12 @@ export default function MemberCard({
       {subtitle && (
         <p className="text-[11px] text-[color:var(--color-mute)] mt-0.5 line-clamp-1">
           {subtitle}
+        </p>
+      )}
+
+      {m.industry && (
+        <p className="mt-1 text-[9px] tracking-[0.12em] uppercase font-bold text-[color:var(--color-gold)] line-clamp-1">
+          {m.industry}
         </p>
       )}
 

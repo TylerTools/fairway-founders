@@ -3,6 +3,7 @@
 import { useActionState, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Avatar from '@/components/Avatar';
+import { INDUSTRIES } from '@/lib/onboarding-options';
 import {
   updateProfile,
   setMyLinks,
@@ -72,8 +73,16 @@ export default function ProfileEditor({
           <Field name="company" label="Company" defaultValue={profile.company ?? ''} />
           <Field name="professional_role" label="Role" defaultValue={profile.professional_role ?? ''} />
         </div>
-        <Field name="city" label="Location" defaultValue={profile.city ?? ''} placeholder="Sarasota, FL" />
+        <div className="grid grid-cols-2 gap-3">
+          <Field name="industry" label="Industry" defaultValue={profile.industry ?? ''} placeholder="Software / SaaS" options={INDUSTRIES} />
+          <Field name="city" label="Location" defaultValue={profile.city ?? ''} placeholder="Sarasota, FL" />
+        </div>
         <Field name="bio" label="Bio" defaultValue={profile.bio ?? ''} textarea rows={4} />
+
+        <SectionLabel>Networking</SectionLabel>
+        <Field name="seeking" label="Looking for (comma separated, max 8)" defaultValue={profile.seeking.join(', ')} placeholder="Investors / capital, Customers / clients…" />
+        <Field name="helps" label="Can help with (comma separated, max 8)" defaultValue={profile.helps.join(', ')} placeholder="Fundraising & capital, Sales & GTM…" />
+        <Field name="goals" label="What you’re hoping to get out of the group" defaultValue={profile.goals ?? ''} textarea rows={2} />
 
         <SectionLabel>Contact</SectionLabel>
         <div className="grid grid-cols-2 gap-3">
@@ -84,9 +93,6 @@ export default function ProfileEditor({
 
         <SectionLabel>Golf</SectionLabel>
         <Field name="handicap" label="Handicap (0–54)" defaultValue={profile.handicap != null ? String(profile.handicap) : ''} type="number" step="0.1" min="0" max="54" />
-
-        <SectionLabel>Can help with</SectionLabel>
-        <Field name="helps" label="Comma separated (max 8)" defaultValue={profile.helps.join(', ')} />
 
         <SectionLabel>Privacy</SectionLabel>
         <label className="flex items-center gap-2.5 text-sm text-[color:var(--color-ink)]">
@@ -301,6 +307,7 @@ function Field({
   step,
   min,
   max,
+  options,
 }: {
   name: string;
   label: string;
@@ -312,9 +319,11 @@ function Field({
   step?: string;
   min?: string;
   max?: string;
+  options?: readonly string[];
 }) {
   const cls =
     'w-full rounded-md px-2.5 py-2 text-sm bg-white border border-[color:#e8e2d2] focus:border-[color:var(--color-gold)] focus:outline-none';
+  const listId = options ? `${name}-options` : undefined;
   return (
     <label className="block">
       <span className="text-[10px] tracking-[0.15em] uppercase font-semibold text-[color:var(--color-mute)]">
@@ -324,7 +333,16 @@ function Field({
         {textarea ? (
           <textarea name={name} defaultValue={defaultValue} rows={rows ?? 3} placeholder={placeholder} className={`${cls} resize-y`} />
         ) : (
-          <input name={name} defaultValue={defaultValue} placeholder={placeholder} type={type ?? 'text'} step={step} min={min} max={max} className={cls} />
+          <>
+            <input name={name} defaultValue={defaultValue} placeholder={placeholder} type={type ?? 'text'} step={step} min={min} max={max} list={listId} className={cls} />
+            {options && (
+              <datalist id={listId}>
+                {options.map((o) => (
+                  <option key={o} value={o} />
+                ))}
+              </datalist>
+            )}
+          </>
         )}
       </span>
     </label>

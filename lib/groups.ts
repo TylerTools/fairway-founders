@@ -73,12 +73,14 @@ function scoreGroups(groups: UserRow[][], history: PairingHistory): number {
         score += (history.get(pairKey(group[i].id, group[j].id)) ?? 0) * 10;
       }
     }
-    const roleCount: Record<string, number> = {};
+    // Spread industries across the table (the networking goal). Fall back to
+    // free-text role, then 'unknown', when a member hasn't set an industry.
+    const industryCount: Record<string, number> = {};
     for (const m of group) {
-      const r = m.professional_role ?? 'unknown';
-      roleCount[r] = (roleCount[r] ?? 0) + 1;
+      const key = m.industry ?? m.professional_role ?? 'unknown';
+      industryCount[key] = (industryCount[key] ?? 0) + 1;
     }
-    for (const c of Object.values(roleCount)) if (c > 1) score += (c - 1) * 15;
+    for (const c of Object.values(industryCount)) if (c > 1) score += (c - 1) * 15;
   }
   return score;
 }

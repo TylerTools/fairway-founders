@@ -40,8 +40,11 @@ export interface AppProfileSnapshot {
   bio: string | null;
   company: string | null;
   professional_role: string | null;
+  industry: string | null;
   handicap: number | null;
   helps: string[];
+  seeking: string[];
+  goals: string | null;
   tagline: string | null;
   phone: string | null;
   website_url: string | null;
@@ -67,8 +70,11 @@ export async function getMyAppProfile(): Promise<AppProfileSnapshot | null> {
     bio: me.bio,
     company: me.company,
     professional_role: me.professional_role,
+    industry: me.industry,
     handicap: me.handicap != null ? Number(me.handicap) : null,
     helps: me.helps ?? [],
+    seeking: me.seeking ?? [],
+    goals: me.goals,
     tagline: me.tagline,
     phone: me.phone,
     website_url: me.website_url,
@@ -109,6 +115,8 @@ export async function updateProfile(
   const bio = str('bio', 600);
   const company = str('company', 120);
   const professional_role = str('professional_role', 120);
+  const industry = str('industry', 120);
+  const goals = str('goals', 600);
   const tagline = str('tagline', 140);
   const phone = str('phone', 40);
   const website_url = str('website_url', 300);
@@ -123,11 +131,14 @@ export async function updateProfile(
     handicap = Math.max(0, Math.min(54, parsed));
   }
 
-  const helps = ((formData.get('helps') as string | null) ?? '')
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean)
-    .slice(0, 8);
+  const csv = (k: string) =>
+    ((formData.get(k) as string | null) ?? '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .slice(0, 8);
+  const helps = csv('helps');
+  const seeking = csv('seeking');
 
   const { error } = await supabase
     .from('users')
@@ -136,12 +147,15 @@ export async function updateProfile(
       bio,
       company,
       professional_role,
+      industry,
+      goals,
       tagline,
       phone,
       website_url,
       city,
       handicap,
       helps,
+      seeking,
       leaderboard_opt_out,
     })
     .eq('id', me.id);

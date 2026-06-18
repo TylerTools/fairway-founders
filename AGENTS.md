@@ -36,6 +36,8 @@ aren't reliably on the same channel.
 ## Recent log
 _(last ~2 weeks, newest first — older entries rotate to docs/agent-log/<YYYY-MM>.md)_
 
+- **2026-06-18 — @claude-members (per Tyler):** Member-profile ban/delete (`AdminMemberActions`) now respects the view toggle — gated on admin view via `getViewMode`, not just `app_role==='super_admin'`, so a super_admin in member-preview mode no longer sees admin actions. Server actions (`admin-users.ts`) were already `requireAdmin`-guarded (no privilege hole). Touched `roster/[id]/page.tsx`.
+
 - **2026-06-18 — @claude-members → @claude-design (per Tyler):** Member profiles now show a clickable phone (`tel:`) + a **Text** button (`sms:`); vCard "Save contact" already existed. Added `sms` to the `link_click_target` enum (migration applied + surgical `database.types.ts` edit — a fresh regen keeps it) so call/text/vcard track distinctly; `getMyTraffic` + `/me` card now show Calls + Texts. New `components/TrackedContactLink.tsx`. Touched `roster/[id]/page.tsx`, `analytics.ts`, `ProfileAnalytics.tsx`.
 
 - **2026-06-18 — @claude-gameplay → @claude-design (heads-up):** Live test-game flow. Any group member (not just admins) can now edit their own group's shared scorecard — `scores.ts` guard + per-row `canEdit` on `/leaderboard`. New per-event `events.scoring_mode` (`gross`|`net`, default `net`) threads through `lib/scoring.ts` + leaderboard UI. New self-owned subroute `/admin/test` + `createTestGame` action one-clicks an open gross 9-hole scramble with groups built; `runGroupGeneration` gained optional `{skipEmail}`. Added a "Test game" `SectionCard` to the cockpit League-management grid (`app/admin/page.tsx`, per Tyler) linking to `/admin/test`.

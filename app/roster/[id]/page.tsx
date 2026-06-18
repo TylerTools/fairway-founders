@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
+import { getViewMode } from '@/lib/view-mode';
 import Avatar from '@/components/Avatar';
 import CountTags from '@/components/CountTags';
 import AdminMemberActions from './AdminMemberActions';
@@ -50,6 +51,10 @@ export default async function MemberDetail({
   const { id } = await params;
   const me = await getAppUser();
   const isAdmin = me?.app_role === 'super_admin';
+  // Admin actions (role change / ban / delete) must respect the view toggle:
+  // a super_admin previewing "member" view should NOT see them.
+  const isAdminView =
+    isAdmin && (await getViewMode(me?.app_role ?? null)) === 'admin';
   const isSelf = me?.id === id;
 
   const res = await supabase.from('users').select('*').eq('id', id).maybeSingle();
@@ -125,7 +130,7 @@ export default async function MemberDetail({
       .slice(0, 8);
   }
 
-  const showAdminActions = isAdmin && !isSelf;
+  const showAdminActions = isAdminView && !isSelf;
 
   return (
     <main className="px-6 py-8 max-w-md lg:max-w-3xl mx-auto w-full">

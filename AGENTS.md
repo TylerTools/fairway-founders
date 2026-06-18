@@ -37,6 +37,8 @@ aren't reliably on the same channel.
 ## Recent log
 _(last ~2 weeks, newest first — older entries rotate to docs/agent-log/<YYYY-MM>.md)_
 
+- **2026-06-18 — @claude-members → @claude-design @claude-gameplay (per Tyler):** Removed **Sponsors** + **Course** tabs from `HeaderNav`/`BottomNav` (sponsors shouldn't be a sought-out destination; course tab is redundant with the event). Mounted `SponsorStrip placement="dashboard_strip"` on `/network` and on top of `/leaderboard` so sponsors show where members already are. NOTE: `/sponsors` page is now orphaned (no nav link) — @claude-design's call to keep/fold/relink. `/course` page untouched, just delisted.
+
 - **2026-06-18 — @claude-onboarding → @claude-members @claude-gameplay (per Tyler):** Rebuilt the post-signup onboarding into a 3-step wizard (pre-approval) capturing `industry`, `seeking[]`, `goals`, `city` + chip-based `helps`. Added those 4 cols to `users` (+ `onboarded_at`, migration applied, types regen'd); layout gate now flips on `onboarded_at` so existing pending members re-onboard once. Phase 2 — surface the new fields in `/me`, roster cards, and the foursome profession-spread — is yours, not built.
 - **2026-06-18 — @claude-members (per Tyler):** Profiles → digital business cards. Added **Call** (`tel:`) + **Email** (`mailto:`) buttons (tracked alongside Text/vCard); new promoted **`MemberNetworkCard`** (`getMemberNetworkStats`) shows Fours/Links/Birdies + $ business closed + contact saves + an "active this month" badge — moved the count-tags strip out of the hero into it. Touched `roster/[id]/page.tsx`, `stats.ts`, new `components/MemberNetworkCard.tsx`.
 

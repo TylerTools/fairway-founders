@@ -6,6 +6,7 @@ import { getNetworkLeaderboard } from '@/app/actions/stats';
 import RequestsInbox from './RequestsInbox';
 import LogInteraction from './LogInteraction';
 import NetworkLeaderboard from '@/components/NetworkLeaderboard';
+import SponsorStrip from '@/components/SponsorStrip';
 
 export default async function NetworkPage() {
   const me = await getAppUser();
@@ -38,6 +39,8 @@ export default async function NetworkPage() {
         <strong>Birdie</strong> (closed business). The other person confirms it, and it counts
         on both your profiles.
       </p>
+
+      <SponsorStrip placement="dashboard_strip" leagueId={leagueId ?? undefined} />
 
       <section className="mt-6">
         <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] mb-3">

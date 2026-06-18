@@ -12,6 +12,8 @@ import { getCourseHoles, parByHole, totalPar } from '@/lib/course-holes';
 import LeaderboardRow, { type LeaderboardRowData } from './LeaderboardRow';
 import CalendarStrip from '@/components/CalendarStrip';
 import LeaderboardRealtime from '@/components/LeaderboardRealtime';
+import SponsorStrip from '@/components/SponsorStrip';
+import { getCurrentLeagueId } from '@/lib/league-context';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,6 +24,7 @@ export default async function LeaderboardPage({
 }) {
   const me = await getAppUser();
   const isAdmin = await canAccessAdmin();
+  const leagueId = await getCurrentLeagueId();
 
   const { event: requestedId } = await searchParams;
   const { event, events } = await selectEvent(requestedId);
@@ -150,6 +153,7 @@ export default async function LeaderboardPage({
         foursomeIds={foursomes.map((f) => f.id)}
       />
       <CalendarStrip events={events} selectedId={event.id} />
+      <SponsorStrip placement="dashboard_strip" leagueId={leagueId ?? undefined} />
       <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)]">
         Leaderboard · Live
       </p>

@@ -16,9 +16,7 @@ const TABS: { href: string; label: string; flag: TabFlag }[] = [
   { href: '/leaderboard', label: 'Scorecard', flag: 'always' },
   { href: '/roster', label: 'Members', flag: 'always' },
   { href: '/network', label: 'Network', flag: 'always' },
-  { href: '/sponsors', label: 'Sponsors', flag: 'always' },
   { href: '/admin', label: 'Admin', flag: 'admin' },
-  { href: '/course', label: 'Course', flag: 'course' },
 ];
 
 export default function BottomNav({

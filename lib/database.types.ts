@@ -781,18 +781,21 @@ export type Database = {
           created_at: string
           event_id: string
           id: string
+          requested_cart_partner_id: string | null
           user_id: string
         }
         Insert: {
           created_at?: string
           event_id: string
           id?: string
+          requested_cart_partner_id?: string | null
           user_id: string
         }
         Update: {
           created_at?: string
           event_id?: string
           id?: string
+          requested_cart_partner_id?: string | null
           user_id?: string
         }
         Relationships: [
@@ -801,6 +804,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rsvps_requested_cart_partner_id_fkey"
+            columns: ["requested_cart_partner_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
           {
@@ -900,6 +910,7 @@ export type Database = {
           helps: string[] | null
           id: string
           industry: string | null
+          invited_by: string | null
           last_active_at: string | null
           leaderboard_opt_out: boolean
           logo_url: string | null
@@ -908,6 +919,7 @@ export type Database = {
           phone: string | null
           photo_url: string | null
           professional_role: string | null
+          referral_code: string | null
           seeking: string[]
           tagline: string | null
           updated_at: string
@@ -930,6 +942,7 @@ export type Database = {
           helps?: string[] | null
           id?: string
           industry?: string | null
+          invited_by?: string | null
           last_active_at?: string | null
           leaderboard_opt_out?: boolean
           logo_url?: string | null
@@ -938,6 +951,7 @@ export type Database = {
           phone?: string | null
           photo_url?: string | null
           professional_role?: string | null
+          referral_code?: string | null
           seeking?: string[]
           tagline?: string | null
           updated_at?: string
@@ -960,6 +974,7 @@ export type Database = {
           helps?: string[] | null
           id?: string
           industry?: string | null
+          invited_by?: string | null
           last_active_at?: string | null
           leaderboard_opt_out?: boolean
           logo_url?: string | null
@@ -968,6 +983,7 @@ export type Database = {
           phone?: string | null
           photo_url?: string | null
           professional_role?: string | null
+          referral_code?: string | null
           seeking?: string[]
           tagline?: string | null
           updated_at?: string
@@ -977,6 +993,13 @@ export type Database = {
           {
             foreignKeyName: "users_access_decided_by_fkey"
             columns: ["access_decided_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "users_invited_by_fkey"
+            columns: ["invited_by"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]

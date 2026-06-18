@@ -17,18 +17,22 @@ export async function submitOnboarding(
   const me = await getAppUser();
   if (!me) return { ok: false, error: 'Not signed in.' };
 
-  const professional_role = (formData.get('professional_role') as string | null)
-    ?.trim()
-    .slice(0, 120);
-  const company = (formData.get('company') as string | null)?.trim().slice(0, 120);
+  const str = (k: string, max: number) =>
+    ((formData.get(k) as string | null)?.trim().slice(0, max) || null) ?? null;
+
+  const professional_role = str('professional_role', 120);
+  const company = str('company', 120);
 
   if (!professional_role) return { ok: false, error: 'Role is required.' };
   if (!company) return { ok: false, error: 'Company is required.' };
 
-  const bio = (formData.get('bio') as string | null)?.slice(0, 600) ?? null;
-  const handicapRaw = formData.get('handicap') as string | null;
-  const helpsRaw = (formData.get('helps') as string | null) ?? '';
+  const name = str('name', 120);
+  const bio = str('bio', 600);
+  const goals = str('goals', 600);
+  const industry = str('industry', 120);
+  const city = str('city', 120);
 
+  const handicapRaw = formData.get('handicap') as string | null;
   let handicap: number | null = null;
   if (handicapRaw && handicapRaw.trim() !== '') {
     const parsed = parseFloat(handicapRaw);
@@ -36,20 +40,31 @@ export async function submitOnboarding(
     handicap = Math.max(0, Math.min(54, parsed));
   }
 
-  const helps = helpsRaw
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean)
-    .slice(0, 8);
+  // Chip fields arrive as repeated form entries; fall back to a comma string.
+  const arr = (k: string) => {
+    const many = formData.getAll(k).map((v) => String(v).trim());
+    const base = many.length > 1 || (many[0] ?? '').includes(',')
+      ? many.flatMap((v) => v.split(','))
+      : many;
+    return [...new Set(base.map((s) => s.trim()).filter(Boolean))].slice(0, 8);
+  };
+  const helps = arr('helps');
+  const seeking = arr('seeking');
 
   const { error } = await supabase
     .from('users')
     .update({
+      name: name ?? me.name,
       bio,
       company,
       professional_role,
+      industry,
+      city,
+      goals,
       handicap,
       helps,
+      seeking,
+      onboarded_at: new Date().toISOString(),
       access_requested_at: new Date().toISOString(),
     })
     .eq('id', me.id);

@@ -231,7 +231,7 @@ export default async function RootLayout({
                 children
               ) : accessStatus === 'denied' ? (
                 <DeniedScreen />
-              ) : !appUser.professional_role || !appUser.company ? (
+              ) : !appUser.onboarded_at ? (
                 <OnboardingWizard name={appUser.name} />
               ) : (
                 <PendingScreen

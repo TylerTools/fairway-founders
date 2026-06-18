@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { SignInButton, SignUpButton } from '@clerk/nextjs';
 import { getAppUser } from '@/lib/current-user';
@@ -6,12 +7,36 @@ import SponsorsSection from '@/components/SponsorsSection';
 
 export const dynamic = 'force-dynamic';
 
-export default async function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ home?: string }>;
+}) {
+  const { home } = await searchParams;
   const me = await getAppUser();
-  if (me && me.access_status === 'approved') redirect('/dashboard');
+  // Approved members normally land straight in the app, but can explicitly view
+  // this public homepage via the header logo (which links to /?home).
+  if (me && me.access_status === 'approved' && home === undefined) {
+    redirect('/dashboard');
+  }
 
   return (
     <>
+    {me && (
+      <Link
+        href="/dashboard"
+        className="fixed top-4 right-4 z-50 rounded-full border px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.12em]"
+        style={{
+          borderColor: 'var(--ff-gold)',
+          color: 'var(--ff-cream)',
+          background: 'rgba(13,31,23,0.55)',
+          backdropFilter: 'blur(4px)',
+          fontFamily: 'var(--font-sans), system-ui, sans-serif',
+        }}
+      >
+        Enter the app →
+      </Link>
+    )}
     <div
       className="grid lg:grid-cols-[1.15fr_1fr] min-h-screen w-full"
       style={{ background: 'var(--ff-cream)' }}

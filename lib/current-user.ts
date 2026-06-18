@@ -1,11 +1,16 @@
 import { auth, currentUser as clerkCurrentUser } from '@clerk/nextjs/server';
 import { cookies } from 'next/headers';
 import { supabase } from './supabase';
+import { notifyAdminsOfReferralJoin } from './notify';
+import { queueEmail } from './email-queue';
 import type { Database } from './database.types';
 
 export type AppUser = Database['public']['Tables']['users']['Row'];
 
 const INTENDED_LEAGUE_COOKIE = 'ff-intended-league';
+const REFERRED_BY_COOKIE = 'ff-referred-by';
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://fairwayfounders.org';
 
 /**
  * Resolve the signed-in Clerk user to the matching row in `users`.
@@ -86,6 +91,12 @@ export async function getAppUser(): Promise<AppUser | null> {
 
   if (!row) return null;
 
+  // Referral hook (runs FIRST so it can read the intended-league cookie before
+  // maybePairIntendedLeague clears it): a brand-new user who arrived through a
+  // member's invite link is attributed to that inviter and auto-approved into
+  // the inviter's league — a referral is a trusted invite.
+  await maybeApplyReferral(row, createdJustNow);
+
   // Onboarding hook: pair this user with the league they came in through.
   // Fires when (a) we just created the row, OR (b) they signed in fresh on
   // a /join/[slug] page and don't yet have a membership for that league.
@@ -165,6 +176,132 @@ async function maybePairIntendedLeague(
     }
 
     store.delete(INTENDED_LEAGUE_COOKIE);
+  } catch {
+    // best-effort
+  }
+}
+
+/**
+ * Read the `ff-referred-by` cookie (stamped by /join/[slug]?ref=CODE). If it
+ * resolves to an approved member and we just created this user, attribute the
+ * referral and auto-approve the new member straight into a league:
+ *   - stamp users.invited_by (the source of truth for referral credit),
+ *   - flip access_status='approved' (a referral skips the approval queue),
+ *   - give them an ACTIVE membership in the inviter's league (preferring the
+ *     league slug embedded in the link, else the inviter's first active league),
+ *   - notify admins + queue a welcome email.
+ *
+ * Only fires for brand-new users (createdJustNow) so credit can't be re-earned.
+ * Best-effort — any error is swallowed; the user still has a working account.
+ */
+async function maybeApplyReferral(
+  user: AppUser,
+  createdJustNow: boolean,
+): Promise<void> {
+  if (!createdJustNow) return;
+  try {
+    const store = await cookies();
+    const code = store.get(REFERRED_BY_COOKIE)?.value;
+    if (!code) return;
+
+    // Resolve code → inviter. Must be a real, approved member, and not self.
+    const inviterRes = await supabase
+      .from('users')
+      .select('id, name, access_status')
+      .eq('referral_code', code)
+      .maybeSingle();
+    const inviter = inviterRes.data;
+    if (!inviter || inviter.id === user.id || inviter.access_status !== 'approved') {
+      store.delete(REFERRED_BY_COOKIE);
+      return;
+    }
+
+    // Attribute + auto-approve the new member.
+    await supabase
+      .from('users')
+      .update({
+        invited_by: inviter.id,
+        access_status: 'approved',
+        access_decided_at: new Date().toISOString(),
+        access_decided_by: inviter.id,
+      })
+      .eq('id', user.id);
+
+    // Which league do they land in? Prefer the slug from the referral link
+    // (still in the cookie at this point), else the inviter's first active one.
+    let leagueId: string | null = null;
+    const intendedSlug = store.get(INTENDED_LEAGUE_COOKIE)?.value;
+    if (intendedSlug) {
+      const lr = await supabase
+        .from('leagues')
+        .select('id')
+        .eq('slug', intendedSlug)
+        .maybeSingle();
+      leagueId = lr.data?.id ?? null;
+    }
+    if (!leagueId) {
+      const inv = await supabase
+        .from('league_memberships')
+        .select('league_id')
+        .eq('user_id', inviter.id)
+        .eq('status', 'active')
+        .limit(1)
+        .maybeSingle();
+      leagueId = inv.data?.league_id ?? null;
+    }
+
+    if (leagueId) {
+      const existing = await supabase
+        .from('league_memberships')
+        .select('id, status')
+        .eq('league_id', leagueId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (existing.data) {
+        if (existing.data.status !== 'active') {
+          await supabase
+            .from('league_memberships')
+            .update({ status: 'active' })
+            .eq('id', existing.data.id);
+        }
+      } else {
+        await supabase.from('league_memberships').insert({
+          league_id: leagueId,
+          user_id: user.id,
+          role: 'member',
+          status: 'active',
+        });
+      }
+    }
+
+    // Tell admins (these joins bypass the approval inbox) + welcome the member.
+    await notifyAdminsOfReferralJoin({
+      newUserId: user.id,
+      newUserName: user.name,
+      inviterName: inviter.name,
+      leagueId,
+    });
+
+    const first = user.name.split(' ')[0] || 'there';
+    const inviterFirst = inviter.name.split(' ')[0] || 'a member';
+    await queueEmail({
+      kind: 'access_approved',
+      toEmail: user.email,
+      toUserId: user.id,
+      subject: 'You’re in — welcome to Fairway Founders',
+      body: [
+        `Hi ${first},`,
+        '',
+        `${inviterFirst} invited you to Fairway Founders, and you’re in. RSVP for the next round here:`,
+        SITE_URL + '/dashboard',
+        '',
+        'See you on the course.',
+        '— Fairway Founders',
+      ].join('\n'),
+      sentBy: inviter.id,
+    });
+
+    store.delete(REFERRED_BY_COOKIE);
   } catch {
     // best-effort
   }

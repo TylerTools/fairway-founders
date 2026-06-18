@@ -6,6 +6,7 @@ import { getViewMode } from '@/lib/view-mode';
 import Avatar from '@/components/Avatar';
 import AdminMemberActions from './AdminMemberActions';
 import { getMemberNetworkStats } from '@/app/actions/stats';
+import { getReferralCount } from '@/app/actions/referrals';
 import MemberNetworkCard from '@/components/MemberNetworkCard';
 import ProfileInteractionButtons from '@/components/ProfileInteractionButtons';
 import TrackProfileView from '@/components/TrackProfileView';
@@ -82,7 +83,7 @@ export default async function MemberDetail({
     if (!shared) notFound();
   }
 
-  const [linksRes, leaguesRes, stats] = await Promise.all([
+  const [linksRes, leaguesRes, stats, inviteCount] = await Promise.all([
     supabase
       .from('member_links')
       .select('*')
@@ -93,6 +94,7 @@ export default async function MemberDetail({
       .select('league:league_id(name, short_name)')
       .eq('user_id', id),
     getMemberNetworkStats(id),
+    getReferralCount(id),
   ]);
 
   const links = linksRes.data ?? [];
@@ -212,8 +214,13 @@ export default async function MemberDetail({
               </p>
             )}
 
-            {(leagueTags.length > 0 || member.handicap != null) && (
+            {(leagueTags.length > 0 || member.handicap != null || member.industry) && (
               <div className="mt-2.5 flex items-center gap-1.5 flex-wrap">
+                {member.industry && (
+                  <span className="text-[9px] tracking-[0.12em] uppercase font-bold bg-[color:#f0ebd8] text-[color:#5a5a4a] rounded-full px-2 py-0.5">
+                    {member.industry}
+                  </span>
+                )}
                 {leagueTags.map((t) => (
                   <span
                     key={t}
@@ -290,10 +297,26 @@ export default async function MemberDetail({
 
       <MemberNetworkCard stats={stats} />
 
+      {inviteCount > 0 && (
+        <p className="mt-3 text-[11px] tracking-[0.1em] uppercase text-[color:var(--color-mute)]">
+          Brought {inviteCount} founder{inviteCount === 1 ? '' : 's'} into the club
+        </p>
+      )}
+
       {/* Bio */}
       {member.bio && (
         <section className="mt-3 rounded-xl border border-[color:#e8e2d2] bg-white ff-card p-5">
           <p className="text-sm leading-relaxed whitespace-pre-wrap">{member.bio}</p>
+        </section>
+      )}
+
+      {/* Why I'm here */}
+      {member.goals && (
+        <section className="mt-3 rounded-xl border border-[color:#e8e2d2] bg-white ff-card p-5">
+          <p className="text-[10px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] mb-2">
+            Why I’m here
+          </p>
+          <p className="text-sm leading-relaxed whitespace-pre-wrap">{member.goals}</p>
         </section>
       )}
 
@@ -320,6 +343,25 @@ export default async function MemberDetail({
                   {LINK_LABEL[l.kind] ?? 'Link'}
                 </span>
               </TrackedExternalLink>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Looking for */}
+      {member.seeking && member.seeking.length > 0 && (
+        <section className="mt-3 rounded-xl border border-[color:#e8e2d2] bg-white ff-card p-5">
+          <p className="text-[10px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] mb-2">
+            Looking for
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {member.seeking.map((s) => (
+              <span
+                key={s}
+                className="text-xs px-3 py-1 bg-white border border-[color:var(--color-gold)] text-[color:var(--color-ink)] rounded-full"
+              >
+                {s}
+              </span>
             ))}
           </div>
         </section>

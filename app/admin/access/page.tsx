@@ -5,6 +5,8 @@ import { getAppUser } from '@/lib/current-user';
 import { getViewMode } from '@/lib/view-mode';
 import { canAccessAdmin } from '@/lib/auth';
 import { getCurrentLeague } from '@/lib/league-context';
+import { getInviteLeaderboard } from '@/app/actions/referrals';
+import InviteLeaderboard from '@/components/InviteLeaderboard';
 import AccessActions from './AccessActions';
 
 export const dynamic = 'force-dynamic';
@@ -75,6 +77,8 @@ export default async function AccessInbox({
     .eq('status', activeFilter)
     .order('joined_at', { ascending: false });
 
+  const inviters = await getInviteLeaderboard(league.id);
+
   const rows = (rowsRes.data ?? []).flatMap((row) => {
     const u = Array.isArray(row.user) ? row.user[0] : row.user;
     if (!u) return [];
@@ -114,7 +118,16 @@ export default async function AccessInbox({
         declined
       </p>
 
-      <div className="mt-5 flex flex-wrap gap-1.5">
+      {inviters.length > 0 && (
+        <section className="mt-6">
+          <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] mb-3">
+            Top inviters · {league.short_name ?? league.name}
+          </p>
+          <InviteLeaderboard entries={inviters} meId={me.id} />
+        </section>
+      )}
+
+      <div className="mt-6 flex flex-wrap gap-1.5">
         <Chip
           label={`Pending ${counts.pending}`}
           href="/admin/access"

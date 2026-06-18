@@ -7,6 +7,7 @@ import { selectEvent } from '@/lib/events';
 import { COURSE_OPTIONS, liveStatus, fmtMoney } from '@/lib/schedule';
 import Countdown from '@/components/Countdown';
 import RsvpToggle from '@/components/RsvpToggle';
+import CartPartnerPicker from '@/components/CartPartnerPicker';
 import Avatar from '@/components/Avatar';
 import CalendarStrip from '@/components/CalendarStrip';
 import SponsorStrip from '@/components/SponsorStrip';
@@ -48,11 +49,12 @@ export default async function Dashboard({
 
   const r = await supabase
     .from('rsvps')
-    .select('id')
+    .select('id, requested_cart_partner_id')
     .eq('event_id', event.id)
     .eq('user_id', me.id)
     .maybeSingle();
   const rsvped = !!r.data;
+  const myCartPartner = r.data?.requested_cart_partner_id ?? null;
 
   let myFoursome:
     | {
@@ -120,6 +122,20 @@ export default async function Dashboard({
     .select('id', { count: 'exact', head: true })
     .eq('event_id', event.id);
   const rsvpCount = countRes.count ?? 0;
+
+  // Cart-partner candidates: other members already RSVP'd to this event.
+  let cartCandidates: { id: string; name: string }[] = [];
+  if (rsvped && status === 'open') {
+    const candRes = await supabase
+      .from('rsvps')
+      .select('user:user_id(id, name)')
+      .eq('event_id', event.id)
+      .neq('user_id', me.id);
+    cartCandidates = (candRes.data ?? [])
+      .map((row) => (Array.isArray(row.user) ? row.user[0] : row.user))
+      .filter((u): u is { id: string; name: string } => !!u)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
 
   const eventDate = new Date(event.date);
   const dateStr = eventDate.toLocaleDateString('en-US', {
@@ -287,16 +303,25 @@ export default async function Dashboard({
           </div>
         </section>
       ) : status === 'open' && rsvped ? (
-        <div className="mt-6 rounded-xl bg-[color:var(--color-navy)] text-[color:var(--color-cream)] p-5 text-center">
-          <p
-            className="text-base"
-            style={{ fontFamily: 'var(--font-display)' }}
-          >
-            Groups drop at cutoff
-          </p>
-          <p className="text-xs text-[color:#a8a596] mt-1">
-            Algorithm pairs carts + assigns holes
-          </p>
+        <div className="mt-6 rounded-xl bg-[color:var(--color-navy)] text-[color:var(--color-cream)] p-5">
+          <div className="text-center">
+            <p
+              className="text-base"
+              style={{ fontFamily: 'var(--font-display)' }}
+            >
+              Groups drop at cutoff
+            </p>
+            <p className="text-xs text-[color:#a8a596] mt-1">
+              Algorithm pairs carts + assigns holes
+            </p>
+          </div>
+          <div className="mt-4 pt-4 border-t border-[color:rgba(245,241,232,0.15)]">
+            <CartPartnerPicker
+              eventId={event.id}
+              current={myCartPartner}
+              candidates={cartCandidates}
+            />
+          </div>
         </div>
       ) : null}
 

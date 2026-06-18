@@ -6,6 +6,7 @@ import InviteFriend from '@/components/InviteFriend';
 import MemberDirectory from '@/components/MemberDirectory';
 import type { DirectoryMember } from '@/components/MemberCard';
 import { getActiveFeaturedUserIds } from '@/app/actions/sponsorships';
+import { getOrCreateMyReferralCode } from '@/app/actions/referrals';
 
 export default async function RosterPage() {
   const me = await getAppUser();
@@ -33,7 +34,7 @@ export default async function RosterPage() {
   let q = supabase
     .from('users')
     .select(
-      'id, name, professional_role, company, tagline, photo_url, handicap, app_role, access_status',
+      'id, name, professional_role, company, industry, tagline, photo_url, handicap, app_role, access_status',
     )
     .order('name', { ascending: true });
   if (!isAdmin) q = q.eq('access_status', 'approved');
@@ -88,6 +89,7 @@ export default async function RosterPage() {
     name: m.name,
     professional_role: m.professional_role,
     company: m.company,
+    industry: m.industry,
     tagline: m.tagline,
     photo_url: m.photo_url,
     handicap: m.handicap,
@@ -137,7 +139,11 @@ export default async function RosterPage() {
             >
               Edit my profile
             </Link>
-            <InviteFriend inviterName={me.name} />
+            <InviteFriend
+              inviterName={me.name}
+              referralCode={await getOrCreateMyReferralCode()}
+              leagueSlug={currentLeague?.slug ?? null}
+            />
           </div>
         )}
       </div>

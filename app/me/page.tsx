@@ -9,6 +9,7 @@ import ProfileEditor from './ProfileEditor';
 import MyLeagues, { type MyLeagueRow } from './MyLeagues';
 import SponsorshipRequest from '@/components/SponsorshipRequest';
 import ProfileAnalytics from '@/components/ProfileAnalytics';
+import InviteCard from '@/components/InviteCard';
 
 export default async function MePage() {
   const me = await getAppUser();
@@ -77,6 +78,10 @@ export default async function MePage() {
 
       <div className="mt-3">
         <MyLeagues leagues={myLeagueRows} />
+      </div>
+
+      <div className="mt-3">
+        <InviteCard />
       </div>
 
       <div className="mt-3">

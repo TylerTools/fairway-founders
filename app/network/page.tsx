@@ -3,9 +3,11 @@ import { getAppUser } from '@/lib/current-user';
 import { getCurrentLeague, getCurrentLeagueId } from '@/lib/league-context';
 import { getMyPendingRequests } from '@/app/actions/interactions';
 import { getNetworkLeaderboard } from '@/app/actions/stats';
+import { getInviteLeaderboard } from '@/app/actions/referrals';
 import RequestsInbox from './RequestsInbox';
 import LogInteraction from './LogInteraction';
 import NetworkLeaderboard from '@/components/NetworkLeaderboard';
+import InviteLeaderboard from '@/components/InviteLeaderboard';
 import SponsorStrip from '@/components/SponsorStrip';
 
 export default async function NetworkPage() {
@@ -17,9 +19,10 @@ export default async function NetworkPage() {
   // league_id IS NULL fall through and show in every league context.
   const leagueId = await getCurrentLeagueId();
   const league = await getCurrentLeague();
-  const [pending, leaders] = await Promise.all([
+  const [pending, leaders, inviters] = await Promise.all([
     getMyPendingRequests(leagueId),
     getNetworkLeaderboard(leagueId),
+    getInviteLeaderboard(leagueId),
   ]);
   const monthLabel = new Date().toLocaleString('en-US', { month: 'long' });
 
@@ -66,6 +69,18 @@ export default async function NetworkPage() {
           </span>
         </div>
         <NetworkLeaderboard entries={leaders} meId={me.id} />
+      </section>
+
+      <section className="mt-7">
+        <div className="flex items-baseline justify-between mb-3">
+          <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)]">
+            Founders' Circle · most invites
+          </p>
+          <span className="text-[10px] tracking-[0.1em] uppercase text-[color:var(--color-mute)]">
+            All-time
+          </span>
+        </div>
+        <InviteLeaderboard entries={inviters} meId={me.id} />
       </section>
     </main>
   );

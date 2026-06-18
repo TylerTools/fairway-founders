@@ -5,7 +5,12 @@ import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
 import { canAccessAdmin } from '@/lib/auth';
 import { queueEmail } from '@/lib/email-queue';
-import { generateGroups, pairKey, type PairingHistory } from '@/lib/groups';
+import {
+  generateGroups,
+  pairKey,
+  type PairingHistory,
+  type CartRequests,
+} from '@/lib/groups';
 import type { CourseConfig } from '@/lib/schedule';
 
 export interface GroupActionState {
@@ -43,7 +48,7 @@ export async function runGroupGeneration(
 
   const rsvpRes = await supabase
     .from('rsvps')
-    .select('user_id, users:user_id(*)')
+    .select('user_id, requested_cart_partner_id, users:user_id(*)')
     .eq('event_id', eventId);
   if (rsvpRes.error) return { ok: false, error: rsvpRes.error.message };
 
@@ -53,6 +58,18 @@ export async function runGroupGeneration(
 
   if (members.length < 2) {
     return { ok: false, error: 'Need at least 2 RSVPs to generate groups.' };
+  }
+
+  // Cart-partner requests — only honor a request when both members are in this
+  // event's pool. Mutual requests are favored strongly, one-way gently; the
+  // algorithm treats them as a soft preference, never a guarantee.
+  const memberIds = new Set(members.map((m) => m.id));
+  const requests: CartRequests = new Map();
+  for (const row of rsvpRes.data ?? []) {
+    const partner = row.requested_cart_partner_id;
+    if (partner && memberIds.has(row.user_id) && memberIds.has(partner)) {
+      requests.set(row.user_id, partner);
+    }
   }
 
   // Build pairing history from prior foursome_members.
@@ -83,7 +100,7 @@ export async function runGroupGeneration(
     }
   }
 
-  const result = generateGroups(members, history, courseConfig);
+  const result = generateGroups(members, history, courseConfig, requests);
   if (!result) return { ok: false, error: 'Could not partition this RSVP count.' };
 
   // Wipe and recreate for this event.

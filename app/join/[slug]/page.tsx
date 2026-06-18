@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
 import { getMyLeagueMemberships } from '@/lib/auth';
 import SetIntendedLeague from './SetIntendedLeague';
+import SetReferral from './SetReferral';
 import JoinExistingLeague from './JoinExistingLeague';
 
 export const dynamic = 'force-dynamic';
@@ -25,10 +26,13 @@ export const dynamic = 'force-dynamic';
  */
 export default async function JoinLeague({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ ref?: string }>;
 }) {
   const { slug } = await params;
+  const { ref } = await searchParams;
 
   const leagueRes = await supabase
     .from('leagues')
@@ -37,6 +41,20 @@ export default async function JoinLeague({
     .maybeSingle();
   if (!leagueRes.data) notFound();
   const league = leagueRes.data;
+
+  // Referral link (?ref=CODE): resolve the inviter so we can greet the visitor
+  // by who invited them. The cookie stamp is what actually attributes credit.
+  let inviterName: string | null = null;
+  if (ref) {
+    const inviterRes = await supabase
+      .from('users')
+      .select('name, access_status')
+      .eq('referral_code', ref)
+      .maybeSingle();
+    if (inviterRes.data && inviterRes.data.access_status === 'approved') {
+      inviterName = inviterRes.data.name;
+    }
+  }
 
   const me = await getAppUser();
   let existingStatus: 'active' | 'pending' | 'declined' | null = null;
@@ -50,6 +68,7 @@ export default async function JoinLeague({
   return (
     <>
       <SetIntendedLeague slug={slug} />
+      {inviterName && ref && <SetReferral code={ref} />}
       <div
         className="grid lg:grid-cols-[1.15fr_1fr] min-h-screen w-full"
         style={{ background: 'var(--ff-cream)' }}
@@ -179,7 +198,9 @@ export default async function JoinLeague({
                     color: 'var(--ff-taupe)',
                   }}
                 >
-                  Join {league.short_name ?? league.name}
+                  {inviterName
+                    ? `${inviterName.split(' ')[0]} invited you`
+                    : `Join ${league.short_name ?? league.name}`}
                 </p>
                 <h2
                   className="mt-2.5 mb-1.5 leading-none"
@@ -191,7 +212,7 @@ export default async function JoinLeague({
                     color: 'var(--ff-pine)',
                   }}
                 >
-                  Request access
+                  {inviterName ? "You're invited" : 'Request access'}
                 </h2>
                 <p
                   className="mb-7"
@@ -201,8 +222,9 @@ export default async function JoinLeague({
                     color: 'var(--ff-ink-soft)',
                   }}
                 >
-                  Sign up to request a spot in {league.name}. A league admin
-                  will review and approve your membership.
+                  {inviterName
+                    ? `${inviterName.split(' ')[0]} brought you into ${league.name}. Sign up and you're in — no waiting on approval.`
+                    : `Sign up to request a spot in ${league.name}. A league admin will review and approve your membership.`}
                 </p>
                 <div className="space-y-2">
                   <SignUpButton mode="modal">

@@ -34,6 +34,55 @@ export async function notifyAdminsOfAccessRequest(opts: {
   }
 }
 
+/**
+ * A new member joined via someone's referral link (auto-approved). Notify the
+ * league's admins plus super admins, for visibility — these joins skip the
+ * approval queue, so this is the only signal an admin gets.
+ */
+export async function notifyAdminsOfReferralJoin(opts: {
+  newUserId: string;
+  newUserName: string;
+  inviterName: string;
+  leagueId: string | null;
+}): Promise<void> {
+  try {
+    const adminIds = new Set<string>();
+
+    const supers = await supabase
+      .from('users')
+      .select('id')
+      .eq('app_role', 'super_admin')
+      .eq('access_status', 'approved');
+    for (const a of supers.data ?? []) adminIds.add(a.id);
+
+    if (opts.leagueId) {
+      const leagueAdmins = await supabase
+        .from('league_memberships')
+        .select('user_id')
+        .eq('league_id', opts.leagueId)
+        .eq('role', 'admin')
+        .eq('status', 'active');
+      for (const a of leagueAdmins.data ?? []) adminIds.add(a.user_id);
+    }
+
+    adminIds.delete(opts.newUserId);
+    if (adminIds.size === 0) return;
+
+    await supabase.from('notifications').insert(
+      [...adminIds].map((id) => ({
+        user_id: id,
+        kind: 'access_request' as const,
+        title: `${opts.newUserName} joined via ${opts.inviterName}'s invite`,
+        body: null,
+        link: '/admin/access',
+        created_by: opts.newUserId,
+      })),
+    );
+  } catch {
+    // best-effort
+  }
+}
+
 export async function notifyAdminsOfFeedback(opts: {
   fromUserId: string | null;
   fromUserName: string;

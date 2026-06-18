@@ -18,6 +18,7 @@ export interface LeaderboardRowData {
   toPar: number | null;
   rank: number | null;
   showHcp: boolean;
+  submitted: boolean;
   isMine: boolean;
   memberNames: string[];
   members: { id: string; name: string; handicap: number | null }[];
@@ -70,6 +71,11 @@ export default function LeaderboardRow({
         <div className="flex-1 min-w-0">
           <p className="text-[13px] font-semibold text-[color:var(--color-ink)] leading-tight">
             {row.memberNames.map((n) => lastName(n)).join(' / ')}
+            {row.submitted && (
+              <span className="ml-2 align-middle text-[9px] tracking-[0.1em] uppercase font-bold text-[color:var(--color-gold)]">
+                ✓ In
+              </span>
+            )}
           </p>
           <p className="text-[10px] text-[color:var(--color-mute)] mt-0.5 tracking-[0.05em]">
             HOLE {row.hole}
@@ -104,6 +110,7 @@ export default function LeaderboardRow({
           yards={yards}
           initialScores={row.scores}
           canEdit={canEdit}
+          submitted={row.submitted}
           showHandicap={row.showHcp}
           teamHcp={row.teamHcp}
           members={row.members}

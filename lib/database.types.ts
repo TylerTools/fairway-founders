@@ -246,6 +246,7 @@ export type Database = {
       }
       events: {
         Row: {
+          closed_at: string | null
           closes_at: string
           course_config: Database["public"]["Enums"]["course_config"]
           course_id: string
@@ -253,13 +254,16 @@ export type Database = {
           date: string
           fee_cents: number
           id: string
+          is_test: boolean
           opens_at: string
           pro_shop_email: string | null
           scoring_mode: Database["public"]["Enums"]["scoring_mode"]
+          series_id: string | null
           status: Database["public"]["Enums"]["event_status"]
           updated_at: string
         }
         Insert: {
+          closed_at?: string | null
           closes_at: string
           course_config?: Database["public"]["Enums"]["course_config"]
           course_id: string
@@ -267,13 +271,16 @@ export type Database = {
           date: string
           fee_cents?: number
           id?: string
+          is_test?: boolean
           opens_at: string
           pro_shop_email?: string | null
           scoring_mode?: Database["public"]["Enums"]["scoring_mode"]
+          series_id?: string | null
           status?: Database["public"]["Enums"]["event_status"]
           updated_at?: string
         }
         Update: {
+          closed_at?: string | null
           closes_at?: string
           course_config?: Database["public"]["Enums"]["course_config"]
           course_id?: string
@@ -281,9 +288,11 @@ export type Database = {
           date?: string
           fee_cents?: number
           id?: string
+          is_test?: boolean
           opens_at?: string
           pro_shop_email?: string | null
           scoring_mode?: Database["public"]["Enums"]["scoring_mode"]
+          series_id?: string | null
           status?: Database["public"]["Enums"]["event_status"]
           updated_at?: string
         }
@@ -398,6 +407,7 @@ export type Database = {
           hole: number
           id: string
           score: number | null
+          submitted_at: string | null
           tier: Database["public"]["Enums"]["foursome_tier"]
         }
         Insert: {
@@ -407,6 +417,7 @@ export type Database = {
           hole: number
           id?: string
           score?: number | null
+          submitted_at?: string | null
           tier?: Database["public"]["Enums"]["foursome_tier"]
         }
         Update: {
@@ -416,6 +427,7 @@ export type Database = {
           hole?: number
           id?: string
           score?: number | null
+          submitted_at?: string | null
           tier?: Database["public"]["Enums"]["foursome_tier"]
         }
         Relationships: [

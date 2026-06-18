@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { upsertHoleScore } from '@/app/actions/scores';
+import { setScorecardSubmitted } from '@/app/actions/round';
 
 const DEFAULT_PAR = 4;
 
@@ -27,6 +28,7 @@ export default function ScoreEntry({
   yards,
   initialScores,
   canEdit,
+  submitted = false,
   showHandicap = true,
   teamHcp,
   members,
@@ -37,6 +39,7 @@ export default function ScoreEntry({
   yards: Record<number, number | null>;
   initialScores: Record<number, number>;
   canEdit: boolean;
+  submitted?: boolean;
   showHandicap?: boolean;
   teamHcp: number;
   members: { id: string; name: string; handicap: number | null }[];
@@ -47,7 +50,15 @@ export default function ScoreEntry({
   const [selected, setSelected] = useState<number | null>(null);
   const [pending, startTransition] = useTransition();
 
+  // A submitted card is locked for editing until reopened.
+  const editable = canEdit && !submitted;
   const parFor = (hole: number) => pars[hole] ?? DEFAULT_PAR;
+
+  function setSubmitted(value: boolean) {
+    startTransition(async () => {
+      await setScorecardSubmitted(foursomeId, value);
+    });
+  }
 
   function commit(hole: number, value: number | null) {
     setScores((prev) => ({ ...prev, [hole]: value }));
@@ -57,7 +68,7 @@ export default function ScoreEntry({
   }
 
   function selectHole(hole: number) {
-    if (!canEdit) return;
+    if (!editable) return;
     setSelected(hole);
     // First tap on a blank hole starts it at par.
     if (scores[hole] == null) commit(hole, parFor(hole));
@@ -88,10 +99,16 @@ export default function ScoreEntry({
     <div className="bg-[color:var(--color-cream)] border-t border-[color:#e8e2d2] px-3 py-3">
       <p className="text-[10px] tracking-[0.1em] uppercase text-[color:var(--color-mute)] font-semibold mb-2">
         Hole-by-Hole{' '}
-        {!canEdit && (
+        {submitted ? (
           <span className="italic font-normal normal-case tracking-normal">
-            · view only
+            · submitted
           </span>
+        ) : (
+          !canEdit && (
+            <span className="italic font-normal normal-case tracking-normal">
+              · view only
+            </span>
+          )
         )}
         {pending && (
           <span className="ml-2 italic font-normal normal-case tracking-normal">
@@ -134,7 +151,7 @@ export default function ScoreEntry({
               <span className="text-[9px] text-[color:var(--color-mute)] font-semibold">
                 {hole}
               </span>
-              {canEdit ? (
+              {editable ? (
                 <button
                   type="button"
                   onClick={() => selectHole(hole)}
@@ -156,7 +173,7 @@ export default function ScoreEntry({
         })}
       </div>
 
-      {canEdit &&
+      {editable &&
         (selected == null ? (
           <p className="mt-3 text-center text-[11px] text-[color:var(--color-mute)] italic">
             Tap a hole — it starts at par, then adjust with − / +.
@@ -238,6 +255,35 @@ export default function ScoreEntry({
               </span>
             ))}
           </div>
+        </div>
+      )}
+
+      {canEdit && (
+        <div className="mt-3 pt-2 border-t border-[color:#e8e2d2]">
+          {submitted ? (
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[11px] tracking-[0.08em] uppercase font-semibold text-[color:var(--color-gold)]">
+                ✓ Scorecard submitted
+              </span>
+              <button
+                type="button"
+                onClick={() => setSubmitted(false)}
+                disabled={pending}
+                className="text-[11px] tracking-[0.08em] uppercase text-[color:var(--color-mute)] underline hover:text-[color:var(--color-navy)]"
+              >
+                Reopen to edit
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setSubmitted(true)}
+              disabled={pending}
+              className="w-full rounded-lg ff-btn ff-btn-pine bg-[color:var(--color-navy)] text-[color:var(--color-gold)] py-2.5 text-[11px] font-semibold tracking-[0.08em] uppercase disabled:opacity-60"
+            >
+              Submit scorecard
+            </button>
+          )}
         </div>
       )}
     </div>

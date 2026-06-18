@@ -10,6 +10,7 @@ import {
 } from '@/lib/scoring';
 import { getCourseHoles, parByHole, totalPar } from '@/lib/course-holes';
 import LeaderboardRow, { type LeaderboardRowData } from './LeaderboardRow';
+import CloseRoundButton from './CloseRoundButton';
 import CalendarStrip from '@/components/CalendarStrip';
 import LeaderboardRealtime from '@/components/LeaderboardRealtime';
 import SponsorStrip from '@/components/SponsorStrip';
@@ -40,6 +41,7 @@ export default async function LeaderboardPage({
   const cfg = COURSE_OPTIONS[event.course_config];
   const holes = cfg.holes;
   const isGross = event.scoring_mode === 'gross';
+  const closed = !!event.closed_at;
 
   // Per-hole par/yardage for this event's course (falls back to par 4/hole).
   const courseHoles = await getCourseHoles(event.course_id);
@@ -51,12 +53,14 @@ export default async function LeaderboardPage({
   const foursomeRes = await supabase
     .from('foursomes')
     .select(
-      'id, hole, tier, group_index, foursome_members(user:user_id(id, name, handicap))',
+      'id, hole, tier, group_index, submitted_at, foursome_members(user:user_id(id, name, handicap))',
     )
     .eq('event_id', event.id)
     .order('group_index');
 
   const foursomeRows = foursomeRes.data ?? [];
+  const submittedById: Record<string, boolean> = {};
+  for (const f of foursomeRows) submittedById[f.id] = !!f.submitted_at;
 
   const foursomeIds = foursomeRows.map((f) => f.id);
   const scoresByFoursome: Record<string, Record<number, number>> = {};
@@ -111,6 +115,7 @@ export default async function LeaderboardPage({
     toPar: r.toPar,
     rank: r.rank,
     showHcp: !isGross,
+    submitted: submittedById[r.foursome.id] ?? false,
     isMine: me ? r.foursome.members.some((m) => m.id === me.id) : false,
     memberNames: r.foursome.members.map((m) => m.name),
     members: r.foursome.members,
@@ -125,6 +130,7 @@ export default async function LeaderboardPage({
 
   const anyScores = rows.some((r) => r.holesIn > 0);
   const myRow = rows.find((r) => r.isMine);
+  const submittedCount = rows.filter((r) => r.submitted).length;
 
   if (foursomes.length === 0) {
     return (
@@ -154,9 +160,14 @@ export default async function LeaderboardPage({
       />
       <CalendarStrip events={events} selectedId={event.id} />
       <SponsorStrip placement="dashboard_strip" leagueId={leagueId ?? undefined} />
-      <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)]">
-        Leaderboard · Live
-      </p>
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)]">
+          Leaderboard · {closed ? 'Final' : 'Live'}
+        </p>
+        {isAdmin && !closed && (
+          <CloseRoundButton eventId={event.id} isTest={event.is_test} />
+        )}
+      </div>
       <h1
         className="mt-1 text-2xl leading-tight"
         style={{ fontFamily: 'var(--font-display)' }}
@@ -165,6 +176,9 @@ export default async function LeaderboardPage({
       </h1>
       <p className="text-xs text-[color:var(--color-mute)] mt-1">
         {cfg.label} · Par {par} · scramble · {isGross ? 'gross' : 'net'} scoring
+      </p>
+      <p className="text-[11px] tracking-[0.08em] uppercase text-[color:var(--color-mute)] mt-1">
+        {submittedCount} of {rows.length} cards in{closed ? ' · round closed' : ''}
       </p>
 
       {myRow && (
@@ -214,7 +228,7 @@ export default async function LeaderboardPage({
 
       <div className="mt-4">
         {rows.map((row, i) => {
-          const rowCanEdit = isAdmin || row.isMine;
+          const rowCanEdit = !closed && (isAdmin || row.isMine);
           return (
             <LeaderboardRow
               key={row.foursomeId}

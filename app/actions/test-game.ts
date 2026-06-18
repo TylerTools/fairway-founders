@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
 import { canAccessAdmin } from '@/lib/auth';
-import { runGroupGeneration } from './groups';
+import { assignHoles } from '@/lib/groups';
 import { saveCourseHoles, type HoleInput } from './holes';
 
 export interface TestGameState {
@@ -16,34 +16,39 @@ export interface TestGameState {
 const HOUR_MS = 60 * 60 * 1000;
 
 /**
- * One-shot setup for a live gameplay test (e.g. a nine-hole scramble with two
- * teams of four). Creates an event that is immediately "open" — bypassing the
- * usual RSVP window — drops the selected players in as RSVPs, then builds the
- * groups. Gross scoring + 9-hole front config so it reads as a clean test.
+ * One-shot setup for a live gameplay test. The admin builds the groups by hand —
+ * each group is a list of user ids — so any composition works (two teams of
+ * four, 1-vs-1-vs-1, two-against-one, a solo group, etc.). Creates an event
+ * that's immediately open (bypassing the RSVP window), drops the players in as
+ * RSVPs, and creates the foursomes exactly as assigned. Gross scoring + 9-hole
+ * front config. On success it redirects to the live scorecard.
  *
- * On success it redirects to the live leaderboard for the new event. The 8
- * players must already have real, approved accounts: any member of a group can
- * edit that group's shared scorecard, which requires them to be signed in.
+ * Players must already have approved accounts and be signed in to score their
+ * group's shared card.
  */
 export async function createTestGame(
   courseId: string,
-  userIds: string[],
+  groups: string[][],
   holes: HoleInput[] = [],
 ): Promise<TestGameState> {
   const me = await getAppUser();
   if (!me || !(await canAccessAdmin())) return { ok: false, error: 'Admins only.' };
   if (!courseId) return { ok: false, error: 'Pick a course.' };
 
-  const uniqueIds = [...new Set(userIds)].filter(Boolean);
-  if (uniqueIds.length < 2) {
-    return { ok: false, error: 'Pick at least 2 players.' };
+  // Clean: dedupe players across groups (first assignment wins) and drop empties.
+  const seen = new Set<string>();
+  const cleaned: string[][] = [];
+  for (const g of groups) {
+    const members = (g ?? []).filter((id) => id && !seen.has(id));
+    members.forEach((id) => seen.add(id));
+    if (members.length > 0) cleaned.push(members);
+  }
+  if (cleaned.length === 0 || seen.size < 2) {
+    return { ok: false, error: 'Add at least 2 players across your groups.' };
   }
 
-  // Persist any par/yardage edits to the course before the round (best-effort —
-  // the leaderboard falls back to par 4 for any unconfigured hole).
-  if (holes.length > 0) {
-    await saveCourseHoles(courseId, holes);
-  }
+  // Persist any par/yardage edits to the course (best-effort).
+  if (holes.length > 0) await saveCourseHoles(courseId, holes);
 
   const now = Date.now();
   const insert = await supabase
@@ -53,6 +58,7 @@ export async function createTestGame(
       course_config: 'front',
       scoring_mode: 'gross',
       status: 'open',
+      is_test: true,
       fee_cents: 0,
       opens_at: new Date(now - HOUR_MS).toISOString(),
       closes_at: new Date(now + 6 * HOUR_MS).toISOString(),
@@ -67,13 +73,37 @@ export async function createTestGame(
   }
   const eventId = insert.data.id;
 
+  // RSVP everyone so the event roster reflects the players.
   const rsvpRes = await supabase
     .from('rsvps')
-    .insert(uniqueIds.map((user_id) => ({ event_id: eventId, user_id })));
+    .insert([...seen].map((user_id) => ({ event_id: eventId, user_id })));
   if (rsvpRes.error) return { ok: false, error: rsvpRes.error.message };
 
-  const gen = await runGroupGeneration(eventId, { skipEmail: true });
-  if (!gen.ok) return { ok: false, error: gen.error ?? 'Could not build groups.' };
+  // Create one foursome per group, exactly as assigned.
+  const holeAssignments = assignHoles(cleaned.length, 'front');
+  for (let gi = 0; gi < cleaned.length; gi++) {
+    const ha = holeAssignments[gi];
+    const four = await supabase
+      .from('foursomes')
+      .insert({
+        event_id: eventId,
+        hole: ha.hole,
+        tier: ha.tier,
+        group_index: gi,
+      })
+      .select('id')
+      .single();
+    if (four.error || !four.data) {
+      return { ok: false, error: four.error?.message ?? 'Could not create a group.' };
+    }
+    const memberRows = cleaned[gi].map((user_id, idx) => ({
+      foursome_id: four.data!.id,
+      user_id,
+      cart_number: Math.floor(idx / 2) + 1,
+    }));
+    const mErr = await supabase.from('foursome_members').insert(memberRows);
+    if (mErr.error) return { ok: false, error: mErr.error.message };
+  }
 
   revalidatePath('/admin');
   revalidatePath('/leaderboard');

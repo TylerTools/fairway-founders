@@ -15,8 +15,9 @@ export default async function Home({
   const { home } = await searchParams;
   const me = await getAppUser();
   // Approved members normally land straight in the app, but can explicitly view
-  // this public homepage via the header logo (which links to /?home).
-  if (me && me.access_status === 'approved' && home === undefined) {
+  // this public homepage via the header logo (which links to /?home=1). A bare
+  // valueless `?home` parses as undefined in Next, so we key on the value.
+  if (me && me.access_status === 'approved' && home !== '1') {
     redirect('/dashboard');
   }
 

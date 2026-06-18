@@ -1,40 +1,40 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { canAccessAdmin } from '@/lib/auth';
-import { getCurrentLeague, getCurrentLeagueId } from '@/lib/league-context';
+import { canAccessGln } from '@/lib/auth';
 import { getClubValue } from '@/app/actions/analytics';
 
 function money(cents: number): string {
   return `$${(cents / 100).toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
 }
 
-export default async function ClubValuePage() {
-  if (!(await canAccessAdmin())) redirect('/');
-  // Per-league value report. GLN-wide rollup lives at /gln/value.
-  const leagueId = await getCurrentLeagueId();
-  const league = await getCurrentLeague();
-  const v = await getClubValue(leagueId);
+/**
+ * Cross-league GLN value rollup. Same shape as /admin/value but unscoped —
+ * every league's members, business, events, etc. aggregated. Used by GLN
+ * admins to see the platform's total weight (for sponsor pitches at the
+ * GLN level rather than at a single league).
+ */
+export default async function GlnValuePage() {
+  if (!(await canAccessGln())) redirect('/admin');
+  const v = await getClubValue(null);
   if (!v) redirect('/');
 
   return (
     <main className="px-6 py-8 max-w-md lg:max-w-2xl mx-auto w-full">
-      <Link href="/admin" className="text-xs text-[color:var(--color-gold)]">
-        ← Admin
+      <Link href="/gln" className="text-xs text-[color:var(--color-gold)]">
+        ← GLN console
       </Link>
-      {league && (
-        <p className="mt-3 text-[10px] tracking-[0.15em] uppercase font-semibold text-[color:var(--color-mute)]">
-          {league.short_name ?? league.name}
-        </p>
-      )}
+      <p className="mt-3 text-[10px] tracking-[0.15em] uppercase font-semibold text-[color:var(--color-mute)]">
+        Platform
+      </p>
       <h1 className="mt-1 text-2xl" style={{ fontFamily: 'var(--font-display)' }}>
-        Club value
+        Network value
       </h1>
       <p className="mt-1 text-xs text-[color:var(--color-mute)] leading-relaxed">
-        The state of {league?.short_name ?? 'this league'} — for pitching sponsors.
-        Cumulative totals, plus traffic and activity over the last 30 days.
+        State of Golf Links Network across every league. The big-picture story
+        for platform-level sponsors.
       </p>
 
-      <Section title="Members">
+      <Section title="Members across all leagues">
         <StatGrid
           items={[
             { n: v.members, label: 'Members' },
@@ -56,7 +56,7 @@ export default async function ClubValuePage() {
         )}
       </Section>
 
-      <Section title="Business generated (all-time)">
+      <Section title="Business generated (all-time, all leagues)">
         <StatGrid
           items={[
             { n: money(v.closedBusinessCents), label: 'Closed business' },
@@ -69,7 +69,7 @@ export default async function ClubValuePage() {
         />
       </Section>
 
-      <Section title="Traffic we send members (30d)">
+      <Section title="Traffic we send members (30d, all leagues)">
         <StatGrid
           items={[
             { n: v.profileViews30d, label: 'Profile views' },

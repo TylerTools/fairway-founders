@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
 import { canAccessAdmin } from '@/lib/auth';
+import { getCurrentLeagueId } from '@/lib/league-context';
 import { notifyAdminsOfFeedback } from '@/lib/notify';
 import type { Database } from '@/lib/database.types';
 
@@ -34,11 +35,15 @@ export async function submitFeedback(
   }
 
   const trimmedSubject = subjectRaw?.trim() ? subjectRaw.trim().slice(0, 200) : null;
+  // Stamp the current league so league admins see only their reports.
+  // Null is fine — those are platform-level reports the GLN admin handles.
+  const leagueId = await getCurrentLeagueId();
   const res = await supabase.from('feedback').insert({
     kind,
     body,
     subject: trimmedSubject,
     user_id: me.id,
+    league_id: leagueId,
   });
   if (res.error) return { ok: false, error: res.error.message };
 

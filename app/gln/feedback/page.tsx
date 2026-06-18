@@ -1,11 +1,8 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { getAppUser } from '@/lib/current-user';
-import { getViewMode } from '@/lib/view-mode';
-import { canAccessAdmin, isGlnAdmin } from '@/lib/auth';
-import { getCurrentLeague } from '@/lib/league-context';
-import FeedbackRow from './FeedbackRow';
+import { canAccessGln } from '@/lib/auth';
+import FeedbackRow from '@/app/admin/feedback/FeedbackRow';
 import type { Database } from '@/lib/database.types';
 
 export const dynamic = 'force-dynamic';
@@ -26,36 +23,30 @@ const STATUS_COLOR: Record<FeedbackStatus, string> = {
   wontfix: '#a87c4f',
 };
 
-export default async function FeedbackInbox({
+/**
+ * GLN-wide feedback inbox. Includes every league's reports AND the global
+ * (league_id IS NULL) platform-level bug reports that don't surface in any
+ * single league cockpit. The 'scope' chip filters to a single bucket.
+ */
+export default async function GlnFeedbackInbox({
   searchParams,
 }: {
-  searchParams: Promise<{ kind?: string; status?: string }>;
+  searchParams: Promise<{
+    kind?: string;
+    status?: string;
+    scope?: string;
+  }>;
 }) {
-  const me = await getAppUser();
-  const view = await getViewMode(me?.app_role ?? null);
-  if (!me) redirect('/');
-  if (view !== 'admin' || !(await canAccessAdmin())) redirect('/dashboard');
+  if (!(await canAccessGln())) redirect('/admin');
 
-  const { kind: kindFilter, status: statusFilter } = await searchParams;
-
-  // /admin/feedback shows current league's feedback only. GLN admins see
-  // global (league_id IS NULL) reports on /gln/feedback — this page stays
-  // strictly per-league for both tiers so the cockpit experience matches.
-  const currentLeague = await getCurrentLeague();
-  const isGln = isGlnAdmin(me);
+  const { kind: kindFilter, status: statusFilter, scope } = await searchParams;
 
   let q = supabase
     .from('feedback')
     .select(
-      'id, kind, status, subject, body, created_at, user:user_id(id, name, email)',
+      'id, kind, status, subject, body, created_at, league_id, user:user_id(id, name, email), league:league_id(name, short_name, slug)',
     )
     .order('created_at', { ascending: false });
-  if (currentLeague) {
-    q = q.eq('league_id', currentLeague.id);
-  } else if (!isGln) {
-    // No league context for a non-GLN admin — show nothing.
-    q = q.eq('id', '00000000-0000-0000-0000-000000000000');
-  }
   if (kindFilter === 'feedback' || kindFilter === 'issue') {
     q = q.eq('kind', kindFilter as FeedbackKind);
   }
@@ -67,35 +58,27 @@ export default async function FeedbackInbox({
   ) {
     q = q.eq('status', statusFilter as FeedbackStatus);
   }
+  if (scope === 'global') q = q.is('league_id', null);
+
   const res = await q;
   const rows = res.data ?? [];
 
-  // Counts for filter chips (also league-scoped).
-  let countsQ = supabase.from('feedback').select('kind, status');
-  if (currentLeague) countsQ = countsQ.eq('league_id', currentLeague.id);
-  const countsRes = await countsQ;
-  const counts = {
-    all: countsRes.data?.length ?? 0,
-    feedback: 0,
-    issue: 0,
-    new: 0,
-  };
-  for (const r of countsRes.data ?? []) {
-    if (r.kind === 'feedback') counts.feedback += 1;
-    if (r.kind === 'issue') counts.issue += 1;
-    if (r.status === 'new') counts.new += 1;
+  // Scope tab counts
+  const scopeRes = await supabase.from('feedback').select('league_id');
+  let allCount = 0;
+  let globalCount = 0;
+  for (const r of scopeRes.data ?? []) {
+    allCount++;
+    if (!r.league_id) globalCount++;
   }
 
   return (
     <main className="px-6 py-8 max-w-md lg:max-w-3xl mx-auto w-full">
-      <Link
-        href="/admin"
-        className="text-xs text-[color:var(--color-gold)]"
-      >
-        ← Admin
+      <Link href="/gln" className="text-xs text-[color:var(--color-gold)]">
+        ← GLN console
       </Link>
-      <p className="mt-4 text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)]">
-        Inbox
+      <p className="mt-4 text-[10px] tracking-[0.15em] uppercase font-semibold text-[color:var(--color-mute)]">
+        Platform · Inbox
       </p>
       <h1
         className="mt-1 text-3xl leading-tight"
@@ -104,29 +87,19 @@ export default async function FeedbackInbox({
         Feedback &amp; issues
       </h1>
       <p className="text-[11px] text-[color:var(--color-mute)] mt-1">
-        {counts.all} total · {counts.new} new
+        {allCount} total across every league · {globalCount} global
       </p>
 
       <div className="mt-5 flex flex-wrap gap-1.5">
         <Chip
-          label={`All ${counts.all}`}
-          href="/admin/feedback"
-          active={!kindFilter && !statusFilter}
+          label={`All ${allCount}`}
+          href="/gln/feedback"
+          active={!scope}
         />
         <Chip
-          label={`Program ${counts.feedback}`}
-          href="/admin/feedback?kind=feedback"
-          active={kindFilter === 'feedback'}
-        />
-        <Chip
-          label={`Issues ${counts.issue}`}
-          href="/admin/feedback?kind=issue"
-          active={kindFilter === 'issue'}
-        />
-        <Chip
-          label={`New ${counts.new}`}
-          href="/admin/feedback?status=new"
-          active={statusFilter === 'new'}
+          label={`Global ${globalCount}`}
+          href="/gln/feedback?scope=global"
+          active={scope === 'global'}
         />
       </div>
 
@@ -138,6 +111,7 @@ export default async function FeedbackInbox({
         <div className="mt-5 space-y-3">
           {rows.map((r) => {
             const u = Array.isArray(r.user) ? r.user[0] : r.user;
+            const lg = Array.isArray(r.league) ? r.league[0] : r.league;
             const created = new Date(r.created_at);
             return (
               <article
@@ -148,6 +122,14 @@ export default async function FeedbackInbox({
                   <div className="min-w-0">
                     <p className="text-[10px] tracking-[0.15em] uppercase font-semibold text-[color:var(--color-mute)]">
                       {r.kind === 'issue' ? 'App issue' : 'Program'}
+                      {' · '}
+                      {lg ? (
+                        <span className="text-[color:var(--color-navy)]">
+                          {lg.short_name || lg.name}
+                        </span>
+                      ) : (
+                        <span className="text-[color:#a87c4f]">Global</span>
+                      )}
                       {r.subject && ' · '}
                       {r.subject && (
                         <span className="text-[color:var(--color-ink)]">
@@ -173,8 +155,9 @@ export default async function FeedbackInbox({
                   <span
                     className="text-[9px] tracking-[0.1em] uppercase font-bold rounded-full px-2 py-0.5 text-white shrink-0"
                     style={{ background: STATUS_COLOR[r.status] }}
-                    dangerouslySetInnerHTML={{ __html: STATUS_LABEL[r.status] }}
-                  />
+                  >
+                    {STATUS_LABEL[r.status]}
+                  </span>
                 </div>
                 <div className="mt-3 pt-3 border-t border-[color:#f0ebd8]">
                   <FeedbackRow id={r.id} status={r.status} />

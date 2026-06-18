@@ -113,41 +113,120 @@ export interface ClubValue {
  * Club-wide "state of the club" aggregates for pitching sponsors. Cumulative
  * totals for the durable story (members, closed business, connections, rounds)
  * and trailing-30-day figures for traffic/activity. Admin only; counts only.
+ *
+ * Pass leagueId to scope members/interactions/events to a single league.
+ * Pass null (or omit) for the GLN-wide rollup used on /gln/value.
+ * Analytics (profile views / link clicks / vCard saves) stay global per the
+ * rebuild's analytics-scope decision — they're cross-league by nature.
  */
-export async function getClubValue(): Promise<ClubValue | null> {
+export async function getClubValue(
+  leagueId?: string | null,
+): Promise<ClubValue | null> {
   if (!(await canAccessAdmin())) return null;
   const since30 = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
-  const [membersC, activeC, newC, lmRes, interRes, viewsC, clicksRes, roundsC, eventsC] =
-    await Promise.all([
-      supabase
-        .from('users')
-        .select('id', { count: 'exact', head: true })
-        .eq('access_status', 'approved'),
-      supabase
-        .from('users')
-        .select('id', { count: 'exact', head: true })
-        .eq('access_status', 'approved')
-        .gte('last_active_at', since30),
-      supabase
-        .from('users')
-        .select('id', { count: 'exact', head: true })
-        .eq('access_status', 'approved')
-        .gte('created_at', since30),
+  // Members of the current league (active memberships) when scoped, else all.
+  let allowedUserIds: Set<string> | null = null;
+  let courseIdsInLeague: string[] | null = null;
+  if (leagueId) {
+    const [memRes, courseRes] = await Promise.all([
       supabase
         .from('league_memberships')
-        .select('league:league_id(short_name, name), user:user_id(access_status)'),
-      supabase
-        .from('interactions')
-        .select('kind, from_user_id, to_user_id, value_cents')
-        .eq('status', 'accepted'),
+        .select('user_id')
+        .eq('league_id', leagueId)
+        .eq('status', 'active'),
+      supabase.from('courses').select('id').eq('league_id', leagueId),
+    ]);
+    allowedUserIds = new Set((memRes.data ?? []).map((r) => r.user_id));
+    courseIdsInLeague = (courseRes.data ?? []).map((c) => c.id);
+  }
+
+  // For per-league counts, only count users who are active members of the
+  // current league. Empty allowedUserIds → match nothing via sentinel UUID.
+  const userIdsArr = allowedUserIds ? [...allowedUserIds] : null;
+  const sentinel = '00000000-0000-0000-0000-000000000000';
+
+  const baseMembers = supabase
+    .from('users')
+    .select('id', { count: 'exact', head: true })
+    .eq('access_status', 'approved');
+  const membersQ = userIdsArr
+    ? userIdsArr.length > 0
+      ? baseMembers.in('id', userIdsArr)
+      : baseMembers.eq('id', sentinel)
+    : baseMembers;
+
+  const baseActive = supabase
+    .from('users')
+    .select('id', { count: 'exact', head: true })
+    .eq('access_status', 'approved')
+    .gte('last_active_at', since30);
+  const activeQ = userIdsArr
+    ? userIdsArr.length > 0
+      ? baseActive.in('id', userIdsArr)
+      : baseActive.eq('id', sentinel)
+    : baseActive;
+
+  const baseNew = supabase
+    .from('users')
+    .select('id', { count: 'exact', head: true })
+    .eq('access_status', 'approved')
+    .gte('created_at', since30);
+  const newQ = userIdsArr
+    ? userIdsArr.length > 0
+      ? baseNew.in('id', userIdsArr)
+      : baseNew.eq('id', sentinel)
+    : baseNew;
+
+  const [membersC, activeC, newC, lmRes, interRes, viewsC, clicksRes, roundsC, eventsC] =
+    await Promise.all([
+      membersQ,
+      activeQ,
+      newQ,
+      leagueId
+        ? supabase
+            .from('league_memberships')
+            .select('league:league_id(short_name, name), user:user_id(access_status)')
+            .eq('league_id', leagueId)
+            .eq('status', 'active')
+        : supabase
+            .from('league_memberships')
+            .select('league:league_id(short_name, name), user:user_id(access_status)')
+            .eq('status', 'active'),
+      // Interactions: filter by current league (legacy null-league rows fall
+      // through and show in every context). Cross-league mode: no filter.
+      leagueId
+        ? supabase
+            .from('interactions')
+            .select('kind, from_user_id, to_user_id, value_cents')
+            .eq('status', 'accepted')
+            .or(`league_id.eq.${leagueId},league_id.is.null`)
+        : supabase
+            .from('interactions')
+            .select('kind, from_user_id, to_user_id, value_cents')
+            .eq('status', 'accepted'),
+      // Analytics stay global — by user decision they're aggregated per profile.
       supabase
         .from('profile_views')
         .select('id', { count: 'exact', head: true })
         .gte('created_at', since30),
       supabase.from('link_clicks').select('target').gte('created_at', since30),
+      // Rounds played + events: scope by course's league when applicable.
+      // Rounds = foursome_members joined to foursomes → events → courses.
+      // Cheaper proxy: count foursome_members whose foursome's event's
+      // course is in this league. For the per-league rollup we approximate
+      // by counting events in the league × average attendance via a follow-up
+      // join — but for v1 we just count events and surface rounds as global
+      // (analytics-style stat).
       supabase.from('foursome_members').select('id', { count: 'exact', head: true }),
-      supabase.from('events').select('id', { count: 'exact', head: true }),
+      courseIdsInLeague !== null
+        ? courseIdsInLeague.length > 0
+          ? supabase
+              .from('events')
+              .select('id', { count: 'exact', head: true })
+              .in('course_id', courseIdsInLeague)
+          : Promise.resolve({ count: 0, data: null, error: null, status: 200, statusText: 'OK' })
+        : supabase.from('events').select('id', { count: 'exact', head: true }),
     ]);
 
   const leagueMap = new Map<string, number>();

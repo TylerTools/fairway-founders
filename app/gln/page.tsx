@@ -206,6 +206,45 @@ export default async function GlnHome() {
         </div>
       </section>
 
+      {/* Platform-level surfaces */}
+      <section className="mt-10">
+        <p className="text-[10px] tracking-[0.15em] uppercase font-semibold text-[color:var(--color-mute)]">
+          Platform reports
+        </p>
+        <div className="mt-3 grid grid-cols-1 lg:grid-cols-2 gap-3">
+          <Link
+            href="/gln/value"
+            className="rounded-xl border border-[color:#e8e2d2] bg-white ff-card px-5 py-4 hover:border-[color:var(--color-gold)] block"
+          >
+            <p
+              className="text-lg leading-tight"
+              style={{ fontFamily: 'var(--font-display)' }}
+            >
+              Network value
+            </p>
+            <p className="mt-1 text-[12px] text-[color:#5a5a4a] leading-relaxed">
+              Members, business, traffic — across every league. The platform-level
+              pitch for sponsors.
+            </p>
+          </Link>
+          <Link
+            href="/gln/feedback"
+            className="rounded-xl border border-[color:#e8e2d2] bg-white ff-card px-5 py-4 hover:border-[color:var(--color-gold)] block"
+          >
+            <p
+              className="text-lg leading-tight"
+              style={{ fontFamily: 'var(--font-display)' }}
+            >
+              Feedback &amp; issues
+            </p>
+            <p className="mt-1 text-[12px] text-[color:#5a5a4a] leading-relaxed">
+              Every league&rsquo;s reports plus platform-level bugs (no league
+              attached).
+            </p>
+          </Link>
+        </div>
+      </section>
+
       <p className="mt-12 text-center">
         <Link
           href="/admin"

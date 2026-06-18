@@ -9,6 +9,7 @@ import { getMemberCountsTags } from '@/app/actions/stats';
 import ProfileInteractionButtons from '@/components/ProfileInteractionButtons';
 import TrackProfileView from '@/components/TrackProfileView';
 import TrackedExternalLink from '@/components/TrackedExternalLink';
+import TrackedContactLink from '@/components/TrackedContactLink';
 
 const ROLE_LABEL: Record<'member' | 'super_admin', string> = {
   member: 'Member',
@@ -193,6 +194,18 @@ export default async function MemberDetail({
                 {member.city}
               </p>
             )}
+            {member.phone && (
+              <p className="mt-1 text-[13px]">
+                <TrackedContactLink
+                  profileId={member.id}
+                  target="phone"
+                  href={`tel:${member.phone.replace(/[^\d+]/g, '')}`}
+                  className="text-[color:var(--color-gold)] font-medium hover:underline"
+                >
+                  {member.phone}
+                </TrackedContactLink>
+              </p>
+            )}
 
             {(leagueTags.length > 0 || member.handicap != null) && (
               <div className="mt-2.5 flex items-center gap-1.5 flex-wrap">
@@ -238,6 +251,16 @@ export default async function MemberDetail({
             >
               Website
             </TrackedExternalLink>
+          )}
+          {!isSelf && member.phone && (
+            <TrackedContactLink
+              profileId={member.id}
+              target="sms"
+              href={`sms:${member.phone.replace(/[^\d+]/g, '')}`}
+              className="inline-flex items-center gap-1.5 border border-[color:var(--color-gold)] text-[color:var(--color-ink)] px-4 py-2 text-xs font-semibold tracking-[0.08em] uppercase rounded-md hover:bg-[color:#f5f1e8]"
+            >
+              Text
+            </TrackedContactLink>
           )}
           {!isSelf && (
             <ProfileInteractionButtons toUserId={member.id} toName={member.name} />

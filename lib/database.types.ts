@@ -974,6 +974,7 @@ export type Database = {
         | "phone"
         | "email"
         | "link_hub"
+        | "sms"
       member_link_kind:
         | "website"
         | "linkedin"
@@ -1166,6 +1167,7 @@ export const Constants = {
         "phone",
         "email",
         "link_hub",
+        "sms",
       ],
       member_link_kind: [
         "website",

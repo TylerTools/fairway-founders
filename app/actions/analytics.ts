@@ -49,6 +49,8 @@ export interface MyTraffic {
   uniqueViewers: number;
   websiteClicks: number;
   vcardSaves: number;
+  calls: number;
+  texts: number;
 }
 
 /**
@@ -58,7 +60,14 @@ export interface MyTraffic {
 export async function getMyTraffic(): Promise<MyTraffic> {
   const me = await getAppUser();
   if (!me) {
-    return { profileViews: 0, uniqueViewers: 0, websiteClicks: 0, vcardSaves: 0 };
+    return {
+      profileViews: 0,
+      uniqueViewers: 0,
+      websiteClicks: 0,
+      vcardSaves: 0,
+      calls: 0,
+      texts: 0,
+    };
   }
   const now = new Date();
   const monthStart = new Date(
@@ -89,6 +98,8 @@ export async function getMyTraffic(): Promise<MyTraffic> {
       (c) => c.target === 'website' || c.target === 'social' || c.target === 'link_hub',
     ).length,
     vcardSaves: clicks.filter((c) => c.target === 'vcard').length,
+    calls: clicks.filter((c) => c.target === 'phone').length,
+    texts: clicks.filter((c) => c.target === 'sms').length,
   };
 }
 

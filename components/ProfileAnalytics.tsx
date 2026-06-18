@@ -12,6 +12,8 @@ export default function ProfileAnalytics({
     { n: traffic.uniqueViewers, label: 'People' },
     { n: traffic.websiteClicks, label: 'Site clicks' },
     { n: traffic.vcardSaves, label: 'vCard saves' },
+    { n: traffic.calls, label: 'Calls' },
+    { n: traffic.texts, label: 'Texts' },
   ];
 
   return (
@@ -19,7 +21,7 @@ export default function ProfileAnalytics({
       <p className="text-[10px] tracking-[0.15em] uppercase font-semibold text-[color:var(--color-gold)]">
         Your profile · {monthLabel}
       </p>
-      <div className="mt-3 grid grid-cols-4 gap-2">
+      <div className="mt-3 grid grid-cols-3 gap-y-3 gap-x-2">
         {items.map((it) => (
           <div key={it.label} className="text-center">
             <p className="text-xl font-semibold" style={{ fontFamily: 'var(--font-display)' }}>

@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     'The Terms of Service governing membership in Fairway Founders Network, operated by Golf Links Network LLC.',
 };
 
-const LAST_UPDATED = 'June 10, 2026';
+const LAST_UPDATED = 'June 18, 2026';
 
 export default function TermsPage() {
   return (
@@ -142,7 +142,54 @@ export default function TermsPage() {
           </p>
         </Section>
 
-        <Section n="7" title="Payments; subscription; no refunds">
+        <Section n="7" title="Alcohol; intoxication; no dram-shop or social-host liability">
+          <SubSection title="(a) We do not sell, serve, or furnish alcohol">
+            Fairway Founders is not a licensed alcohol vendor. We do not
+            sell, serve, furnish, distribute, sponsor, or provide alcoholic
+            beverages, and the cost of alcohol is never included in any
+            membership or event fee. Any alcohol available at an event is
+            sold and served solely by the golf course or another
+            independently licensed third party, under its own license and in
+            its own discretion. Your purchase and consumption of alcohol is a
+            transaction between you and that vendor, to which we are not a
+            party.
+          </SubSection>
+          <SubSection title="(b) Legal age; responsible use">
+            You represent that you are of lawful drinking age. You are solely
+            responsible for your own decisions about alcohol &mdash; whether,
+            what, and how much to consume &mdash; and for complying with all
+            applicable laws. You agree to drink responsibly, if at all.
+          </SubSection>
+          <SubSection title="(c) Your transportation is your responsibility">
+            You are solely responsible for arranging safe transportation and
+            for not operating any vehicle, golf cart, or other equipment
+            while impaired. You assume all risk arising from your own or any
+            other person&rsquo;s consumption of alcohol.
+          </SubSection>
+          <SubSection title="(d) No liability for alcohol-related harm">
+            <span className="uppercase font-semibold text-[color:var(--color-ink)] tracking-wide">
+              To the maximum extent permitted by law, you release and hold
+              harmless Fairway Founders and its owners, operators, employees,
+              agents, admins, and other members from any claim, injury,
+              death, property damage, or other harm arising from the sale,
+              service, furnishing, or consumption of alcohol at or in
+              connection with any event &mdash; whether involving you or any
+              third party &mdash; including any claim under a dram-shop,
+              social-host, negligent-undertaking, or similar theory.
+            </span>{' '}
+            You acknowledge that we neither control nor monitor alcohol
+            service and are not a vendor, licensee, social host, or furnisher
+            of alcohol.
+          </SubSection>
+          <SubSection title="(e) We may act, but need not">
+            We may (but are not required to) ask a Member to stop drinking,
+            remove a Member from an event, or revoke membership where we
+            believe alcohol use creates a risk. A decision to act or not act
+            creates no duty and no liability.
+          </SubSection>
+        </Section>
+
+        <Section n="8" title="Payments; subscription; no refunds">
           <SubSection title="(a) Fees">
             Membership and event fees are as disclosed at signup or checkout.
             Fees may include in-app subscription charges and/or separate fees
@@ -180,7 +227,7 @@ export default function TermsPage() {
           </SubSection>
         </Section>
 
-        <Section n="8" title="Networking; member conduct">
+        <Section n="9" title="Networking; member conduct">
           <p>
             The Service connects you with other people. Any deal, transaction,
             partnership, employment relationship, introduction, or personal
@@ -206,7 +253,7 @@ export default function TermsPage() {
           </p>
         </Section>
 
-        <Section n="9" title="Content from others">
+        <Section n="10" title="Content from others">
           <p>
             Members and admins may post bios, broadcasts, messages, scores, and
             other content. We do not pre-screen or guarantee accuracy. Reliance
@@ -214,7 +261,7 @@ export default function TermsPage() {
           </p>
         </Section>
 
-        <Section n="10" title="AI policy">
+        <Section n="11" title="AI policy">
           <p>
             We use artificial intelligence (&ldquo;AI&rdquo;) tools to operate
             and improve the Service, including but not limited to drafting
@@ -235,7 +282,7 @@ export default function TermsPage() {
             We may use AI tools to flag potential rule violations and to assist
             in decisions about your membership. You may request human review of
             any AI-driven membership decision by emailing the address in
-            Section 22.
+            Section 23.
           </SubSection>
           <SubSection title="(d) No model training on our data">
             You may not use the Service, scrape its content, or harvest Member
@@ -243,18 +290,86 @@ export default function TermsPage() {
           </SubSection>
         </Section>
 
-        <Section n="11" title="Intellectual property">
+        <Section n="12" title="Intellectual property; restrictions; no replication">
+          <SubSection title="(a) Ownership">
+            The Service &mdash; including its software, source and object
+            code, databases, design, &ldquo;look and feel,&rdquo; user
+            interfaces, layouts, screens, navigation, workflows, features,
+            functionality, algorithms (including foursome and pairing
+            generation and leaderboard logic), text, graphics, logos, the
+            Fairway Founders and Golf Links Network names and marks, and all
+            content we create &mdash; is owned by Golf Links Network LLC or
+            its licensors and protected by copyright, trademark, trade-secret,
+            and other laws. We reserve all rights not expressly granted.
+          </SubSection>
+          <SubSection title="(b) Limited license to you">
+            We grant you a personal, limited, non-exclusive,
+            non-transferable, revocable license to access the Service solely
+            for your own participation in Fairway Founders golf and networking
+            activities. No other use is permitted.
+          </SubSection>
           <p>
-            The Service, its design, brand, software, and content we create are
-            owned by Fairway Founders and protected by intellectual property
-            law. You may not copy, reproduce, modify, distribute,
-            reverse-engineer, or create derivative works of the Service except
-            as expressly permitted. Member-submitted content remains owned by
-            the Member, subject to the broad license you grant under Section 5.
+            <strong className="text-[color:var(--color-ink)]">
+              (c) Prohibited uses.
+            </strong>{' '}
+            You will not, and will not permit or help anyone else to:
           </p>
+          <ul className="list-disc pl-6 space-y-1.5">
+            <li>
+              copy, reproduce, republish, frame, mirror, or create derivative
+              works of any part of the Service;
+            </li>
+            <li>
+              reverse engineer, decompile, disassemble, or attempt to derive
+              the source code, structure, or underlying ideas of the Service,
+              except to the limited extent this restriction cannot be barred
+              by law;
+            </li>
+            <li>
+              access or use the Service to design, build, market, or operate
+              a competing or substantially similar product or service, or to
+              replicate the Service&rsquo;s structure, organization, features,
+              workflows, &ldquo;look and feel,&rdquo; or business model;
+            </li>
+            <li>
+              scrape, crawl, harvest, or use automated means to extract data
+              or content from the Service;
+            </li>
+            <li>
+              use the Service, its content, or any Member data to train or
+              develop any artificial intelligence or machine-learning system
+              (see also Section 11); or
+            </li>
+            <li>
+              remove or alter any proprietary notice, or use our names,
+              logos, or branding without our prior written consent.
+            </li>
+          </ul>
+          <SubSection title="(d) Confidentiality; trade secrets">
+            Non-public aspects of the Service &mdash; its source code, design
+            and architecture, unreleased features, algorithms, analytics,
+            pricing logic, and roadmaps &mdash; are our confidential
+            information and trade secrets. Membership grants you no license to
+            them. You will not disclose or use them except as needed for your
+            permitted use of the Service.
+          </SubSection>
+          <SubSection title="(e) Feedback">
+            Any idea or suggestion you give us about the Service is assigned
+            to us, and we may use it freely without obligation to you.
+          </SubSection>
+          <SubSection title="(f) Member content">
+            Content you submit remains yours, subject to the broad license you
+            grant under Section 5.
+          </SubSection>
+          <SubSection title="(g) Injunctive relief">
+            You agree that breach of this Section may cause irreparable harm
+            for which money damages are inadequate, and that we may seek
+            injunctive relief, in addition to any other remedy, consistent
+            with Section 19.
+          </SubSection>
         </Section>
 
-        <Section n="12" title="Third-party services">
+        <Section n="13" title="Third-party services">
           <p>
             The Service integrates with third parties (payment processors,
             authentication providers, hosting, analytics, AI providers,
@@ -264,7 +379,7 @@ export default function TermsPage() {
           </p>
         </Section>
 
-        <Section n="13" title="Photography and video at events">
+        <Section n="14" title="Photography and video at events">
           <p>
             You consent to being photographed, filmed, and recorded at events
             and to our perpetual, royalty-free publication of those images and
@@ -273,7 +388,7 @@ export default function TermsPage() {
           </p>
         </Section>
 
-        <Section n="14" title="Event cancellation; force majeure">
+        <Section n="15" title="Event cancellation; force majeure">
           <p>
             We may cancel, postpone, relocate, or substitute any event at any
             time. Fees paid for cancelled events are not refunded. We are not
@@ -283,7 +398,7 @@ export default function TermsPage() {
           </p>
         </Section>
 
-        <Section n="15" title="Disclaimers">
+        <Section n="16" title="Disclaimers">
           <p className="uppercase font-semibold text-[color:var(--color-ink)] tracking-wide">
             The Service is provided &ldquo;as is&rdquo; and &ldquo;as
             available,&rdquo; without warranty of any kind, express or implied,
@@ -294,7 +409,7 @@ export default function TermsPage() {
           </p>
         </Section>
 
-        <Section n="16" title="Limitation of liability">
+        <Section n="17" title="Limitation of liability">
           <p className="uppercase font-semibold text-[color:var(--color-ink)] tracking-wide">
             To the maximum extent permitted by law, Fairway Founders, its
             owners, employees, agents, and affiliates shall not be liable for
@@ -310,7 +425,7 @@ export default function TermsPage() {
           </p>
         </Section>
 
-        <Section n="17" title="Indemnification">
+        <Section n="18" title="Indemnification">
           <p>
             You will defend, indemnify, and hold harmless Fairway Founders and
             its owners, employees, and agents from any claim, demand, loss,
@@ -322,7 +437,7 @@ export default function TermsPage() {
           </p>
         </Section>
 
-        <Section n="18" title="Dispute resolution; arbitration; class action waiver">
+        <Section n="19" title="Dispute resolution; arbitration; class action waiver">
           <p className="uppercase font-semibold text-[color:var(--color-ink)] tracking-wide">
             Any dispute arising from or related to these Terms or the Service
             shall be resolved by binding individual arbitration under the rules
@@ -338,7 +453,7 @@ export default function TermsPage() {
           </p>
         </Section>
 
-        <Section n="19" title="Governing law">
+        <Section n="20" title="Governing law">
           <p>
             These Terms are governed by the laws of the State of Florida,
             without regard to its conflict-of-law principles. Venue for any
@@ -346,7 +461,7 @@ export default function TermsPage() {
           </p>
         </Section>
 
-        <Section n="20" title="Changes">
+        <Section n="21" title="Changes">
           <p>
             We may update these Terms at any time. Material changes will be
             communicated through the Service or by email. Your continued use
@@ -354,7 +469,7 @@ export default function TermsPage() {
           </p>
         </Section>
 
-        <Section n="21" title="Severability; entire agreement; assignment">
+        <Section n="22" title="Severability; entire agreement; assignment">
           <p>
             If any provision is held unenforceable, the remaining provisions
             remain in effect. These Terms are the entire agreement between you
@@ -363,7 +478,7 @@ export default function TermsPage() {
           </p>
         </Section>
 
-        <Section n="22" title="Contact">
+        <Section n="23" title="Contact">
           <p>
             Questions about these Terms can be directed to{' '}
             <a

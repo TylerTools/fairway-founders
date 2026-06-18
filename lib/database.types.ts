@@ -71,6 +71,44 @@ export type Database = {
           },
         ]
       }
+      course_holes: {
+        Row: {
+          course_id: string
+          created_at: string
+          hole: number
+          id: string
+          par: number
+          updated_at: string
+          yards: number | null
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          hole: number
+          id?: string
+          par?: number
+          updated_at?: string
+          yards?: number | null
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          hole?: number
+          id?: string
+          par?: number
+          updated_at?: string
+          yards?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_holes_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       courses: {
         Row: {
           address: string | null
@@ -857,16 +895,20 @@ export type Database = {
           company: string | null
           created_at: string
           email: string
+          goals: string | null
           handicap: number | null
           helps: string[] | null
           id: string
+          industry: string | null
           last_active_at: string | null
           leaderboard_opt_out: boolean
           logo_url: string | null
           name: string
+          onboarded_at: string | null
           phone: string | null
           photo_url: string | null
           professional_role: string | null
+          seeking: string[]
           tagline: string | null
           updated_at: string
           website_url: string | null
@@ -883,16 +925,20 @@ export type Database = {
           company?: string | null
           created_at?: string
           email: string
+          goals?: string | null
           handicap?: number | null
           helps?: string[] | null
           id?: string
+          industry?: string | null
           last_active_at?: string | null
           leaderboard_opt_out?: boolean
           logo_url?: string | null
           name: string
+          onboarded_at?: string | null
           phone?: string | null
           photo_url?: string | null
           professional_role?: string | null
+          seeking?: string[]
           tagline?: string | null
           updated_at?: string
           website_url?: string | null
@@ -909,16 +955,20 @@ export type Database = {
           company?: string | null
           created_at?: string
           email?: string
+          goals?: string | null
           handicap?: number | null
           helps?: string[] | null
           id?: string
+          industry?: string | null
           last_active_at?: string | null
           leaderboard_opt_out?: boolean
           logo_url?: string | null
           name?: string
+          onboarded_at?: string | null
           phone?: string | null
           photo_url?: string | null
           professional_role?: string | null
+          seeking?: string[]
           tagline?: string | null
           updated_at?: string
           website_url?: string | null

@@ -39,8 +39,11 @@ export function buildLeaderboard(
   foursomes: FoursomeForScoring[],
   holesPlayed: number,
   mode: ScoringMode = 'net',
+  totalParOverride?: number,
 ): LeaderboardRow[] {
-  const par = holesPlayed === 9 ? 36 : 72;
+  // Per-hole pars (from course_holes) sum to the real course par; fall back to
+  // a flat par-4 course when holes haven't been configured.
+  const par = totalParOverride ?? (holesPlayed === 9 ? 36 : 72);
   const rows: LeaderboardRow[] = foursomes.map((f) => {
     // Gross mode ignores handicaps entirely: hcp 0 makes net === gross and the
     // ranking fall back to raw team total (used by the live test-game flow).

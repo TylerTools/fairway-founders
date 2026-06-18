@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
 import { canAccessAdmin } from '@/lib/auth';
 import { getCurrentLeague } from '@/lib/league-context';
+import { COURSE_OPTIONS } from '@/lib/schedule';
 import TestGameForm from './TestGameForm';
 
 export const dynamic = 'force-dynamic';
@@ -36,6 +37,27 @@ export default async function TestGamePage() {
 
   const courses = coursesRes?.data ?? [];
   const members = membersRes.data ?? [];
+
+  // Existing per-course hole pars/yardages, so the editor prefills.
+  const courseIds = courses.map((c) => c.id);
+  const holesRes = courseIds.length
+    ? await supabase
+        .from('course_holes')
+        .select('course_id, hole, par, yards')
+        .in('course_id', courseIds)
+        .order('hole')
+    : null;
+  const holesByCourse: Record<
+    string,
+    { hole: number; par: number; yards: number | null }[]
+  > = {};
+  for (const r of holesRes?.data ?? []) {
+    (holesByCourse[r.course_id] ??= []).push({
+      hole: r.hole,
+      par: r.par,
+      yards: r.yards,
+    });
+  }
 
   return (
     <main className="px-6 py-8 max-w-md lg:max-w-3xl mx-auto w-full">
@@ -79,7 +101,12 @@ export default async function TestGamePage() {
         </div>
       ) : (
         <div className="mt-6">
-          <TestGameForm courses={courses} members={members} />
+          <TestGameForm
+            courses={courses}
+            members={members}
+            holeNumbers={COURSE_OPTIONS.front.holes}
+            holesByCourse={holesByCourse}
+          />
         </div>
       )}
     </main>

@@ -8,6 +8,7 @@ import {
   fmtToPar,
   type FoursomeForScoring,
 } from '@/lib/scoring';
+import { getCourseHoles, parByHole, totalPar } from '@/lib/course-holes';
 import LeaderboardRow, { type LeaderboardRowData } from './LeaderboardRow';
 import CalendarStrip from '@/components/CalendarStrip';
 import LeaderboardRealtime from '@/components/LeaderboardRealtime';
@@ -35,8 +36,14 @@ export default async function LeaderboardPage({
 
   const cfg = COURSE_OPTIONS[event.course_config];
   const holes = cfg.holes;
-  const par = holes.length === 9 ? 36 : 72;
   const isGross = event.scoring_mode === 'gross';
+
+  // Per-hole par/yardage for this event's course (falls back to par 4/hole).
+  const courseHoles = await getCourseHoles(event.course_id);
+  const pars = parByHole(courseHoles);
+  const yards: Record<number, number | null> = {};
+  for (const h of courseHoles) yards[h.hole] = h.yards;
+  const par = totalPar(pars, holes);
 
   const foursomeRes = await supabase
     .from('foursomes')
@@ -81,7 +88,12 @@ export default async function LeaderboardPage({
     scores: scoresByFoursome[f.id] ?? {},
   }));
 
-  const ranked = buildLeaderboard(foursomes, holes.length, event.scoring_mode);
+  const ranked = buildLeaderboard(
+    foursomes,
+    holes.length,
+    event.scoring_mode,
+    par,
+  );
 
   const rows: LeaderboardRowData[] = ranked.map((r) => ({
     foursomeId: r.foursome.id,
@@ -204,6 +216,8 @@ export default async function LeaderboardPage({
               key={row.foursomeId}
               row={row}
               holes={holes}
+              pars={pars}
+              yards={yards}
               canEdit={rowCanEdit}
               defaultOpen={row.isMine || (isAdmin && i === 0)}
             />

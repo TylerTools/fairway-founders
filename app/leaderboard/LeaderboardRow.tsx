@@ -27,11 +27,15 @@ export interface LeaderboardRowData {
 export default function LeaderboardRow({
   row,
   holes,
+  pars,
+  yards,
   canEdit,
   defaultOpen,
 }: {
   row: LeaderboardRowData;
   holes: number[];
+  pars: Record<number, number>;
+  yards: Record<number, number | null>;
   canEdit: boolean;
   defaultOpen: boolean;
 }) {
@@ -96,6 +100,8 @@ export default function LeaderboardRow({
         <ScoreEntry
           foursomeId={row.foursomeId}
           holes={holes}
+          pars={pars}
+          yards={yards}
           initialScores={row.scores}
           canEdit={canEdit}
           showHandicap={row.showHcp}

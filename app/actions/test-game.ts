@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
 import { canAccessAdmin } from '@/lib/auth';
 import { runGroupGeneration } from './groups';
+import { saveCourseHoles, type HoleInput } from './holes';
 
 export interface TestGameState {
   ok: boolean;
@@ -27,6 +28,7 @@ const HOUR_MS = 60 * 60 * 1000;
 export async function createTestGame(
   courseId: string,
   userIds: string[],
+  holes: HoleInput[] = [],
 ): Promise<TestGameState> {
   const me = await getAppUser();
   if (!me || !(await canAccessAdmin())) return { ok: false, error: 'Admins only.' };
@@ -35,6 +37,12 @@ export async function createTestGame(
   const uniqueIds = [...new Set(userIds)].filter(Boolean);
   if (uniqueIds.length < 2) {
     return { ok: false, error: 'Pick at least 2 players.' };
+  }
+
+  // Persist any par/yardage edits to the course before the round (best-effort —
+  // the leaderboard falls back to par 4 for any unconfigured hole).
+  if (holes.length > 0) {
+    await saveCourseHoles(courseId, holes);
   }
 
   const now = Date.now();
@@ -48,7 +56,9 @@ export async function createTestGame(
       fee_cents: 0,
       opens_at: new Date(now - HOUR_MS).toISOString(),
       closes_at: new Date(now + 6 * HOUR_MS).toISOString(),
-      date: new Date(now + 6 * HOUR_MS).toISOString(),
+      // Tee ~3h out: keeps the event "open" and the active selection, while
+      // reading as on-today so the back-to-game ball appears immediately.
+      date: new Date(now + 3 * HOUR_MS).toISOString(),
     })
     .select('id')
     .single();

@@ -42,6 +42,73 @@ export async function getMemberCountsTags(userId: string): Promise<MemberCounts>
   };
 }
 
+export interface MemberNetworkStats {
+  fours: number;
+  links: number;
+  birdies: number;
+  businessCents: number;
+  saves: number;
+  activeThisMonth: boolean;
+}
+
+/**
+ * Public "business card" networking profile: accepted-interaction counts (a Four
+ * credits the giver; Link/Birdie credit both parties), the total closed-business
+ * $ they've been part of, how many people have saved their contact (vCard), and
+ * whether they've had an accepted interaction this calendar month.
+ */
+export async function getMemberNetworkStats(
+  userId: string,
+): Promise<MemberNetworkStats> {
+  const eitherParty = `from_user_id.eq.${userId},to_user_id.eq.${userId}`;
+  const now = new Date();
+  const monthStart = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
+  ).toISOString();
+
+  const [foursRes, linksRes, birdieRowsRes, savesRes, monthRes] = await Promise.all([
+    supabase
+      .from('interactions')
+      .select('id', { count: 'exact', head: true })
+      .eq('kind', 'four')
+      .eq('status', 'accepted')
+      .eq('from_user_id', userId),
+    supabase
+      .from('interactions')
+      .select('id', { count: 'exact', head: true })
+      .eq('kind', 'link')
+      .eq('status', 'accepted')
+      .or(eitherParty),
+    supabase
+      .from('interactions')
+      .select('value_cents')
+      .eq('kind', 'birdie')
+      .eq('status', 'accepted')
+      .or(eitherParty),
+    supabase
+      .from('link_clicks')
+      .select('id', { count: 'exact', head: true })
+      .eq('profile_id', userId)
+      .eq('target', 'vcard'),
+    supabase
+      .from('interactions')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'accepted')
+      .gte('responded_at', monthStart)
+      .or(eitherParty),
+  ]);
+
+  const birdieRows = birdieRowsRes.data ?? [];
+  return {
+    fours: foursRes.count ?? 0,
+    links: linksRes.count ?? 0,
+    birdies: birdieRows.length,
+    businessCents: birdieRows.reduce((s, r) => s + (r.value_cents ?? 0), 0),
+    saves: savesRes.count ?? 0,
+    activeThisMonth: (monthRes.count ?? 0) > 0,
+  };
+}
+
 export interface LeaderboardEntry {
   userId: string;
   name: string;

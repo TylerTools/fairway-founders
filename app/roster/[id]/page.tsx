@@ -4,9 +4,9 @@ import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
 import { getViewMode } from '@/lib/view-mode';
 import Avatar from '@/components/Avatar';
-import CountTags from '@/components/CountTags';
 import AdminMemberActions from './AdminMemberActions';
-import { getMemberCountsTags } from '@/app/actions/stats';
+import { getMemberNetworkStats } from '@/app/actions/stats';
+import MemberNetworkCard from '@/components/MemberNetworkCard';
 import ProfileInteractionButtons from '@/components/ProfileInteractionButtons';
 import TrackProfileView from '@/components/TrackProfileView';
 import TrackedExternalLink from '@/components/TrackedExternalLink';
@@ -82,7 +82,7 @@ export default async function MemberDetail({
     if (!shared) notFound();
   }
 
-  const [linksRes, leaguesRes, counts] = await Promise.all([
+  const [linksRes, leaguesRes, stats] = await Promise.all([
     supabase
       .from('member_links')
       .select('*')
@@ -92,7 +92,7 @@ export default async function MemberDetail({
       .from('league_memberships')
       .select('league:league_id(name, short_name)')
       .eq('user_id', id),
-    getMemberCountsTags(id),
+    getMemberNetworkStats(id),
   ]);
 
   const links = linksRes.data ?? [];
@@ -232,11 +232,6 @@ export default async function MemberDetail({
           </div>
         </div>
 
-        {/* Count tags */}
-        <div className="mt-5 pt-4 border-t border-[color:#f0ebd8]">
-          <CountTags fours={counts.fours} links={counts.links} birdies={counts.birdies} />
-        </div>
-
         {/* Action bar */}
         <div className="mt-4 flex flex-wrap items-center gap-2">
           {!isSelf && (
@@ -260,6 +255,16 @@ export default async function MemberDetail({
           {!isSelf && member.phone && (
             <TrackedContactLink
               profileId={member.id}
+              target="phone"
+              href={`tel:${member.phone.replace(/[^\d+]/g, '')}`}
+              className="inline-flex items-center gap-1.5 border border-[color:var(--color-gold)] text-[color:var(--color-ink)] px-4 py-2 text-xs font-semibold tracking-[0.08em] uppercase rounded-md hover:bg-[color:#f5f1e8]"
+            >
+              Call
+            </TrackedContactLink>
+          )}
+          {!isSelf && member.phone && (
+            <TrackedContactLink
+              profileId={member.id}
               target="sms"
               href={`sms:${member.phone.replace(/[^\d+]/g, '')}`}
               className="inline-flex items-center gap-1.5 border border-[color:var(--color-gold)] text-[color:var(--color-ink)] px-4 py-2 text-xs font-semibold tracking-[0.08em] uppercase rounded-md hover:bg-[color:#f5f1e8]"
@@ -267,11 +272,23 @@ export default async function MemberDetail({
               Text
             </TrackedContactLink>
           )}
+          {!isSelf && member.email && (
+            <TrackedContactLink
+              profileId={member.id}
+              target="email"
+              href={`mailto:${member.email}`}
+              className="inline-flex items-center gap-1.5 border border-[color:var(--color-gold)] text-[color:var(--color-ink)] px-4 py-2 text-xs font-semibold tracking-[0.08em] uppercase rounded-md hover:bg-[color:#f5f1e8]"
+            >
+              Email
+            </TrackedContactLink>
+          )}
           {!isSelf && (
             <ProfileInteractionButtons toUserId={member.id} toName={member.name} />
           )}
         </div>
       </section>
+
+      <MemberNetworkCard stats={stats} />
 
       {/* Bio */}
       {member.bio && (

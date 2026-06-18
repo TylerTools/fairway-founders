@@ -5,7 +5,6 @@ import { selectEvent } from '@/lib/events';
 import { COURSE_OPTIONS } from '@/lib/schedule';
 import {
   buildLeaderboard,
-  fmtToPar,
   type FoursomeForScoring,
 } from '@/lib/scoring';
 import { getCourseHoles, parByHole, totalPar } from '@/lib/course-holes';
@@ -182,34 +181,21 @@ export default async function LeaderboardPage({
       </p>
 
       {myRow && (
-        <div className="mt-4 rounded-xl border border-[color:var(--color-gold)] bg-[color:var(--color-navy)] text-[color:var(--color-cream)] p-4">
-          <p className="text-[10px] font-bold tracking-[0.15em] text-[color:var(--color-gold)]">
-            YOUR GROUP
+        <section className="mt-5">
+          <p className="text-[10px] tracking-[0.15em] uppercase font-semibold text-[color:var(--color-mute)]">
+            Your scorecard
           </p>
-          <div className="flex justify-between items-center mt-1">
-            <p
-              className="text-base"
-              style={{ fontFamily: 'var(--font-display)' }}
-            >
-              Hole {myRow.hole} · thru {myRow.holesIn}
-            </p>
-            <div className="text-right">
-              <p
-                className="text-xl font-semibold leading-none"
-                style={{ fontFamily: 'var(--font-display)' }}
-              >
-                {myRow.holesIn > 0 ? fmtToPar(myRow.toPar) : '—'}
-              </p>
-              <p className="text-[10px] text-[color:#a8a596] mt-0.5">
-                {isGross
-                  ? myRow.holesIn > 0
-                    ? `gross ${myRow.gross}`
-                    : 'gross'
-                  : `net · hcp ${myRow.teamHcp}`}
-              </p>
-            </div>
+          <div className="mt-2">
+            <LeaderboardRow
+              row={myRow}
+              holes={holes}
+              pars={pars}
+              yards={yards}
+              canEdit={!closed}
+              defaultOpen
+            />
           </div>
-        </div>
+        </section>
       )}
 
       {!anyScores && (
@@ -226,22 +212,29 @@ export default async function LeaderboardPage({
         </div>
       )}
 
-      <div className="mt-4">
-        {rows.map((row, i) => {
-          const rowCanEdit = !closed && (isAdmin || row.isMine);
-          return (
-            <LeaderboardRow
-              key={row.foursomeId}
-              row={row}
-              holes={holes}
-              pars={pars}
-              yards={yards}
-              canEdit={rowCanEdit}
-              defaultOpen={row.isMine || (isAdmin && i === 0)}
-            />
-          );
-        })}
-      </div>
+      <section className="mt-6">
+        <p className="text-[10px] tracking-[0.15em] uppercase font-semibold text-[color:var(--color-mute)]">
+          Leaderboard
+        </p>
+        <div className="mt-2">
+          {rows.map((row) => {
+            // Editing your own card happens in "Your scorecard" up top. In the
+            // list, only admins edit other groups; everyone else is read-only.
+            const rowCanEdit = !closed && isAdmin && !row.isMine;
+            return (
+              <LeaderboardRow
+                key={row.foursomeId}
+                row={row}
+                holes={holes}
+                pars={pars}
+                yards={yards}
+                canEdit={rowCanEdit}
+                defaultOpen={false}
+              />
+            );
+          })}
+        </div>
+      </section>
 
       {!isGross && (
         <p className="mt-5 text-[10px] text-[color:var(--color-mute)] italic text-center leading-relaxed">

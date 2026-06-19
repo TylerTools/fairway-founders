@@ -189,7 +189,13 @@ export async function deleteCourseContact(
   courseId: string,
 ): Promise<void> {
   await requireCourseAdmin(courseId);
-  await supabase.from('course_contacts').delete().eq('id', contactId);
+  // Scope the delete to the authorized course so a contactId from another
+  // course can't be removed through this course's admin.
+  await supabase
+    .from('course_contacts')
+    .delete()
+    .eq('id', contactId)
+    .eq('course_id', courseId);
   revalidatePath(`/admin/courses/${courseId}`);
 }
 
@@ -198,13 +204,18 @@ export async function setPrimaryContact(
   courseId: string,
 ): Promise<void> {
   await requireCourseAdmin(courseId);
-  await supabase
+  const demote = await supabase
     .from('course_contacts')
     .update({ is_primary: false })
     .eq('course_id', courseId);
-  await supabase
+  if (demote.error) throw new Error(demote.error.message);
+  // Scope to this course and surface failures so we never end up with no
+  // primary contact after demoting the previous one.
+  const promote = await supabase
     .from('course_contacts')
     .update({ is_primary: true })
-    .eq('id', contactId);
+    .eq('id', contactId)
+    .eq('course_id', courseId);
+  if (promote.error) throw new Error(promote.error.message);
   revalidatePath(`/admin/courses/${courseId}`);
 }

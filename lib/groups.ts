@@ -110,7 +110,10 @@ export function assignHoles(
   return Array.from({ length: numFoursomes }, (_, i) => {
     const tierIdx = Math.floor(i / available.length);
     const holeIdx = i % available.length;
-    const tier = (['A', 'B', 'C'] as const)[tierIdx] ?? 'A';
+    // A/B/C is the wave on a given hole (overflow stacking). A 4th wave never
+    // happens at this app's scale; clamp to 'C' rather than wrapping back to
+    // 'A', which would masquerade as a first-wave group on that hole.
+    const tier = (['A', 'B', 'C'] as const)[tierIdx] ?? 'C';
     return { hole: available[holeIdx], tier, hasTier: tierIdx > 0 };
   });
 }
@@ -164,7 +167,31 @@ function assignCartPairs(
 ): UserRow[][] {
   if (group.length < 2) return [group];
   if (group.length === 2) return [group];
-  if (group.length === 3) return [[group[0], group[1]], [group[2]]];
+  if (group.length === 3) {
+    // Pick which two share the cart by minimizing the same cost the 4-player
+    // case uses — honor history + cart-partner requests instead of always
+    // pairing the first two.
+    const arrangements: UserRow[][][] = [
+      [[group[0], group[1]], [group[2]]],
+      [[group[0], group[2]], [group[1]]],
+      [[group[1], group[2]], [group[0]]],
+    ];
+    let best = arrangements[0];
+    let bestScore = Infinity;
+    for (const arr of arrangements) {
+      const [p0, p1] = arr[0];
+      const key = pairKey(p0.id, p1.id);
+      let s = history.get(key) ?? 0;
+      const want = desired.get(key);
+      if (want === 'mutual') s -= CART_REQUEST.MUTUAL_CART_REWARD;
+      else if (want === 'oneway') s -= CART_REQUEST.ONEWAY_CART_REWARD;
+      if (s < bestScore) {
+        bestScore = s;
+        best = arr;
+      }
+    }
+    return best;
+  }
   const [a, b, c, d] = group;
   const splits = [
     [[a, b], [c, d]],

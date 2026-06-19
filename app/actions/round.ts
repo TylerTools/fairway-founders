@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
-import { canAccessAdmin } from '@/lib/auth';
+import { requireEventAdmin, isFoursomeAdmin } from '@/lib/auth';
 
 export interface RoundActionState {
   ok: boolean;
@@ -32,7 +32,7 @@ export async function setScorecardSubmitted(
 ): Promise<RoundActionState> {
   const me = await getAppUser();
   if (!me) return { ok: false, error: 'Not signed in.' };
-  const isAdmin = await canAccessAdmin();
+  const isAdmin = await isFoursomeAdmin(foursomeId);
   if (!isAdmin && !(await isGroupMember(foursomeId, me.id))) {
     return { ok: false, error: 'Not your group.' };
   }
@@ -52,8 +52,11 @@ export async function setScorecardSubmitted(
  * + RSVPs) and the admin is sent back to the test-setup page.
  */
 export async function closeRound(eventId: string): Promise<RoundActionState> {
-  const me = await getAppUser();
-  if (!me || !(await canAccessAdmin())) return { ok: false, error: 'Admins only.' };
+  try {
+    await requireEventAdmin(eventId);
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
 
   const evt = await supabase
     .from('events')
@@ -89,8 +92,11 @@ export async function closeRound(eventId: string): Promise<RoundActionState> {
 
 /** Reopen a finalized (non-test) round so scores can be edited again. */
 export async function reopenRound(eventId: string): Promise<RoundActionState> {
-  const me = await getAppUser();
-  if (!me || !(await canAccessAdmin())) return { ok: false, error: 'Admins only.' };
+  try {
+    await requireEventAdmin(eventId);
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
   const { error } = await supabase
     .from('events')
     .update({ closed_at: null })

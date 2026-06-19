@@ -88,24 +88,40 @@ export async function notifyAdminsOfFeedback(opts: {
   fromUserName: string;
   kind: 'feedback' | 'issue';
   subject: string | null;
+  leagueId?: string | null;
 }): Promise<void> {
   try {
-    let q = supabase
+    // Super admins always see feedback; the league's own active admins also
+    // see reports filed in their league (they're the ones who triage them).
+    const adminIds = new Set<string>();
+
+    const supers = await supabase
       .from('users')
       .select('id')
       .eq('app_role', 'super_admin')
       .eq('access_status', 'approved');
-    if (opts.fromUserId) q = q.neq('id', opts.fromUserId);
-    const adminsRes = await q;
-    const admins = adminsRes.data ?? [];
-    if (admins.length === 0) return;
+    for (const a of supers.data ?? []) adminIds.add(a.id);
+
+    if (opts.leagueId) {
+      const leagueAdmins = await supabase
+        .from('league_memberships')
+        .select('user_id')
+        .eq('league_id', opts.leagueId)
+        .eq('role', 'admin')
+        .eq('status', 'active');
+      for (const a of leagueAdmins.data ?? []) adminIds.add(a.user_id);
+    }
+
+    if (opts.fromUserId) adminIds.delete(opts.fromUserId);
+    if (adminIds.size === 0) return;
+
     const label = opts.kind === 'issue' ? 'reported an issue' : 'left feedback';
     const title = opts.subject
       ? `${opts.fromUserName} ${label}: ${opts.subject}`
       : `${opts.fromUserName} ${label}`;
     await supabase.from('notifications').insert(
-      admins.map((a) => ({
-        user_id: a.id,
+      [...adminIds].map((id) => ({
+        user_id: id,
         kind: 'feedback' as const,
         title: title.slice(0, 140),
         body: null,

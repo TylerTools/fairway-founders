@@ -31,11 +31,21 @@ export default function RequestsInbox({ initial }: { initial: PendingRequest[] }
 
   function respond(id: string, accept: boolean) {
     setErr(null);
+    const removed = items.find((x) => x.id === id);
     setItems((arr) => arr.filter((x) => x.id !== id)); // optimistic
     start(async () => {
-      const res = await respondToInteraction(id, accept);
-      if (!res.ok) setErr(res.error ?? 'Something went wrong.');
-      router.refresh();
+      try {
+        const res = await respondToInteraction(id, accept);
+        if (!res.ok) {
+          if (removed) setItems((arr) => [removed, ...arr]); // restore on failure
+          setErr(res.error ?? 'Something went wrong.');
+          return;
+        }
+        router.refresh();
+      } catch {
+        if (removed) setItems((arr) => [removed, ...arr]); // restore on throw
+        setErr('Something went wrong.');
+      }
     });
   }
 

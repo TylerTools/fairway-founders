@@ -127,8 +127,13 @@ export async function getAppUser(): Promise<AppUser | null> {
 
 /**
  * Read the `ff-intended-league` cookie. If it points at a real league and the
- * user doesn't yet have a membership for it, insert a pending row. Clear the
- * cookie so we don't re-fire on future loads.
+ * user doesn't yet have a membership for it, insert a pending row.
+ *
+ * We do NOT delete the cookie here: getAppUser runs during Server Component
+ * render, where cookie writes throw (and were previously silently swallowed,
+ * so the delete never worked anyway). The cookie is short-lived (set with a
+ * ~10-minute max-age by /join/[slug]) and this hook is idempotent — the
+ * membership check below prevents duplicate rows — so re-firing is harmless.
  *
  * Best-effort — any DB error is swallowed because the user can still request
  * a league from /me later.
@@ -149,11 +154,7 @@ async function maybePairIntendedLeague(
       .eq('slug', slug)
       .maybeSingle();
     const leagueId = leagueRes.data?.id;
-    if (!leagueId) {
-      // Cookie points at a stale slug; clear it.
-      store.delete(INTENDED_LEAGUE_COOKIE);
-      return;
-    }
+    if (!leagueId) return; // stale slug — the short-lived cookie self-expires
 
     // Existing membership? If active, nothing to do. If pending/declined,
     // leave alone — the league admin decides. Only insert when there is
@@ -171,11 +172,9 @@ async function maybePairIntendedLeague(
         role: 'member',
         status: 'pending',
       });
-    } else if (createdJustNow) {
-      // Shouldn't happen — we just created the user — but harmless.
     }
-
-    store.delete(INTENDED_LEAGUE_COOKIE);
+    // Cookie intentionally left to self-expire (see note above — can't delete
+    // cookies from a render path).
   } catch {
     // best-effort
   }
@@ -212,8 +211,7 @@ async function maybeApplyReferral(
       .maybeSingle();
     const inviter = inviterRes.data;
     if (!inviter || inviter.id === user.id || inviter.access_status !== 'approved') {
-      store.delete(REFERRED_BY_COOKIE);
-      return;
+      return; // invalid/ineligible code — short-lived cookie self-expires
     }
 
     // Attribute + auto-approve the new member.
@@ -229,6 +227,10 @@ async function maybeApplyReferral(
 
     // Which league do they land in? Prefer the slug from the referral link
     // (still in the cookie at this point), else the inviter's first active one.
+    // SECURITY: both cookies are client-set, so we only honor the intended
+    // league if the INVITER is actually an active member of it — otherwise a
+    // crafted cookie pair could auto-approve a new account into ANY league,
+    // bypassing that league's approval queue.
     let leagueId: string | null = null;
     const intendedSlug = store.get(INTENDED_LEAGUE_COOKIE)?.value;
     if (intendedSlug) {
@@ -237,7 +239,17 @@ async function maybeApplyReferral(
         .select('id')
         .eq('slug', intendedSlug)
         .maybeSingle();
-      leagueId = lr.data?.id ?? null;
+      const candidate = lr.data?.id ?? null;
+      if (candidate) {
+        const inviterMember = await supabase
+          .from('league_memberships')
+          .select('id')
+          .eq('user_id', inviter.id)
+          .eq('league_id', candidate)
+          .eq('status', 'active')
+          .maybeSingle();
+        if (inviterMember.data) leagueId = candidate;
+      }
     }
     if (!leagueId) {
       const inv = await supabase
@@ -300,8 +312,9 @@ async function maybeApplyReferral(
       ].join('\n'),
       sentBy: inviter.id,
     });
-
-    store.delete(REFERRED_BY_COOKIE);
+    // Referral applies once (createdJustNow guard) and the cookie is
+    // short-lived, so no cookie delete is needed (and it can't be deleted
+    // from a render path anyway).
   } catch {
     // best-effort
   }

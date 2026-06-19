@@ -1,7 +1,12 @@
 'use client';
 
-import { useActionState, useState, useTransition } from 'react';
-import { updateEvent, deleteEvent, type EventFormState } from '@/app/actions/events';
+import { useActionState, useEffect, useRef, useState, useTransition } from 'react';
+import {
+  updateEvent,
+  deleteEvent,
+  endEventSeries,
+  type EventFormState,
+} from '@/app/actions/events';
 import type { Database } from '@/lib/database.types';
 
 type EventRow = Database['public']['Tables']['events']['Row'];
@@ -14,21 +19,63 @@ export default function EventSettingsForm({ event }: { event: EventRow }) {
   const [state, formAction, pending] = useActionState(boundUpdate, initial);
   const [editing, setEditing] = useState(false);
   const [deleting, startDelete] = useTransition();
+  const [endingSeries, startEnd] = useTransition();
+  const [seriesMsg, setSeriesMsg] = useState<string | null>(null);
+  const submittedRef = useRef(false);
+
+  // Collapse back to read-only only after a SUCCESSFUL save — never on a hidden
+  // timer (the old setTimeout swallowed validation/save errors by unmounting
+  // the form before the error could render).
+  useEffect(() => {
+    if (submittedRef.current && !pending && state.ok) {
+      submittedRef.current = false;
+      setEditing(false);
+    }
+  }, [pending, state]);
 
   const courseConfig: CourseConfig = event.course_config;
   const feeDollars = (event.fee_cents / 100).toFixed(0);
 
-  // Convert UTC date to ET local for the datetime-local input.
-  // We assume EDT (-04:00); ignored if admin doesn't edit the date.
+  // Prefill the datetime-local input with the event's actual ET wall-clock
+  // (DST-correct — EDT in summer, EST in winter; no longer hardcoded to -04:00).
   const eventDate = new Date(event.date);
-  const offsetMs = -4 * 60 * 60 * 1000;
-  const local = new Date(eventDate.getTime() + offsetMs);
-  const localStr = local.toISOString().slice(0, 16);
+  const localStr = etInputValue(eventDate);
 
   function onDelete() {
     if (!confirm('Delete this event and all its RSVPs/foursomes/scores?')) return;
     startDelete(async () => {
       await deleteEvent(event.id);
+    });
+  }
+
+  function onEndSeries() {
+    if (
+      !confirm(
+        'End this weekly series? Future unplayed rounds will be removed; any events that already have groups or scores stay put.',
+      )
+    )
+      return;
+    setSeriesMsg(null);
+    startEnd(async () => {
+      const res = await endEventSeries(event.id);
+      if (!res.ok) {
+        setSeriesMsg(res.error ?? 'Could not end series.');
+        return;
+      }
+      const removed = res.removed ?? 0;
+      const skipped = res.skipped ?? 0;
+      const parts: string[] = [];
+      parts.push(
+        removed === 0
+          ? 'No upcoming rounds to remove.'
+          : `Removed ${removed} upcoming round${removed === 1 ? '' : 's'}.`,
+      );
+      if (skipped > 0) {
+        parts.push(
+          `${skipped} kept (already have groups or scores).`,
+        );
+      }
+      setSeriesMsg(parts.join(' '));
     });
   }
 
@@ -41,6 +88,7 @@ export default function EventSettingsForm({ event }: { event: EventRow }) {
         <Row
           label="Tee time"
           value={eventDate.toLocaleString('en-US', {
+            timeZone: 'America/New_York',
             weekday: 'short',
             month: 'short',
             day: 'numeric',
@@ -48,7 +96,15 @@ export default function EventSettingsForm({ event }: { event: EventRow }) {
             minute: '2-digit',
           })}
         />
-        <div className="pt-2 flex justify-between items-center">
+        {event.series_id && (
+          <Row label="Series" value="Part of a weekly series" />
+        )}
+        {seriesMsg && (
+          <p className="text-[11px] text-[color:var(--color-mute)] italic pt-1">
+            {seriesMsg}
+          </p>
+        )}
+        <div className="pt-2 flex justify-between items-center gap-2 flex-wrap">
           <button
             type="button"
             onClick={() => setEditing(true)}
@@ -56,14 +112,26 @@ export default function EventSettingsForm({ event }: { event: EventRow }) {
           >
             Edit settings
           </button>
-          <button
-            type="button"
-            onClick={onDelete}
-            disabled={deleting}
-            className="text-xs tracking-[0.1em] uppercase font-semibold text-[color:#a13c3c] disabled:opacity-60"
-          >
-            {deleting ? 'Deleting…' : 'Delete event'}
-          </button>
+          <div className="flex gap-3 items-center">
+            {event.series_id && (
+              <button
+                type="button"
+                onClick={onEndSeries}
+                disabled={endingSeries}
+                className="text-xs tracking-[0.1em] uppercase font-semibold text-[color:var(--color-mute)] disabled:opacity-60"
+              >
+                {endingSeries ? 'Ending…' : 'End series'}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onDelete}
+              disabled={deleting}
+              className="text-xs tracking-[0.1em] uppercase font-semibold text-[color:#a13c3c] disabled:opacity-60"
+            >
+              {deleting ? 'Deleting…' : 'Delete event'}
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -72,6 +140,9 @@ export default function EventSettingsForm({ event }: { event: EventRow }) {
   return (
     <form
       action={formAction}
+      onSubmit={() => {
+        submittedRef.current = true;
+      }}
       className="rounded-xl border border-[color:#e8e2d2] bg-white ff-card p-4 space-y-3"
     >
       <Field label="Tee time (ET)" name="date" type="datetime-local" defaultValue={localStr} />
@@ -107,7 +178,6 @@ export default function EventSettingsForm({ event }: { event: EventRow }) {
           type="submit"
           disabled={pending}
           className="bg-[color:var(--color-navy)] text-[color:var(--color-gold)] rounded-md px-4 py-2 text-xs font-semibold tracking-[0.08em] uppercase disabled:opacity-60"
-          onClick={() => setTimeout(() => setEditing(false), 50)}
         >
           {pending ? 'Saving…' : 'Save'}
         </button>
@@ -125,6 +195,24 @@ export default function EventSettingsForm({ event }: { event: EventRow }) {
 
 function labelFor(cfg: CourseConfig): string {
   return cfg === 'front' ? 'Front 9' : cfg === 'back' ? 'Back 9' : 'All 18';
+}
+
+/** Format an instant as a `YYYY-MM-DDTHH:mm` string in ET, for prefilling a
+ *  <input type="datetime-local"> with the event's actual local wall-clock. */
+function etInputValue(d: Date): string {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/New_York',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).formatToParts(d);
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? '';
+  // hour12:false can emit '24' for midnight in some runtimes — normalize to '00'.
+  const hour = get('hour') === '24' ? '00' : get('hour');
+  return `${get('year')}-${get('month')}-${get('day')}T${hour}:${get('minute')}`;
 }
 
 function Row({ label, value }: { label: string; value: string }) {

@@ -3,11 +3,24 @@
 import { revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
-import { canAccessAdmin } from '@/lib/auth';
+import { requireEventAdmin } from '@/lib/auth';
+import { liveStatus } from '@/lib/schedule';
 
 export async function toggleRsvp(eventId: string): Promise<void> {
   const me = await getAppUser();
   if (!me) throw new Error('Not signed in.');
+
+  // RSVPs can only change while the window is open — not after Tuesday cutoff
+  // (when groups get built) or before it opens.
+  const evt = await supabase
+    .from('events')
+    .select('*')
+    .eq('id', eventId)
+    .maybeSingle();
+  if (!evt.data) throw new Error('Event not found.');
+  if (liveStatus(evt.data) !== 'open') {
+    throw new Error('RSVPs are closed for this round.');
+  }
 
   const existing = await supabase
     .from('rsvps')
@@ -17,9 +30,17 @@ export async function toggleRsvp(eventId: string): Promise<void> {
     .maybeSingle();
 
   if (existing.data) {
-    await supabase.from('rsvps').delete().eq('id', existing.data.id);
+    const del = await supabase.from('rsvps').delete().eq('id', existing.data.id);
+    if (del.error) throw new Error(del.error.message);
   } else {
-    await supabase.from('rsvps').insert({ event_id: eventId, user_id: me.id });
+    // Idempotent insert so a double-tap can't error on the unique constraint.
+    const ins = await supabase
+      .from('rsvps')
+      .upsert(
+        { event_id: eventId, user_id: me.id },
+        { onConflict: 'event_id,user_id', ignoreDuplicates: true },
+      );
+    if (ins.error) throw new Error(ins.error.message);
   }
 
   revalidatePath('/');
@@ -40,6 +61,16 @@ export async function setCartPartnerRequest(
   if (!me) return { ok: false, error: 'Not signed in.' };
   if (partnerUserId === me.id) {
     return { ok: false, error: "You can't request to ride with yourself." };
+  }
+
+  const evt = await supabase
+    .from('events')
+    .select('*')
+    .eq('id', eventId)
+    .maybeSingle();
+  if (!evt.data) return { ok: false, error: 'Event not found.' };
+  if (liveStatus(evt.data) !== 'open') {
+    return { ok: false, error: 'RSVPs are closed for this round.' };
   }
 
   const existing = await supabase
@@ -63,8 +94,7 @@ export async function setCartPartnerRequest(
 }
 
 export async function adminToggleRsvp(eventId: string, userId: string): Promise<void> {
-  const me = await getAppUser();
-  if (!me || !(await canAccessAdmin())) throw new Error('Admins only.');
+  await requireEventAdmin(eventId);
 
   const existing = await supabase
     .from('rsvps')

@@ -2,8 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/supabase';
-import { getAppUser } from '@/lib/current-user';
-import { canAccessAdmin } from '@/lib/auth';
+import { requireCourseAdmin } from '@/lib/auth';
 
 export interface HoleInput {
   hole: number;
@@ -25,9 +24,12 @@ export async function saveCourseHoles(
   courseId: string,
   holes: HoleInput[],
 ): Promise<SaveHolesState> {
-  const me = await getAppUser();
-  if (!me || !(await canAccessAdmin())) return { ok: false, error: 'Admins only.' };
   if (!courseId) return { ok: false, error: 'No course selected.' };
+  try {
+    await requireCourseAdmin(courseId);
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
 
   const now = new Date().toISOString();
   const rows = holes

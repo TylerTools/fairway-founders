@@ -42,30 +42,45 @@ export async function drainEmailQueue(): Promise<DrainResult> {
   let failed = 0;
 
   for (const row of rows) {
+    // Atomically claim the row before sending so overlapping/retried workers
+    // can't double-send. sent_at doubles as the claim token: only one worker
+    // can flip a still-queued, unclaimed row.
+    const nowIso = new Date().toISOString();
+    const claim = await supabase
+      .from('email_log')
+      .update({ sent_at: nowIso })
+      .eq('id', row.id)
+      .eq('status', 'queued')
+      .is('sent_at', null)
+      .select('id');
+    if (claim.error || !claim.data || claim.data.length === 0) continue;
+
     const res = await sendEmail({
       to: row.to_email,
       subject: row.subject,
       body: row.body,
     });
     if (res.ok) {
-      await supabase
+      const upd = await supabase
         .from('email_log')
         .update({
           status: 'sent',
-          sent_at: new Date().toISOString(),
           resend_id: res.id ?? null,
           error: null,
         })
         .eq('id', row.id);
+      if (upd.error) console.error('drainEmailQueue: failed to mark sent', row.id, upd.error.message);
       sent++;
     } else {
-      await supabase
+      const upd = await supabase
         .from('email_log')
         .update({
           status: 'failed',
           error: res.error ?? 'unknown',
+          sent_at: null,
         })
         .eq('id', row.id);
+      if (upd.error) console.error('drainEmailQueue: failed to mark failed', row.id, upd.error.message);
       failed++;
     }
   }
@@ -88,7 +103,9 @@ interface QueueOpts {
 }
 
 export async function queueEmail(opts: QueueOpts): Promise<void> {
-  await supabase.from('email_log').insert({
+  // Best-effort: callers await this but don't expect it to throw. Log insert
+  // errors so a silently-dropped email is at least observable.
+  const res = await supabase.from('email_log').insert({
     kind: opts.kind,
     status: 'queued',
     audience: 'one',
@@ -99,6 +116,7 @@ export async function queueEmail(opts: QueueOpts): Promise<void> {
     event_id: opts.eventId ?? null,
     sent_by: opts.sentBy ?? null,
   });
+  if (res.error) console.error('queueEmail: insert failed', opts.toEmail, res.error.message);
 }
 
 export type { EmailRow };

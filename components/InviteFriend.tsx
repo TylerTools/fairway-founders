@@ -50,7 +50,7 @@ export default function InviteFriend({
       '',
       `Sign up here: ${url}`,
     ].join('\n');
-    const sms = `sms:?&body=${encodeURIComponent(message)}`;
+    const sms = `sms:&body=${encodeURIComponent(message)}`;
     const mailto = `mailto:?subject=${encodeURIComponent(
       subject,
     )}&body=${encodeURIComponent(message)}`;

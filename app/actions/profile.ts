@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { clerkClient } from '@clerk/nextjs/server';
 import { getAppUser, type AppUser } from '@/lib/current-user';
+import { pathFromPublicUrl } from '@/lib/storage-path';
 import type { Database } from '@/lib/database.types';
 
 export type MemberLinkKind = Database['public']['Enums']['member_link_kind'];
@@ -25,6 +26,18 @@ const LINK_KINDS: MemberLinkKind[] = [
 export interface ProfileFormState {
   ok: boolean;
   error?: string;
+}
+
+/** Normalize a user-supplied URL so we never store/render a dangerous scheme.
+ *  http(s) passes through; any other explicit scheme (javascript:, data:, …) is
+ *  dropped; a schemeless value is assumed https. */
+function normalizeUrl(v: string | null): string | null {
+  if (!v) return null;
+  const t = v.trim();
+  if (!t) return null;
+  if (/^https?:\/\//i.test(t)) return t;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(t)) return null; // some other scheme → drop
+  return `https://${t}`; // schemeless → assume https
 }
 
 export interface MemberLink {
@@ -119,7 +132,7 @@ export async function updateProfile(
   const goals = str('goals', 600);
   const tagline = str('tagline', 140);
   const phone = str('phone', 40);
-  const website_url = str('website_url', 300);
+  const website_url = normalizeUrl(str('website_url', 300));
   const city = str('city', 120);
   const leaderboard_opt_out = formData.get('leaderboard_opt_out') === 'on';
 
@@ -181,13 +194,13 @@ export async function setMyLinks(
   const clean = links
     .map((l, i) => ({
       label: (l.label || '').trim().slice(0, 60),
-      url: (l.url || '').trim().slice(0, 300),
+      url: normalizeUrl((l.url || '').slice(0, 300)),
       kind: (LINK_KINDS.includes(l.kind as MemberLinkKind)
         ? l.kind
         : 'other') as MemberLinkKind,
       sort_order: i,
     }))
-    .filter((l) => l.label && l.url)
+    .filter((l): l is typeof l & { url: string } => !!l.label && !!l.url)
     .slice(0, 8);
 
   // Insert-before-delete so a failed insert can't wipe the existing links.
@@ -217,14 +230,6 @@ const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 function extObfrom(type: string): string {
   return type === 'image/png' ? 'png' : type === 'image/webp' ? 'webp' : 'jpg';
-}
-
-/** Pull the in-bucket object path back out of a stored public URL. */
-function pathFromPublicUrl(url: string | null, bucket: string): string | null {
-  if (!url) return null;
-  const marker = `/object/public/${bucket}/`;
-  const i = url.indexOf(marker);
-  return i === -1 ? null : url.slice(i + marker.length);
 }
 
 async function uploadImage(

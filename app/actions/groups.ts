@@ -2,8 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/supabase';
-import { getAppUser } from '@/lib/current-user';
-import { canAccessAdmin } from '@/lib/auth';
+import { requireEventAdmin } from '@/lib/auth';
 import { queueEmail } from '@/lib/email-queue';
 import {
   generateGroups,
@@ -19,14 +18,8 @@ export interface GroupActionState {
   message?: string;
 }
 
-async function requireAdmin() {
-  const me = await getAppUser();
-  if (!me || !(await canAccessAdmin())) throw new Error('Admins only.');
-  return me;
-}
-
 export async function clearGroups(eventId: string): Promise<void> {
-  await requireAdmin();
+  await requireEventAdmin(eventId);
   await supabase.from('foursomes').delete().eq('event_id', eventId);
   revalidatePath('/');
   revalidatePath('/admin');
@@ -36,7 +29,7 @@ export async function runGroupGeneration(
   eventId: string,
   options: { skipEmail?: boolean } = {},
 ): Promise<GroupActionState> {
-  await requireAdmin();
+  await requireEventAdmin(eventId);
 
   const evtRes = await supabase
     .from('events')
@@ -72,13 +65,24 @@ export async function runGroupGeneration(
     }
   }
 
-  // Build pairing history from prior foursome_members.
+  // Build pairing history from prior foursome_members — but only from REAL
+  // events. Test-game foursomes would otherwise pollute repeat-pairing
+  // minimization with practice rounds that never actually happened.
   const history: PairingHistory = new Map();
-  const priorFoursomeIdsRes = await supabase
-    .from('foursomes')
+  const realEventsRes = await supabase
+    .from('events')
     .select('id')
-    .neq('event_id', eventId);
-  const priorIds = (priorFoursomeIdsRes.data ?? []).map((r) => r.id);
+    .eq('is_test', false)
+    .neq('id', eventId);
+  const realEventIds = (realEventsRes.data ?? []).map((e) => e.id);
+  let priorIds: string[] = [];
+  if (realEventIds.length > 0) {
+    const priorFoursomeIdsRes = await supabase
+      .from('foursomes')
+      .select('id')
+      .in('event_id', realEventIds);
+    priorIds = (priorFoursomeIdsRes.data ?? []).map((r) => r.id);
+  }
   if (priorIds.length > 0) {
     const priorMembers = await supabase
       .from('foursome_members')
@@ -162,7 +166,7 @@ export async function swapPlayers(
   userIdA: string,
   userIdB: string,
 ): Promise<GroupActionState> {
-  await requireAdmin();
+  await requireEventAdmin(eventId);
   if (userIdA === userIdB) return { ok: true };
 
   const four = await supabase
@@ -187,11 +191,23 @@ export async function swapPlayers(
   // park A on a temp user_id-less state by deleting, then update B, then re-insert A.
   // Simpler: use raw SQL transaction-ish via two updates with placeholders is risky.
   // Safest: delete both and re-insert.
-  await supabase.from('foursome_members').delete().in('id', [rowA.id, rowB.id]);
-  await supabase.from('foursome_members').insert([
+  const del = await supabase
+    .from('foursome_members')
+    .delete()
+    .in('id', [rowA.id, rowB.id]);
+  if (del.error) return { ok: false, error: del.error.message };
+  const ins = await supabase.from('foursome_members').insert([
     { foursome_id: rowA.foursome_id, user_id: userIdB, cart_number: rowA.cart_number },
     { foursome_id: rowB.foursome_id, user_id: userIdA, cart_number: rowB.cart_number },
   ]);
+  if (ins.error) {
+    // Re-insert the originals so a failed swap never drops both players.
+    await supabase.from('foursome_members').insert([
+      { foursome_id: rowA.foursome_id, user_id: rowA.user_id, cart_number: rowA.cart_number },
+      { foursome_id: rowB.foursome_id, user_id: rowB.user_id, cart_number: rowB.cart_number },
+    ]);
+    return { ok: false, error: ins.error.message };
+  }
 
   revalidatePath('/');
   revalidatePath('/admin');

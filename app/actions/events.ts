@@ -1,11 +1,17 @@
 'use server';
 
+import { randomUUID } from 'node:crypto';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { getAppUser } from '@/lib/current-user';
-import { canAccessAdmin } from '@/lib/auth';
+import { requireCourseAdmin, requireEventAdmin } from '@/lib/auth';
 import type { Database } from '@/lib/database.types';
+
+/** Weekly series defaults to ~2 years of Thursdays when admin picks
+ *  "Until paused". They can stop the series at any time via the
+ *  EventSettingsForm; after 2 years it just stops generating. */
+const UNTIL_PAUSED_WEEKS = 104;
+const MAX_SERIES_WEEKS = 156;
 
 type CourseConfig = Database['public']['Enums']['course_config'];
 
@@ -14,33 +20,56 @@ export interface EventFormState {
   error?: string;
 }
 
-async function requireAdmin() {
-  const me = await getAppUser();
-  if (!me || !(await canAccessAdmin())) throw new Error('Admins only.');
-  return me;
+/** Minutes to add to UTC to reach America/New_York wall-clock at the given
+ *  instant (-240 in EDT, -300 in EST). Computed per-instant so it's correct
+ *  on both sides of the DST boundary. */
+function etOffsetMinutes(instant: Date): number {
+  const utc = new Date(instant.toLocaleString('en-US', { timeZone: 'UTC' }));
+  const et = new Date(
+    instant.toLocaleString('en-US', { timeZone: 'America/New_York' }),
+  );
+  return Math.round((et.getTime() - utc.getTime()) / 60000);
+}
+
+/** Convert an ET wall-clock (y/mo/d h:mi) to the correct UTC instant, honoring
+ *  whether that calendar date falls in EDT or EST. */
+function etWallClockToUtc(
+  y: number,
+  mo: number,
+  d: number,
+  h: number,
+  mi: number,
+): Date {
+  // Approximate by treating the wall-clock as if it were UTC, then correct by
+  // the ET offset at that approximate instant.
+  const approx = new Date(Date.UTC(y, mo - 1, d, h, mi));
+  const offset = etOffsetMinutes(approx);
+  return new Date(approx.getTime() - offset * 60000);
 }
 
 function parseLocalDate(value: string): Date {
-  // <input type="datetime-local"> emits a value like "2026-05-14T14:30" with NO timezone.
-  // Treat it as ET (-04:00 in EDT, -05:00 in EST). For May–Nov we use -04:00.
-  // We append the offset string explicitly so the resulting Date is correct in UTC.
+  // <input type="datetime-local"> emits a value like "2026-05-14T14:30" with NO
+  // timezone. Treat it as ET and convert to the correct UTC instant for that
+  // date's offset (EDT in summer, EST in winter — no longer hardcoded).
   const m = value.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
   if (!m) throw new Error('Invalid date.');
   const [, y, mo, d, h, mi] = m;
-  // EDT (UTC-4) covers most of the golf season; if you ever play outside this
-  // window, edit the offset on the event row directly.
-  const iso = `${y}-${mo}-${d}T${h}:${mi}:00-04:00`;
-  return new Date(iso);
+  return etWallClockToUtc(+y, +mo, +d, +h, +mi);
 }
 
 function defaultWindows(eventDate: Date): { opensAt: Date; closesAt: Date } {
-  // RSVP opens 6 days before at noon, closes Tuesday before at 6 PM ET.
-  const opensAt = new Date(eventDate);
-  opensAt.setUTCDate(opensAt.getUTCDate() - 6);
-  opensAt.setUTCHours(16, 0, 0, 0); // 12pm ET = 16:00 UTC EDT
-  const closesAt = new Date(eventDate);
-  closesAt.setUTCDate(closesAt.getUTCDate() - 2);
-  closesAt.setUTCHours(22, 0, 0, 0); // 6pm ET = 22:00 UTC EDT
+  // RSVP opens 6 days before at noon ET, closes Tuesday before at 6 PM ET.
+  // Derive the event's ET calendar date, then build the windows in ET wall-clock
+  // so they land at the right local hour regardless of DST.
+  const etDate = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/New_York',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(eventDate); // "YYYY-MM-DD"
+  const [ey, em, ed] = etDate.split('-').map(Number);
+  const opensAt = etWallClockToUtc(ey, em, ed - 6, 12, 0);
+  const closesAt = etWallClockToUtc(ey, em, ed - 2, 18, 0);
   return { opensAt, closesAt };
 }
 
@@ -48,26 +77,32 @@ export async function createEvent(
   _prev: EventFormState,
   formData: FormData,
 ): Promise<EventFormState> {
-  try {
-    await requireAdmin();
-  } catch (e) {
-    return { ok: false, error: (e as Error).message };
-  }
-
   const dateRaw = formData.get('date') as string | null;
   const courseId = formData.get('course_id') as string | null;
   const courseConfig = (formData.get('course_config') as CourseConfig) ?? 'front';
   const feeDollarsRaw = formData.get('fee_dollars') as string | null;
   const proShopEmail = (formData.get('pro_shop_email') as string | null) ?? null;
   const recurrence = (formData.get('recurrence') as string | null) ?? 'once';
+  // `weeks_mode` is the new field: 'count' uses `repeat_count`; 'until_paused'
+  // generates UNTIL_PAUSED_WEEKS (~2 years) so the series effectively runs
+  // forever until the admin clicks End series. Default to 'count' for
+  // backward compatibility with the previous form shape.
+  const weeksMode = (formData.get('weeks_mode') as string | null) ?? 'count';
   const repeatRaw = formData.get('repeat_count') as string | null;
-  const repeatCount = Math.max(
+  const repeatCountRequest = Math.max(
     1,
-    Math.min(52, parseInt(repeatRaw ?? '1', 10) || 1),
+    Math.min(MAX_SERIES_WEEKS, parseInt(repeatRaw ?? '1', 10) || 1),
   );
 
   if (!dateRaw) return { ok: false, error: 'Date is required.' };
   if (!courseId) return { ok: false, error: 'Course is required.' };
+
+  // Authorize against the league that owns the chosen course — not "any admin".
+  try {
+    await requireCourseAdmin(courseId);
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
 
   let firstDate: Date;
   try {
@@ -78,8 +113,15 @@ export async function createEvent(
 
   const fee_cents = Math.max(0, Math.round(parseFloat(feeDollarsRaw ?? '0') * 100));
 
-  // Build N events: 1 if one-off, otherwise weekly for `repeatCount` weeks.
-  const total = recurrence === 'weekly' ? repeatCount : 1;
+  // Build N events: 1 if one-off, else weekly for the chosen mode.
+  let total = 1;
+  let seriesId: string | null = null;
+  if (recurrence === 'weekly') {
+    total =
+      weeksMode === 'until_paused' ? UNTIL_PAUSED_WEEKS : repeatCountRequest;
+    seriesId = randomUUID();
+  }
+
   const inserts = Array.from({ length: total }, (_, i) => {
     const date = new Date(firstDate);
     date.setUTCDate(date.getUTCDate() + i * 7);
@@ -93,6 +135,7 @@ export async function createEvent(
       fee_cents,
       pro_shop_email: proShopEmail || null,
       status: 'locked' as const,
+      series_id: seriesId,
     };
   });
 
@@ -104,13 +147,83 @@ export async function createEvent(
   return { ok: true };
 }
 
+/** Stop a weekly series at this event. Deletes all FUTURE events sharing
+ *  the same series_id (this one stays), but only when the future events
+ *  have no foursomes generated yet — we never blow away events that have
+ *  been played or have groups built. Returns how many were removed. */
+export interface EndSeriesResult {
+  ok: boolean;
+  error?: string;
+  removed?: number;
+  skipped?: number;
+}
+
+export async function endEventSeries(
+  eventId: string,
+): Promise<EndSeriesResult> {
+  try {
+    await requireEventAdmin(eventId);
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
+
+  // 1. Look up the source event.
+  const src = await supabase
+    .from('events')
+    .select('id, date, series_id')
+    .eq('id', eventId)
+    .maybeSingle();
+  if (!src.data) return { ok: false, error: 'Event not found.' };
+  if (!src.data.series_id) {
+    return { ok: false, error: 'This event isn’t part of a series.' };
+  }
+
+  // 2. Find every later event in the same series.
+  const future = await supabase
+    .from('events')
+    .select('id, date')
+    .eq('series_id', src.data.series_id)
+    .gt('date', src.data.date)
+    .order('date', { ascending: true });
+  const candidates = future.data ?? [];
+  if (candidates.length === 0) {
+    return { ok: true, removed: 0, skipped: 0 };
+  }
+
+  // 3. Skip events that already have groups / scores so history is safe.
+  const candidateIds = candidates.map((e) => e.id);
+  const usedRes = await supabase
+    .from('foursomes')
+    .select('event_id')
+    .in('event_id', candidateIds);
+  const used = new Set((usedRes.data ?? []).map((f) => f.event_id));
+  const deletable = candidates.filter((e) => !used.has(e.id));
+  const deletableIds = deletable.map((e) => e.id);
+  const skipped = candidates.length - deletable.length;
+
+  if (deletableIds.length === 0) {
+    return { ok: true, removed: 0, skipped };
+  }
+
+  // 4. Delete RSVPs (FK on delete may or may not cascade depending on
+  //    schema — be explicit) and then the events.
+  await supabase.from('rsvps').delete().in('event_id', deletableIds);
+  const del = await supabase.from('events').delete().in('id', deletableIds);
+  if (del.error) return { ok: false, error: del.error.message };
+
+  revalidatePath('/admin');
+  revalidatePath('/admin/events');
+  revalidatePath('/dashboard');
+  return { ok: true, removed: deletableIds.length, skipped };
+}
+
 export async function updateEvent(
   eventId: string,
   _prev: EventFormState,
   formData: FormData,
 ): Promise<EventFormState> {
   try {
-    await requireAdmin();
+    await requireEventAdmin(eventId);
   } catch (e) {
     return { ok: false, error: (e as Error).message };
   }
@@ -152,7 +265,7 @@ export async function updateEvent(
 }
 
 export async function deleteEvent(eventId: string): Promise<void> {
-  await requireAdmin();
+  await requireEventAdmin(eventId);
   await supabase.from('events').delete().eq('id', eventId);
   revalidatePath('/');
   revalidatePath('/admin');

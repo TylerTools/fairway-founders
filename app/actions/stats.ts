@@ -154,7 +154,13 @@ export async function getNetworkLeaderboard(
     acc.set(uid, e);
   };
 
+  // De-dupe repeat logging: the same (giver, recipient, kind) within this month
+  // is credited once, so re-logging the same interaction can't inflate counts.
+  const seen = new Set<string>();
   for (const r of res.data ?? []) {
+    const key = `${r.from_user_id}|${r.to_user_id}|${r.kind}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
     if (r.kind === 'four') {
       bump(r.from_user_id, 'four');
     } else {

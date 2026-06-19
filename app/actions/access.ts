@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
 import {
-  canAccessAdmin,
+  isSuperAdmin,
   canManageLeague,
   getMyLeagueMemberships,
 } from '@/lib/auth';
@@ -12,9 +12,12 @@ import { queueEmail } from '@/lib/email-queue';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://fairwayfounders.org';
 
-async function requireAdmin() {
+// The legacy actions below flip the PLATFORM-wide users.access_status, so they
+// are GLN-admin only — a single league's admin must not toggle a member's
+// global access. Per-league approval lives in approve/declineMembership.
+async function requireGlnAdmin() {
   const me = await getAppUser();
-  if (!me || !(await canAccessAdmin())) throw new Error('Admins only.');
+  if (!me || !isSuperAdmin(me)) throw new Error('GLN admins only.');
   return me;
 }
 
@@ -305,7 +308,7 @@ export async function requestLeagueJoin(
 // ────────────────────────────────────────────────────────────────
 
 export async function approveAccess(userId: string): Promise<void> {
-  const me = await requireAdmin();
+  const me = await requireGlnAdmin();
   await supabase
     .from('users')
     .update({
@@ -342,7 +345,7 @@ export async function approveAccess(userId: string): Promise<void> {
 }
 
 export async function denyAccess(userId: string): Promise<void> {
-  const me = await requireAdmin();
+  const me = await requireGlnAdmin();
   await supabase
     .from('users')
     .update({
@@ -379,7 +382,7 @@ export async function denyAccess(userId: string): Promise<void> {
 }
 
 export async function reopenAccess(userId: string): Promise<void> {
-  await requireAdmin();
+  await requireGlnAdmin();
   await supabase
     .from('users')
     .update({

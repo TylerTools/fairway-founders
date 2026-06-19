@@ -22,12 +22,27 @@ export async function searchMembers(query: string): Promise<MemberSearchResult[]
   // Strip characters that would break the PostgREST .or() filter grammar.
   const safe = query.replace(/[,()%*]/g, ' ').trim();
   if (safe.length < 1) return [];
+
+  // Scope to active co-members of the current league — you can only find (and
+  // log interactions with) members of the league you're in.
+  const leagueId = await getCurrentLeagueId();
+  if (!leagueId) return [];
+  const memRes = await supabase
+    .from('league_memberships')
+    .select('user_id')
+    .eq('league_id', leagueId)
+    .eq('status', 'active');
+  const memberIds = (memRes.data ?? [])
+    .map((r) => r.user_id)
+    .filter((id) => id !== me.id);
+  if (memberIds.length === 0) return [];
+
   const like = `%${safe}%`;
   const res = await supabase
     .from('users')
     .select('id, name, company, professional_role, photo_url')
     .eq('access_status', 'approved')
-    .neq('id', me.id)
+    .in('id', memberIds)
     .or(`name.ilike.${like},company.ilike.${like},professional_role.ilike.${like}`)
     .order('name', { ascending: true })
     .limit(10);
@@ -54,13 +69,37 @@ async function send(
   if (toUserId === me.id) return { ok: false, error: "You can't log this with yourself." };
 
   const leagueId = await getCurrentLeagueId();
+  // The recipient must be an active member of the same league.
+  if (leagueId) {
+    const partner = await supabase
+      .from('league_memberships')
+      .select('id')
+      .eq('league_id', leagueId)
+      .eq('user_id', toUserId)
+      .eq('status', 'active')
+      .maybeSingle();
+    if (!partner.data) {
+      return { ok: false, error: 'That member isn’t in your league.' };
+    }
+  }
+
+  // Birdie dollar value is user-supplied — reject negatives and cap to a sane
+  // max (well under int4 overflow).
+  const cleanValue =
+    kind === 'birdie' &&
+    typeof valueCents === 'number' &&
+    Number.isFinite(valueCents) &&
+    valueCents >= 0
+      ? Math.min(Math.trunc(valueCents), 2_000_000_00)
+      : null;
+
   const ins = await supabase.from('interactions').insert({
     kind,
     from_user_id: me.id,
     to_user_id: toUserId,
     status: 'pending',
     note: note?.slice(0, 500) || null,
-    value_cents: kind === 'birdie' ? valueCents : null,
+    value_cents: cleanValue,
     league_id: leagueId,
   });
   if (ins.error) {

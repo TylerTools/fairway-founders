@@ -4,12 +4,28 @@ import { revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
 import { getCurrentLeagueId } from '@/lib/league-context';
-import { canAccessAdmin } from '@/lib/auth';
+import {
+  isSuperAdmin,
+  canManageLeague,
+  getMyLeagueMemberships,
+} from '@/lib/auth';
 import {
   ALL_PLACEMENTS,
   type SponsorPlacement,
 } from '@/lib/sponsorship-placements';
 import type { Database } from '@/lib/database.types';
+
+/** Sponsorships are league-scoped — a league admin may only manage their own
+ *  league's sponsors; GLN admins manage any (incl. legacy null-league rows). */
+async function canManageSponsorshipLeague(
+  leagueId: string | null,
+): Promise<boolean> {
+  const me = await getAppUser();
+  if (!me) return false;
+  if (!leagueId) return isSuperAdmin(me);
+  const memberships = await getMyLeagueMemberships();
+  return canManageLeague(me, leagueId, memberships);
+}
 
 export type SponsorshipKind = Database['public']['Enums']['sponsorship_kind'];
 export type SponsorshipStatus = Database['public']['Enums']['sponsorship_status'];
@@ -42,16 +58,6 @@ export async function requestSponsorship(
   const me = await getAppUser();
   if (!me) return { ok: false, error: 'Not signed in.' };
 
-  const existing = await supabase
-    .from('sponsorships')
-    .select('id')
-    .eq('user_id', me.id)
-    .in('status', ['requested', 'active'])
-    .limit(1);
-  if (existing.data && existing.data.length) {
-    return { ok: false, error: 'You already have a pending or active sponsorship.' };
-  }
-
   const leagueId = await getCurrentLeagueId();
   if (!leagueId) {
     return {
@@ -60,6 +66,23 @@ export async function requestSponsorship(
         'Sponsorships are scoped to a league. Pick a league from the switcher before requesting.',
     };
   }
+
+  // Block only a still-live request/sponsorship in THIS league. A lapsed
+  // 'active' row (ends_at in the past) shouldn't lock the member out forever.
+  const nowIso = new Date().toISOString();
+  const existing = await supabase
+    .from('sponsorships')
+    .select('id, status, ends_at')
+    .eq('user_id', me.id)
+    .eq('league_id', leagueId)
+    .in('status', ['requested', 'active']);
+  const blocking = (existing.data ?? []).filter(
+    (s) => s.status === 'requested' || !s.ends_at || s.ends_at > nowIso,
+  );
+  if (blocking.length) {
+    return { ok: false, error: 'You already have a pending or active sponsorship.' };
+  }
+
   const ins = await supabase.from('sponsorships').insert({
     user_id: me.id,
     kind,
@@ -106,9 +129,9 @@ export interface PendingSponsorship {
 }
 
 export async function getPendingSponsorships(): Promise<PendingSponsorship[]> {
-  if (!(await canAccessAdmin())) return [];
   const leagueId = await getCurrentLeagueId();
   if (!leagueId) return [];
+  if (!(await canManageSponsorshipLeague(leagueId))) return [];
   const res = await supabase
     .from('sponsorships')
     .select('id, kind, note, requested_at, user:user_id(id, name, company, photo_url)')
@@ -139,15 +162,16 @@ export async function decideSponsorship(
   amountCents?: number,
   placements?: SponsorPlacement[],
 ): Promise<{ ok: boolean; error?: string }> {
-  if (!(await canAccessAdmin())) return { ok: false, error: 'Admins only.' };
-  const me = await getAppUser();
-
   const row = await supabase
     .from('sponsorships')
-    .select('id, user_id, kind, status')
+    .select('id, user_id, kind, status, league_id')
     .eq('id', id)
     .maybeSingle();
   if (!row.data) return { ok: false, error: 'Request not found.' };
+  if (!(await canManageSponsorshipLeague(row.data.league_id))) {
+    return { ok: false, error: 'Admins only.' };
+  }
+  const me = await getAppUser();
   if (row.data.status !== 'requested') return { ok: false, error: 'Already decided.' };
 
   // Validate placements: only known surfaces, deduped.
@@ -209,7 +233,15 @@ export async function setSponsorshipPlacements(
   id: string,
   placements: SponsorPlacement[],
 ): Promise<{ ok: boolean; error?: string }> {
-  if (!(await canAccessAdmin())) return { ok: false, error: 'Admins only.' };
+  const row = await supabase
+    .from('sponsorships')
+    .select('league_id')
+    .eq('id', id)
+    .maybeSingle();
+  if (!row.data) return { ok: false, error: 'Sponsorship not found.' };
+  if (!(await canManageSponsorshipLeague(row.data.league_id))) {
+    return { ok: false, error: 'Admins only.' };
+  }
   const clean = Array.from(
     new Set(placements.filter((p) => ALL_PLACEMENTS.includes(p))),
   );
@@ -254,7 +286,15 @@ export async function setSponsorshipAmount(
   id: string,
   amountCents: number | null,
 ): Promise<{ ok: boolean; error?: string }> {
-  if (!(await canAccessAdmin())) return { ok: false, error: 'Admins only.' };
+  const row = await supabase
+    .from('sponsorships')
+    .select('league_id')
+    .eq('id', id)
+    .maybeSingle();
+  if (!row.data) return { ok: false, error: 'Sponsorship not found.' };
+  if (!(await canManageSponsorshipLeague(row.data.league_id))) {
+    return { ok: false, error: 'Admins only.' };
+  }
   const upd = await supabase
     .from('sponsorships')
     .update({ amount_cents: amountCents })
@@ -276,9 +316,9 @@ export interface ActiveSponsorship {
 }
 
 export async function getActiveSponsorships(): Promise<ActiveSponsorship[]> {
-  if (!(await canAccessAdmin())) return [];
   const leagueId = await getCurrentLeagueId();
   if (!leagueId) return [];
+  if (!(await canManageSponsorshipLeague(leagueId))) return [];
   const res = await supabase
     .from('sponsorships')
     .select(
@@ -335,16 +375,15 @@ export interface SponsorReport {
 export async function getSponsorReport(
   sponsorshipId: string,
 ): Promise<SponsorReport | null> {
-  if (!(await canAccessAdmin())) return null;
-
   const sp = await supabase
     .from('sponsorships')
     .select(
-      'id, user_id, kind, status, starts_at, ends_at, amount_cents, placements, requested_at, user:user_id(id, name, company, photo_url)',
+      'id, user_id, kind, status, starts_at, ends_at, amount_cents, placements, requested_at, league_id, user:user_id(id, name, company, photo_url)',
     )
     .eq('id', sponsorshipId)
     .maybeSingle();
   if (!sp.data) return null;
+  if (!(await canManageSponsorshipLeague(sp.data.league_id))) return null;
 
   const u = Array.isArray(sp.data.user) ? sp.data.user[0] : sp.data.user;
   const uid = sp.data.user_id;
@@ -352,6 +391,26 @@ export async function getSponsorReport(
   const startIso = sp.data.starts_at ?? sp.data.requested_at;
   const endIso = sp.data.ends_at && sp.data.ends_at < nowIso ? sp.data.ends_at : nowIso;
   const eitherParty = `from_user_id.eq.${uid},to_user_id.eq.${uid}`;
+
+  // Club-context stats are scoped to the sponsor's OWN league (legacy null-league
+  // sponsorships keep the all-league behavior).
+  let clubBirdieQ = supabase
+    .from('interactions')
+    .select('value_cents')
+    .eq('status', 'accepted')
+    .eq('kind', 'birdie')
+    .gte('responded_at', startIso)
+    .lte('responded_at', endIso);
+  let clubPairsQ = supabase
+    .from('interactions')
+    .select('from_user_id, to_user_id')
+    .eq('status', 'accepted')
+    .gte('responded_at', startIso)
+    .lte('responded_at', endIso);
+  if (sp.data.league_id) {
+    clubBirdieQ = clubBirdieQ.eq('league_id', sp.data.league_id);
+    clubPairsQ = clubPairsQ.eq('league_id', sp.data.league_id);
+  }
 
   const [viewsRes, clicksRes, interRes, clubBirdieRes, clubPairsRes] = await Promise.all([
     supabase
@@ -373,19 +432,8 @@ export async function getSponsorReport(
       .gte('responded_at', startIso)
       .lte('responded_at', endIso)
       .or(eitherParty),
-    supabase
-      .from('interactions')
-      .select('value_cents')
-      .eq('status', 'accepted')
-      .eq('kind', 'birdie')
-      .gte('responded_at', startIso)
-      .lte('responded_at', endIso),
-    supabase
-      .from('interactions')
-      .select('from_user_id, to_user_id')
-      .eq('status', 'accepted')
-      .gte('responded_at', startIso)
-      .lte('responded_at', endIso),
+    clubBirdieQ,
+    clubPairsQ,
   ]);
 
   const views = viewsRes.data ?? [];

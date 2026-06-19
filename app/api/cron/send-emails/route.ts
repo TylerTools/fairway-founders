@@ -8,7 +8,12 @@ export const dynamic = 'force-dynamic';
  * No-ops cleanly when RESEND_API_KEY isn't set, so it's safe to deploy
  * before the API key is provisioned.
  */
-export async function GET() {
+export async function GET(req: Request) {
+  const auth = req.headers.get('authorization');
+  if (process.env.CRON_SECRET && auth !== `Bearer ${process.env.CRON_SECRET}`) {
+    return new NextResponse('Unauthorized', { status: 401 });
+  }
+
   const start = Date.now();
   const result = await drainEmailQueue();
   return NextResponse.json({

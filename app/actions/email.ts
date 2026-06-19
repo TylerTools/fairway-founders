@@ -84,7 +84,7 @@ async function resolveAudience(
       .eq('app_role', 'super_admin');
     const leagueAdmins = await supabase
       .from('league_memberships')
-      .select('user:user_id(id, email)')
+      .select('user:user_id(id, email, access_status)')
       .eq('role', 'admin')
       .eq('status', 'active');
     const dedup = new Map<string, Recipient>();
@@ -93,7 +93,8 @@ async function resolveAudience(
     }
     for (const row of leagueAdmins.data ?? []) {
       const u = Array.isArray(row.user) ? row.user[0] : row.user;
-      if (u) dedup.set(u.id, { user_id: u.id, email: u.email });
+      if (!u || u.access_status !== 'approved') continue;
+      dedup.set(u.id, { user_id: u.id, email: u.email });
     }
     return [...dedup.values()];
   }

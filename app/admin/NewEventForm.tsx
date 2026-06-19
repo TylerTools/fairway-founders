@@ -19,6 +19,7 @@ export default function NewEventForm({
   const [state, formAction, pending] = useActionState(createEvent, initial);
   const [open, setOpen] = useState(false);
   const [recurrence, setRecurrence] = useState<'once' | 'weekly'>('once');
+  const [weeksMode, setWeeksMode] = useState<'count' | 'until_paused'>('count');
   const [courseId, setCourseId] = useState<string>(
     courses.length > 0 ? courses[0].id : '',
   );
@@ -110,22 +111,56 @@ export default function NewEventForm({
           ))}
         </div>
         {recurrence === 'weekly' && (
-          <label className="block mt-2">
-            <span className="text-[10px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] font-semibold">
-              Number of weeks
-            </span>
-            <input
-              type="number"
-              name="repeat_count"
-              min="2"
-              max="52"
-              defaultValue="8"
-              className="mt-1 w-full border border-[color:#e8e2d2] rounded-md px-2.5 py-2 text-sm bg-white focus:outline-none focus:border-[color:var(--color-gold)]"
-            />
-            <span className="block text-[10px] text-[color:var(--color-mute)] mt-1 italic">
-              Creates one event per week starting on the tee time above.
-            </span>
-          </label>
+          <div className="mt-2 space-y-2">
+            <input type="hidden" name="weeks_mode" value={weeksMode} />
+            <div className="grid grid-cols-2 gap-1.5">
+              {(
+                [
+                  { v: 'count' as const, label: 'For N weeks' },
+                  { v: 'until_paused' as const, label: 'Until paused' },
+                ]
+              ).map((opt) => (
+                <label key={opt.v} className="cursor-pointer">
+                  <input
+                    type="radio"
+                    name="weeks_mode_radio"
+                    value={opt.v}
+                    checked={weeksMode === opt.v}
+                    onChange={() => setWeeksMode(opt.v)}
+                    className="sr-only peer"
+                  />
+                  <span className="block text-center py-2 rounded-md border border-[color:#e8e2d2] text-xs font-semibold tracking-wide peer-checked:bg-[color:var(--color-navy)] peer-checked:text-[color:var(--color-gold)] peer-checked:border-[color:var(--color-navy)]">
+                    {opt.label}
+                  </span>
+                </label>
+              ))}
+            </div>
+
+            {weeksMode === 'count' ? (
+              <label className="block">
+                <span className="text-[10px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] font-semibold">
+                  Number of weeks
+                </span>
+                <input
+                  type="number"
+                  name="repeat_count"
+                  min="2"
+                  max="156"
+                  defaultValue="8"
+                  className="mt-1 w-full border border-[color:#e8e2d2] rounded-md px-2.5 py-2 text-sm bg-white focus:outline-none focus:border-[color:var(--color-gold)]"
+                />
+                <span className="block text-[10px] text-[color:var(--color-mute)] mt-1 italic">
+                  Creates one event per week starting on the tee time above.
+                </span>
+              </label>
+            ) : (
+              <p className="text-[10px] text-[color:var(--color-mute)] italic leading-relaxed">
+                Schedules ~2 years of weekly rounds. Stop the series anytime
+                from the event&rsquo;s settings — future unplayed rounds drop
+                off, history stays put.
+              </p>
+            )}
+          </div>
         )}
       </div>
 

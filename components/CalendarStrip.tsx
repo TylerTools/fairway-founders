@@ -19,9 +19,9 @@ export default function CalendarStrip({
   if (!events.length) return null;
 
   function select(id: string) {
-    const url = new URL(pathname, window.location.origin);
+    const url = new URL(window.location.href);
     url.searchParams.set('event', id);
-    router.push(`${pathname}?event=${id}`);
+    router.push(`${pathname}?${url.searchParams.toString()}`);
   }
 
   return (

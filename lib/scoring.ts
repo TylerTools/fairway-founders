@@ -58,7 +58,11 @@ export function buildLeaderboard(
       holesIn > 0 ? Math.round((gross * holesPlayed) / holesIn) : null;
     const net = gross > 0 ? gross - hcp : null;
     const projectedNet = projectedGross != null ? projectedGross - hcp : null;
-    const toPar = net != null ? net - par : null;
+    // To-par tracks the PROJECTED full-round net vs full-course par — comparing
+    // a partial-round gross to a full 18/9-hole par read wildly under par
+    // mid-round. Once every hole is in, projectedNet === net so the final
+    // number is exact. (Matches the projectedNet-based ranking below.)
+    const toPar = projectedNet != null ? projectedNet - par : null;
     return {
       foursome: f,
       teamHcp: hcp,

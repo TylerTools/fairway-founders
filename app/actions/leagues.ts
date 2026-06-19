@@ -154,10 +154,12 @@ export async function addLeagueMember(
   role: LeagueMemberRole = 'member',
 ): Promise<void> {
   await requireLeagueAdmin(leagueId);
+  // An admin-added member is active immediately — without this the row would
+  // take the column default (and could silently un-approve an existing member).
   await supabase
     .from('league_memberships')
     .upsert(
-      { league_id: leagueId, user_id: userId, role },
+      { league_id: leagueId, user_id: userId, role, status: 'active' },
       { onConflict: 'league_id,user_id' },
     );
   revalidatePath(`/gln/leagues/${leagueId}`);
@@ -191,7 +193,8 @@ export async function setLeagueMemberRole(
       .from('league_memberships')
       .select('id', { count: 'exact', head: true })
       .eq('league_id', leagueId)
-      .eq('role', 'admin');
+      .eq('role', 'admin')
+      .eq('status', 'active');
     if ((adminCount.count ?? 0) <= 1) {
       throw new Error("Can't demote the last league admin.");
     }

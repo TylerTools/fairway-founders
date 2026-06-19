@@ -147,3 +147,97 @@ export async function canAccessCourseOps(): Promise<boolean> {
   const staffCourses = await getMyCourseStaffCourseIds();
   return staffCourses.length > 0;
 }
+
+// ────────────────────────────────────────────────────────────────
+// League-scoped guards for mutating server actions
+//
+// RLS is disabled, so these ARE the trust boundary for per-entity admin
+// writes. Each resolves the entity's owning league (event → course →
+// league, foursome → event → …) and authorizes the caller against THAT
+// league — a league admin can only touch their own league's data; super
+// admins always pass. The require* variants THROW on failure (callers
+// either let it propagate or catch and return an error); the is* variants
+// return a boolean for paths where an admin OR some other role is allowed.
+// ────────────────────────────────────────────────────────────────
+
+export async function requireLeagueAdmin(leagueId: string): Promise<AppUser> {
+  const me = await getAppUser();
+  if (!me) throw new Error('Sign in required.');
+  if (isSuperAdmin(me)) return me;
+  const memberships = await getMyLeagueMemberships();
+  if (!isLeagueAdmin(me, leagueId, memberships)) {
+    throw new Error('League admins only.');
+  }
+  return me;
+}
+
+export async function requireCourseAdmin(
+  courseId: string,
+): Promise<{ me: AppUser; leagueId: string }> {
+  const course = await supabase
+    .from('courses')
+    .select('league_id')
+    .eq('id', courseId)
+    .maybeSingle();
+  if (!course.data) throw new Error('Course not found.');
+  const me = await requireLeagueAdmin(course.data.league_id);
+  return { me, leagueId: course.data.league_id };
+}
+
+export async function requireEventAdmin(
+  eventId: string,
+): Promise<{ me: AppUser; leagueId: string; courseId: string }> {
+  const evt = await supabase
+    .from('events')
+    .select('course_id')
+    .eq('id', eventId)
+    .maybeSingle();
+  if (!evt.data) throw new Error('Event not found.');
+  const { me, leagueId } = await requireCourseAdmin(evt.data.course_id);
+  return { me, leagueId, courseId: evt.data.course_id };
+}
+
+export async function requireFoursomeAdmin(
+  foursomeId: string,
+): Promise<{ me: AppUser; eventId: string; leagueId: string }> {
+  const f = await supabase
+    .from('foursomes')
+    .select('event_id')
+    .eq('id', foursomeId)
+    .maybeSingle();
+  if (!f.data) throw new Error('Group not found.');
+  const { me, leagueId } = await requireEventAdmin(f.data.event_id);
+  return { me, eventId: f.data.event_id, leagueId };
+}
+
+/** Non-throwing: is the current user an admin of the given event's league? */
+export async function isEventAdmin(eventId: string): Promise<boolean> {
+  const me = await getAppUser();
+  if (!me) return false;
+  if (isSuperAdmin(me)) return true;
+  const evt = await supabase
+    .from('events')
+    .select('course_id')
+    .eq('id', eventId)
+    .maybeSingle();
+  if (!evt.data) return false;
+  const course = await supabase
+    .from('courses')
+    .select('league_id')
+    .eq('id', evt.data.course_id)
+    .maybeSingle();
+  if (!course.data) return false;
+  const memberships = await getMyLeagueMemberships();
+  return canManageLeague(me, course.data.league_id, memberships);
+}
+
+/** Non-throwing: is the current user an admin of the given foursome's league? */
+export async function isFoursomeAdmin(foursomeId: string): Promise<boolean> {
+  const f = await supabase
+    .from('foursomes')
+    .select('event_id')
+    .eq('id', foursomeId)
+    .maybeSingle();
+  if (!f.data) return false;
+  return isEventAdmin(f.data.event_id);
+}

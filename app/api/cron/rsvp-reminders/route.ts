@@ -21,6 +21,11 @@ const SITE_URL =
  * the actual day (used for manual testing).
  */
 export async function GET(req: Request) {
+  const auth = req.headers.get('authorization');
+  if (process.env.CRON_SECRET && auth !== `Bearer ${process.env.CRON_SECRET}`) {
+    return new NextResponse('Unauthorized', { status: 401 });
+  }
+
   const url = new URL(req.url);
   const forceMode = url.searchParams.get('mode');
 
@@ -30,10 +35,12 @@ export async function GET(req: Request) {
   }
 
   const now = new Date().toISOString();
-  // Find the soonest future event with an open or about-to-open RSVP window
+  // Find the soonest future (non-test) event with an open or about-to-open
+  // RSVP window. Draft/test rounds must never trigger a real reminder blast.
   const evtRes = await supabase
     .from('events')
-    .select('id, date, course:course_id(name)')
+    .select('id, date, course_id, course:course_id(name)')
+    .eq('is_test', false)
     .gte('date', now)
     .order('date', { ascending: true })
     .limit(1)
@@ -50,6 +57,17 @@ export async function GET(req: Request) {
     day: 'numeric',
   });
 
+  // Resolve the event's league so reminders only reach that chapter's members.
+  const courseRes = await supabase
+    .from('courses')
+    .select('league_id')
+    .eq('id', event.course_id)
+    .maybeSingle();
+  const leagueId = courseRes.data?.league_id;
+  if (!leagueId) {
+    return NextResponse.json({ ok: true, skipped: true, reason: 'no league for event' });
+  }
+
   // Who has RSVPed already?
   const rsvpRes = await supabase
     .from('rsvps')
@@ -57,12 +75,19 @@ export async function GET(req: Request) {
     .eq('event_id', event.id);
   const rsvped = new Set((rsvpRes.data ?? []).map((r) => r.user_id));
 
-  // Approved members who could be reminded
-  const usersRes = await supabase
-    .from('users')
-    .select('id, name, email')
-    .eq('access_status', 'approved');
-  const candidates = (usersRes.data ?? []).filter((u) => !rsvped.has(u.id));
+  // Active members of THIS league who are approved and haven't RSVPed yet.
+  const memRes = await supabase
+    .from('league_memberships')
+    .select('user:user_id(id, name, email, access_status)')
+    .eq('league_id', leagueId)
+    .eq('status', 'active');
+  const candidates: { id: string; name: string; email: string }[] = [];
+  for (const row of memRes.data ?? []) {
+    const u = Array.isArray(row.user) ? row.user[0] : row.user;
+    if (!u || u.access_status !== 'approved') continue;
+    if (rsvped.has(u.id)) continue;
+    candidates.push({ id: u.id, name: u.name, email: u.email });
+  }
 
   if (candidates.length === 0) {
     return NextResponse.json({
@@ -116,7 +141,7 @@ export async function GET(req: Request) {
     mode,
     eventId: event.id,
     queued,
-    skipped: usersRes.data?.length ? rsvped.size : 0,
+    skipped: rsvped.size,
   });
 }
 

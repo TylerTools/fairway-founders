@@ -3,7 +3,11 @@
 import { revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
-import { canAccessAdmin } from '@/lib/auth';
+import {
+  isSuperAdmin,
+  canManageLeague,
+  getMyLeagueMemberships,
+} from '@/lib/auth';
 import { getCurrentLeagueId } from '@/lib/league-context';
 import { notifyAdminsOfFeedback } from '@/lib/notify';
 import type { Database } from '@/lib/database.types';
@@ -52,6 +56,7 @@ export async function submitFeedback(
     fromUserName: me.name,
     kind,
     subject: trimmedSubject,
+    leagueId,
   });
 
   revalidatePath('/admin');
@@ -70,7 +75,21 @@ export async function updateFeedbackStatus(
   status: FeedbackStatus,
 ): Promise<void> {
   const me = await getAppUser();
-  if (!me || !(await canAccessAdmin())) throw new Error('Admins only.');
+  if (!me) throw new Error('Sign in required.');
+
+  // Authorize against the row's own league — a league admin can only triage
+  // their league's reports; platform-level (null-league) rows are GLN-only.
+  const row = await supabase
+    .from('feedback')
+    .select('league_id')
+    .eq('id', id)
+    .maybeSingle();
+  if (!row.data) throw new Error('Feedback not found.');
+  const memberships = await getMyLeagueMemberships();
+  const allowed = row.data.league_id
+    ? canManageLeague(me, row.data.league_id, memberships)
+    : isSuperAdmin(me);
+  if (!allowed) throw new Error('Admins only.');
 
   await supabase.from('feedback').update({ status }).eq('id', id);
   revalidatePath('/admin');

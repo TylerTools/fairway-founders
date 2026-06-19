@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
 import { getViewMode } from '@/lib/view-mode';
@@ -51,12 +51,15 @@ export default async function MemberDetail({
 }) {
   const { id } = await params;
   const me = await getAppUser();
-  const isAdmin = me?.app_role === 'super_admin';
+  // Member-only surface: signed-out visitors must never reach profile
+  // content or the view-tracking call. redirect() works by throwing.
+  if (!me) redirect('/');
+  const isAdmin = me.app_role === 'super_admin';
   // Admin actions (role change / ban / delete) must respect the view toggle:
   // a super_admin previewing "member" view should NOT see them.
   const isAdminView =
-    isAdmin && (await getViewMode(me?.app_role ?? null)) === 'admin';
-  const isSelf = me?.id === id;
+    isAdmin && (await getViewMode(me.app_role)) === 'admin';
+  const isSelf = me.id === id;
 
   const res = await supabase.from('users').select('*').eq('id', id).maybeSingle();
   const member = res.data;
@@ -65,7 +68,7 @@ export default async function MemberDetail({
   // Per-league visibility: a viewer can only see profiles that share at
   // least one active league with them (or are themselves). GLN admins see
   // everyone. Members trying to view an out-of-league profile get 404.
-  if (!isAdmin && !isSelf && me) {
+  if (!isAdmin && !isSelf) {
     const [mineRes, theirsRes] = await Promise.all([
       supabase
         .from('league_memberships')

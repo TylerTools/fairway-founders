@@ -10,7 +10,12 @@ export const dynamic = 'force-dynamic';
  * we wanted stricter gating we'd verify it here, but a trivial public ping
  * is also fine.
  */
-export async function GET() {
+export async function GET(req: Request) {
+  const auth = req.headers.get('authorization');
+  if (process.env.CRON_SECRET && auth !== `Bearer ${process.env.CRON_SECRET}`) {
+    return new NextResponse('Unauthorized', { status: 401 });
+  }
+
   const start = Date.now();
   const { count, error } = await supabase
     .from('users')

@@ -8,6 +8,7 @@ import RequestsInbox from './RequestsInbox';
 import LogInteraction from './LogInteraction';
 import NetworkLeaderboard from '@/components/NetworkLeaderboard';
 import InviteLeaderboard from '@/components/InviteLeaderboard';
+import InviteCard from '@/components/InviteCard';
 import SponsorStrip from '@/components/SponsorStrip';
 
 export default async function NetworkPage() {
@@ -79,6 +80,9 @@ export default async function NetworkPage() {
           <span className="text-[10px] tracking-[0.1em] uppercase text-[color:var(--color-mute)]">
             All-time
           </span>
+        </div>
+        <div className="mb-3">
+          <InviteCard />
         </div>
         <InviteLeaderboard entries={inviters} meId={me.id} />
       </section>

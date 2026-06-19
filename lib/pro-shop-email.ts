@@ -45,6 +45,11 @@ export function buildProShopEmail({
     month: 'short',
     day: 'numeric',
   });
+  const timeStr = eventDate.toLocaleTimeString('en-US', {
+    timeZone: 'America/New_York',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
   const cfg = COURSE_OPTIONS[event.course_config];
   const total = playerCount * event.fee_cents;
 
@@ -55,7 +60,7 @@ export function buildProShopEmail({
   lines.push('Confirming our Fairway Founders group for this week:');
   lines.push('');
   lines.push(`Date:     ${dateStr}`);
-  lines.push('Time:     2:30 PM shotgun start');
+  lines.push(`Time:     ${timeStr} shotgun start`);
   lines.push(`Layout:   ${cfg.label} (holes ${cfg.range})`);
   lines.push(`Players:  ${playerCount} confirmed`);
   lines.push(`Carts:    ${cartCount}`);

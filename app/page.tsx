@@ -231,8 +231,7 @@ export default async function Home({
             }}
           >
             A private circle of founders and operators. Nine holes, one
-            shotgun, every Thursday at half-past two &mdash; the foursomes do
-            the networking for you.
+            shotgun &mdash; the foursomes do the networking for you.
           </p>
         </div>
 
@@ -315,7 +314,7 @@ export default async function Home({
               lineHeight: 1.55,
             }}
           >
-            Sign in to RSVP for Thursday&rsquo;s round, see your foursome, and
+            Sign in to RSVP for the next round, see your foursome, and
             follow the live net leaderboard.
           </p>
 

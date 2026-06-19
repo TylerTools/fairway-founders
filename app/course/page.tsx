@@ -5,7 +5,7 @@ import { getAppUser } from '@/lib/current-user';
 import { getViewMode } from '@/lib/view-mode';
 import { canAccessCourseOps } from '@/lib/auth';
 import { selectEvent } from '@/lib/events';
-import { COURSE_OPTIONS, fmtMoney, lastName, liveStatus } from '@/lib/schedule';
+import { COURSE_OPTIONS, fmtMoney, fmtTeeTime, lastName, liveStatus } from '@/lib/schedule';
 import CalendarStrip from '@/components/CalendarStrip';
 
 export const dynamic = 'force-dynamic';
@@ -73,7 +73,7 @@ export default async function CourseOpsPage({
         {dateStr}
       </h1>
       <p className="text-[11px] uppercase tracking-[0.1em] text-[color:var(--color-mute)] mt-1">
-        2:30 PM Shotgun · {event.course?.name ?? 'Legacy Golf Club'} · {status}
+        {fmtTeeTime(event.date)} Shotgun · {event.course?.name ?? 'Legacy Golf Club'} · {status}
       </p>
 
       <section className="mt-6 rounded-xl border border-[color:#e8e2d2] bg-white ff-card overflow-hidden">

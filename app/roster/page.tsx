@@ -143,6 +143,7 @@ export default async function RosterPage() {
               inviterName={me.name}
               referralCode={await getOrCreateMyReferralCode()}
               leagueSlug={currentLeague?.slug ?? null}
+              leagueName={currentLeague?.name ?? null}
             />
           </div>
         )}

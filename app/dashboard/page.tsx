@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
 import { getViewMode } from '@/lib/view-mode';
 import { selectEvent } from '@/lib/events';
-import { COURSE_OPTIONS, liveStatus, fmtMoney } from '@/lib/schedule';
+import { COURSE_OPTIONS, liveStatus, fmtMoney, fmtTeeTime } from '@/lib/schedule';
 import { getCourseHoles, parByHole, totalPar } from '@/lib/course-holes';
 import Countdown from '@/components/Countdown';
 import RsvpToggle from '@/components/RsvpToggle';
@@ -180,7 +180,7 @@ export default async function Dashboard({
           className="italic text-[color:var(--color-gold)]"
           style={{ fontFamily: 'var(--font-display)' }}
         >
-          at half-past two
+          at {fmtTeeTime(event.date)}
         </span>
       </h1>
       <p className="mt-1 text-sm text-[color:#5a5a4a]">
@@ -328,7 +328,7 @@ export default async function Dashboard({
                   className="text-lg"
                   style={{ fontFamily: 'var(--font-display)' }}
                 >
-                  2:30 PM
+                  {fmtTeeTime(event.date)}
                 </p>
               </div>
             </div>

@@ -12,13 +12,81 @@ export type EventWithCourse = EventRow & {
   course: (CourseRow & { league: LeagueRow | null }) | null;
 };
 
-/** Compute the next Thursday at 2:30 PM ET from a reference date. */
+const ET_TZ = 'America/New_York';
+
+/** Offset (minutes) of a timezone vs UTC at a given instant. EDT → -240, EST → -300. */
+function tzOffsetMinutes(timeZone: string, at: Date): number {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    hour12: false,
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric',
+  })
+    .formatToParts(at)
+    .reduce<Record<string, string>>((acc, p) => {
+      if (p.type !== 'literal') acc[p.type] = p.value;
+      return acc;
+    }, {});
+  const hour = parts.hour === '24' ? 0 : Number(parts.hour);
+  const asUtc = Date.UTC(
+    +parts.year,
+    +parts.month - 1,
+    +parts.day,
+    hour,
+    +parts.minute,
+    +parts.second,
+  );
+  return (asUtc - at.getTime()) / 60000;
+}
+
+/** Convert a wall-clock time in a timezone to the correct UTC instant
+ *  (DST-aware). `month` is 1-based; day overflow is normalized by Date.UTC. */
+function zonedWallClockToUtc(
+  timeZone: string,
+  year: number,
+  month: number,
+  day: number,
+  hour: number,
+  minute: number,
+): Date {
+  const guess = new Date(Date.UTC(year, month - 1, day, hour, minute, 0, 0));
+  const offset = tzOffsetMinutes(timeZone, guess);
+  return new Date(guess.getTime() - offset * 60000);
+}
+
+/** Compute the next Thursday at 2:30 PM *America/New_York* (DST-correct) from a
+ *  reference date, returned as the corresponding UTC instant. Storing the real
+ *  instant (not a fixed 18:30 UTC) keeps the tee time at 2:30 ET year-round. */
 export function nextThursdayAt230(from = new Date()): Date {
-  const d = new Date(from);
-  const daysUntil = ((4 - d.getUTCDay() + 7) % 7) || 7;
-  d.setUTCDate(d.getUTCDate() + daysUntil);
-  d.setUTCHours(18, 30, 0, 0);
-  return d;
+  // Today's calendar date *in ET*, plus that day's ET weekday.
+  const etParts = new Intl.DateTimeFormat('en-US', {
+    timeZone: ET_TZ,
+    weekday: 'short',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+  })
+    .formatToParts(from)
+    .reduce<Record<string, string>>((acc, p) => {
+      if (p.type !== 'literal') acc[p.type] = p.value;
+      return acc;
+    }, {});
+  const weekday = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(
+    etParts.weekday,
+  );
+  const daysUntil = ((4 - weekday + 7) % 7) || 7; // 4 = Thursday; always future
+  return zonedWallClockToUtc(
+    ET_TZ,
+    +etParts.year,
+    +etParts.month,
+    +etParts.day + daysUntil,
+    14,
+    30,
+  );
 }
 
 /** Pick the most useful event for the home screen: soonest non-past. */

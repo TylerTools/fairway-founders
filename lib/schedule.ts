@@ -28,6 +28,16 @@ export function fmtMoney(cents: number) {
   return `$${(cents / 100).toLocaleString('en-US')}`;
 }
 
+/** The event's tee time, formatted in ET (e.g. "2:30 PM"). Derives from the
+ *  stored instant so it reflects the actual event time, not a hardcoded one. */
+export function fmtTeeTime(dateIso: string): string {
+  return new Date(dateIso).toLocaleTimeString('en-US', {
+    timeZone: 'America/New_York',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
 export function formatCountdown(ms: number): string {
   if (ms <= 0) return 'CLOSED';
   const s = Math.floor(ms / 1000);

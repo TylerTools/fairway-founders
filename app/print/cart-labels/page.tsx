@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { getAppUser } from '@/lib/current-user';
 import { getViewMode } from '@/lib/view-mode';
 import { canAccessCourseOps } from '@/lib/auth';
-import { lastName } from '@/lib/schedule';
+import { fmtTeeTime, lastName } from '@/lib/schedule';
 import PrintTrigger from './PrintTrigger';
 
 export const dynamic = 'force-dynamic';
@@ -88,6 +88,7 @@ export default async function CartLabelsPrintPage({
     day: 'numeric',
     year: 'numeric',
   });
+  const teeTime = fmtTeeTime(event.date);
 
   if (carts.length === 0) {
     return (
@@ -226,7 +227,7 @@ export default async function CartLabelsPrintPage({
           </div>
           <div className="ff-meta">
             Hole {cart.hole}
-            {cart.hasTier ? ` · Tier ${cart.tier}` : ''} &nbsp;·&nbsp; 2:30 PM Shotgun &nbsp;·&nbsp;
+            {cart.hasTier ? ` · Tier ${cart.tier}` : ''} &nbsp;·&nbsp; {teeTime} Shotgun &nbsp;·&nbsp;
             {courseName ?? 'Legacy Golf Club'}
           </div>
         </div>

@@ -104,7 +104,7 @@ export default function OnboardingWizard({ name }: { name: string }) {
         {step === 1 &&
           'We pair members by what they need and what they can offer. The more you share, the better the introductions.'}
         {step === 2 &&
-          'We play a 9-hole scramble. Handicap is optional — leave it blank if you’re new.'}
+          'We play a weekly golf scramble. Handicap is optional — leave it blank if you’re new.'}
       </p>
 
       {/* Progress hairline */}

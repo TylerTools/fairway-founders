@@ -45,7 +45,12 @@ export default async function InviteCard() {
             </span>
           </p>
         </div>
-        <InviteFriend inviterName={me.name} referralCode={code} leagueSlug={slug} />
+        <InviteFriend
+          inviterName={me.name}
+          referralCode={code}
+          leagueSlug={slug}
+          leagueName={league?.name ?? null}
+        />
       </div>
       <p className="mt-3 text-xs text-[color:#5a5a4a] leading-relaxed">
         Share your personal invite. Friends who sign up through your link are

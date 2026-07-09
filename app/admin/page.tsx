@@ -115,7 +115,16 @@ export default async function AdminCockpit({
   }));
   const membersCount = membersCountRes.count ?? 0;
   const pendingSponsorshipCount = pendingSponsorshipRes.count ?? 0;
-  const pendingAccessCount = pendingAccessRes.count ?? 0;
+  // Add orphan pending users (access_status='pending' AND no membership rows)
+  // to the KPI so they are surfaced in the same tile as league-scoped requests.
+  const orphanCountRes = await supabase
+    .from('users')
+    .select('id, league_memberships(id)')
+    .eq('access_status', 'pending');
+  const orphanCount = (orphanCountRes.data ?? []).filter(
+    (u) => (u.league_memberships ?? []).length === 0,
+  ).length;
+  const pendingAccessCount = (pendingAccessRes.count ?? 0) + orphanCount;
   const newFeedbackCount = newFeedbackRes.count ?? 0;
 
   const upcomingEventsCount = events.filter(

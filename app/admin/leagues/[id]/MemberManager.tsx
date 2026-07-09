@@ -24,6 +24,7 @@ interface Candidate {
   id: string;
   name: string;
   email: string;
+  pending?: boolean;
 }
 
 export default function MemberManager({
@@ -150,7 +151,7 @@ export default function MemberManager({
               <option value="">— Pick someone —</option>
               {candidates.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.name} ({c.email})
+                  {c.name} ({c.email}){c.pending ? ' — pending' : ''}
                 </option>
               ))}
             </select>

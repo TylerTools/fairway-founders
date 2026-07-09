@@ -153,7 +153,7 @@ export async function addLeagueMember(
   userId: string,
   role: LeagueMemberRole = 'member',
 ): Promise<void> {
-  await requireLeagueAdmin(leagueId);
+  const me = await requireLeagueAdmin(leagueId);
   // An admin-added member is active immediately — without this the row would
   // take the column default (and could silently un-approve an existing member).
   await supabase
@@ -162,7 +162,20 @@ export async function addLeagueMember(
       { league_id: leagueId, user_id: userId, role, status: 'active' },
       { onConflict: 'league_id,user_id' },
     );
+  // If the user was still pending at the platform layer (e.g. an orphan
+  // request rescued through the picker), flip them to approved so they
+  // stop landing on the PendingScreen the next time they load.
+  await supabase
+    .from('users')
+    .update({
+      access_status: 'approved',
+      access_decided_at: new Date().toISOString(),
+      access_decided_by: me.id,
+    })
+    .eq('id', userId)
+    .eq('access_status', 'pending');
   revalidatePath(`/gln/leagues/${leagueId}`);
+  revalidatePath('/', 'layout');
 }
 
 export async function removeLeagueMember(

@@ -8,6 +8,7 @@ import { getCurrentLeague } from '@/lib/league-context';
 import { getInviteLeaderboard } from '@/app/actions/referrals';
 import InviteLeaderboard from '@/components/InviteLeaderboard';
 import AccessActions from './AccessActions';
+import OrphanAccessActions from './OrphanAccessActions';
 
 export const dynamic = 'force-dynamic';
 
@@ -77,6 +78,28 @@ export default async function AccessInbox({
     .eq('status', activeFilter)
     .order('joined_at', { ascending: false });
 
+  // Orphan requests: users who signed up without going through /join/[slug]
+  // and never got a league_memberships row. Not tied to a league — surface
+  // them so any league admin can rescue them by attaching to their league.
+  // Filter: access_status='pending' AND no membership rows at all.
+  const orphanUsersRes = await supabase
+    .from('users')
+    .select(
+      'id, name, email, company, professional_role, access_requested_at, league_memberships(id)',
+    )
+    .eq('access_status', 'pending')
+    .order('access_requested_at', { ascending: false });
+  const orphans = (orphanUsersRes.data ?? [])
+    .filter((u) => (u.league_memberships ?? []).length === 0)
+    .map((u) => ({
+      userId: u.id,
+      name: u.name,
+      email: u.email,
+      company: u.company,
+      professionalRole: u.professional_role,
+      requestedAt: u.access_requested_at,
+    }));
+
   const inviters = await getInviteLeaderboard(league.id);
 
   const rows = (rowsRes.data ?? []).flatMap((row) => {
@@ -124,6 +147,75 @@ export default async function AccessInbox({
             Top inviters · {league.short_name ?? league.name}
           </p>
           <InviteLeaderboard entries={inviters} meId={me.id} />
+        </section>
+      )}
+
+      {orphans.length > 0 && (
+        <section className="mt-6">
+          <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] mb-2">
+            Waiting for a league · {orphans.length}
+          </p>
+          <p className="text-[11px] text-[color:var(--color-mute)] italic mb-3 leading-relaxed">
+            These members signed up but never picked a league. Attaching them
+            here adds them to <strong>{league.short_name ?? league.name}</strong>{' '}
+            and approves them in one step.
+          </p>
+          <div className="space-y-3">
+            {orphans.map((o) => {
+              const requested = o.requestedAt ? new Date(o.requestedAt) : null;
+              return (
+                <article
+                  key={o.userId}
+                  className="rounded-xl border border-[color:var(--color-gold)]/40 bg-white ff-card p-4"
+                >
+                  <div className="flex justify-between items-start gap-3">
+                    <div className="min-w-0">
+                      <p
+                        className="text-base font-semibold"
+                        style={{ fontFamily: 'var(--font-display)' }}
+                      >
+                        {o.name}
+                      </p>
+                      <p className="text-xs text-[color:#5a5a4a] mt-0.5">
+                        {o.email}
+                      </p>
+                      {(o.professionalRole || o.company) && (
+                        <p className="text-[11px] text-[color:var(--color-mute)] mt-0.5">
+                          {o.professionalRole}
+                          {o.professionalRole && o.company ? ' · ' : ''}
+                          {o.company}
+                        </p>
+                      )}
+                      {requested && (
+                        <p className="text-[10px] text-[color:var(--color-mute)] mt-1">
+                          Requested{' '}
+                          {requested.toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                          })}{' '}
+                          {requested.toLocaleTimeString('en-US', {
+                            hour: 'numeric',
+                            minute: '2-digit',
+                          })}
+                        </p>
+                      )}
+                    </div>
+                    <span className="text-[9px] tracking-[0.1em] uppercase font-bold rounded-full px-2 py-0.5 text-white shrink-0 bg-[color:#c9a961]">
+                      Unattached
+                    </span>
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-[color:#f0ebd8]">
+                    <OrphanAccessActions
+                      userId={o.userId}
+                      leagueId={league.id}
+                      leagueLabel={league.short_name ?? league.name}
+                      canDeny={me.app_role === 'super_admin'}
+                    />
+                  </div>
+                </article>
+              );
+            })}
+          </div>
         </section>
       )}
 

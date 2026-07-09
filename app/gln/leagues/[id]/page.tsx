@@ -69,18 +69,24 @@ export default async function GlnLeagueDetail({
     .order('name');
   const courses = coursesRes.data ?? [];
 
-  // Candidates for the "Add member" picker: every approved user not already
-  // an active member of this league. Pending or declined memberships allow
-  // re-adding here (the admin override).
+  // Candidates for the "Add member" picker: every approved OR pending user
+  // not already an active member of this league. Pending users are shown so
+  // orphan sign-ups (no /join/[slug] cookie → no membership row) can be
+  // rescued from here as well.
   const memberUserIds = new Set(memberships.map((m) => m.user.id));
   const allUsersRes = await supabase
     .from('users')
-    .select('id, name, email')
-    .eq('access_status', 'approved')
+    .select('id, name, email, access_status')
+    .in('access_status', ['approved', 'pending'])
     .order('name');
-  const candidates = (allUsersRes.data ?? []).filter(
-    (u) => !memberUserIds.has(u.id),
-  );
+  const candidates = (allUsersRes.data ?? [])
+    .filter((u) => !memberUserIds.has(u.id))
+    .map((u) => ({
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      pending: u.access_status === 'pending',
+    }));
 
   return (
     <main className="px-6 py-8 max-w-md lg:max-w-5xl mx-auto w-full">

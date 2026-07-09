@@ -211,6 +211,176 @@ export async function declineMembership(
   return { ok: true };
 }
 
+/** Attach an orphan user (access_status='pending', no membership rows) to
+ *  a league and approve them in one shot. Used from the "Unattached
+ *  requests" panel on /admin/access — a rescue path for people who signed
+ *  up without going through /join/[slug] and have no membership to flip.
+ *  Idempotent: if a pending/declined row exists it's flipped to active
+ *  instead of duplicating; a race that creates a row mid-flight is
+ *  handled by re-reading before update. */
+export async function attachOrphanToLeague(
+  userId: string,
+  leagueId: string,
+): Promise<MembershipDecision> {
+  const me = await getAppUser();
+  if (!me) return { ok: false, error: 'Not signed in.' };
+
+  const memberships = await getMyLeagueMemberships();
+  if (!canManageLeague(me, leagueId, memberships)) {
+    return { ok: false, error: 'You can only approve members for your league.' };
+  }
+
+  const target = await supabase
+    .from('users')
+    .select('id, name, email, access_status')
+    .eq('id', userId)
+    .maybeSingle();
+  if (!target.data) return { ok: false, error: 'User not found.' };
+
+  const existing = await supabase
+    .from('league_memberships')
+    .select('id, status')
+    .eq('league_id', leagueId)
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (existing.data) {
+    if (existing.data.status === 'active') {
+      // Nothing to do on the membership side; still make sure their
+      // platform-level access_status is approved (they were an orphan).
+    } else {
+      const upd = await supabase
+        .from('league_memberships')
+        .update({ status: 'active' })
+        .eq('id', existing.data.id);
+      if (upd.error) return { ok: false, error: upd.error.message };
+    }
+  } else {
+    const ins = await supabase.from('league_memberships').insert({
+      league_id: leagueId,
+      user_id: userId,
+      role: 'member',
+      status: 'active',
+    });
+    if (ins.error) return { ok: false, error: ins.error.message };
+  }
+
+  if (target.data.access_status === 'pending') {
+    await supabase
+      .from('users')
+      .update({
+        access_status: 'approved',
+        access_decided_at: new Date().toISOString(),
+        access_decided_by: me.id,
+      })
+      .eq('id', userId)
+      .eq('access_status', 'pending');
+  }
+
+  const leagueRes = await supabase
+    .from('leagues')
+    .select('name')
+    .eq('id', leagueId)
+    .maybeSingle();
+  const leagueName = leagueRes.data?.name ?? 'Fairway Founders';
+
+  const first = target.data.name.split(' ')[0] || 'there';
+  await queueEmail({
+    kind: 'access_approved',
+    toEmail: target.data.email,
+    toUserId: target.data.id,
+    subject: `You’re in — welcome to ${leagueName}`,
+    body: [
+      `Hi ${first},`,
+      '',
+      `Your request to join ${leagueName} is approved. RSVP for the next round here:`,
+      SITE_URL + '/dashboard',
+      '',
+      'See you on the course.',
+      '— Fairway Founders',
+    ].join('\n'),
+    sentBy: me.id,
+  });
+  try {
+    await supabase.from('notifications').insert({
+      user_id: userId,
+      kind: 'access_request',
+      title: `You're in — welcome to ${leagueName}`,
+      body: null,
+      link: '/dashboard',
+      created_by: me.id,
+    });
+  } catch {
+    // best-effort
+  }
+
+  revalidatePath('/admin');
+  revalidatePath('/admin/access');
+  revalidatePath('/gln');
+  revalidatePath('/', 'layout');
+  return { ok: true };
+}
+
+/** Decline an orphan user (access_status='pending', no membership rows)
+ *  outright — flip users.access_status='denied' so they get the
+ *  DeniedScreen. Paired with attachOrphanToLeague on /admin/access. */
+export async function denyOrphanUser(
+  userId: string,
+): Promise<MembershipDecision> {
+  const me = await getAppUser();
+  if (!me) return { ok: false, error: 'Not signed in.' };
+  if (!isSuperAdmin(me)) {
+    // Only GLN admins can globally deny — a single league admin
+    // shouldn't lock a user out platform-wide.
+    return { ok: false, error: 'GLN admins only.' };
+  }
+
+  const target = await supabase
+    .from('users')
+    .select('id, name, email, access_status')
+    .eq('id', userId)
+    .maybeSingle();
+  if (!target.data) return { ok: false, error: 'User not found.' };
+  if (target.data.access_status !== 'pending') {
+    return { ok: false, error: 'Already decided.' };
+  }
+
+  const upd = await supabase
+    .from('users')
+    .update({
+      access_status: 'denied',
+      access_decided_at: new Date().toISOString(),
+      access_decided_by: me.id,
+    })
+    .eq('id', userId)
+    .eq('access_status', 'pending');
+  if (upd.error) return { ok: false, error: upd.error.message };
+
+  const first = target.data.name.split(' ')[0] || 'there';
+  await queueEmail({
+    kind: 'access_denied',
+    toEmail: target.data.email,
+    toUserId: target.data.id,
+    subject: 'About your Fairway Founders request',
+    body: [
+      `Hi ${first},`,
+      '',
+      'Thanks for your interest in Fairway Founders. We aren’t able to add you to the network at this time.',
+      '',
+      'If you think this is a mistake, reach out and we’ll take another look.',
+      '',
+      '— Fairway Founders',
+    ].join('\n'),
+    sentBy: me.id,
+  });
+
+  revalidatePath('/admin');
+  revalidatePath('/admin/access');
+  revalidatePath('/gln');
+  revalidatePath('/', 'layout');
+  return { ok: true };
+}
+
 /** Member self-requests to join a league. Creates a pending row.
  *  Called by JoinExistingLeague.tsx on /join/[slug]. */
 export async function requestLeagueJoin(

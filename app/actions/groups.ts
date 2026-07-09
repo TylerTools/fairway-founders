@@ -10,7 +10,7 @@ import {
   type PairingHistory,
   type CartRequests,
 } from '@/lib/groups';
-import type { CourseConfig } from '@/lib/schedule';
+import { COURSE_OPTIONS, type CourseConfig } from '@/lib/schedule';
 
 export interface GroupActionState {
   ok: boolean;
@@ -159,6 +159,159 @@ export async function runGroupGeneration(
       result.foursomes.length === 1 ? '' : 's'
     } from ${members.length} RSVPs.`,
   };
+}
+
+/** Add an empty foursome to the event. Hole = next unused hole in the
+ *  event's course_config; wraps if all in use. Tier stays 'A' (overflow
+ *  tiers B/C are only created by the auto-generator). */
+export async function addEmptyGroup(
+  eventId: string,
+): Promise<GroupActionState & { foursomeId?: string }> {
+  await requireEventAdmin(eventId);
+
+  const evtRes = await supabase
+    .from('events')
+    .select('course_config')
+    .eq('id', eventId)
+    .maybeSingle();
+  if (!evtRes.data) return { ok: false, error: 'Event not found.' };
+  const configHoles =
+    COURSE_OPTIONS[evtRes.data.course_config as CourseConfig].holes;
+
+  const four = await supabase
+    .from('foursomes')
+    .select('hole, group_index')
+    .eq('event_id', eventId);
+  if (four.error) return { ok: false, error: four.error.message };
+
+  const usedHoles = new Set((four.data ?? []).map((f) => f.hole));
+  const nextHole = configHoles.find((h) => !usedHoles.has(h)) ?? configHoles[0];
+  const nextIndex =
+    (four.data ?? []).reduce((m, f) => Math.max(m, f.group_index), -1) + 1;
+
+  const ins = await supabase
+    .from('foursomes')
+    .insert({
+      event_id: eventId,
+      hole: nextHole,
+      tier: 'A' as const,
+      group_index: nextIndex,
+    })
+    .select('id')
+    .single();
+  if (ins.error) return { ok: false, error: ins.error.message };
+
+  revalidatePath('/admin');
+  revalidatePath('/');
+  return { ok: true, foursomeId: ins.data?.id };
+}
+
+/** Delete a foursome. Refuses if it still has members — admin must move
+ *  players out first to avoid dropping someone unnoticed. */
+export async function deleteGroup(
+  eventId: string,
+  foursomeId: string,
+): Promise<GroupActionState> {
+  await requireEventAdmin(eventId);
+  const membersRes = await supabase
+    .from('foursome_members')
+    .select('id')
+    .eq('foursome_id', foursomeId);
+  if (membersRes.error) return { ok: false, error: membersRes.error.message };
+  if ((membersRes.data ?? []).length > 0) {
+    return { ok: false, error: 'Move players out of this group first.' };
+  }
+  const del = await supabase
+    .from('foursomes')
+    .delete()
+    .eq('id', foursomeId)
+    .eq('event_id', eventId);
+  if (del.error) return { ok: false, error: del.error.message };
+  revalidatePath('/admin');
+  revalidatePath('/');
+  return { ok: true };
+}
+
+/** Move a player from their current foursome to a different one. Cart
+ *  assignment: if the destination has a cart with a single player, we
+ *  pair up; otherwise we start a new cart with a fresh event-scoped
+ *  cart_number. Idempotent when destFoursomeId == current foursome. */
+export async function movePlayer(
+  eventId: string,
+  userId: string,
+  destFoursomeId: string,
+): Promise<GroupActionState> {
+  await requireEventAdmin(eventId);
+
+  const four = await supabase
+    .from('foursomes')
+    .select('id, foursome_members(id, user_id, cart_number)')
+    .eq('event_id', eventId);
+  if (four.error) return { ok: false, error: four.error.message };
+
+  const foursomes = four.data ?? [];
+  const destFoursome = foursomes.find((f) => f.id === destFoursomeId);
+  if (!destFoursome) return { ok: false, error: 'Destination not found.' };
+
+  let currentRow: {
+    id: string;
+    cart_number: number;
+    foursome_id: string;
+  } | null = null;
+  for (const f of foursomes) {
+    for (const m of f.foursome_members ?? []) {
+      if (m.user_id === userId) {
+        currentRow = { id: m.id, cart_number: m.cart_number, foursome_id: f.id };
+      }
+    }
+  }
+  if (!currentRow) return { ok: false, error: 'Player not in a group.' };
+  if (currentRow.foursome_id === destFoursomeId) return { ok: true };
+
+  // Pick a cart number in the destination:
+  //   - existing cart in dest with exactly 1 player → pair up
+  //   - else new cart_number = max event cart + 1
+  const destCartCounts = new Map<number, number>();
+  for (const m of destFoursome.foursome_members ?? []) {
+    destCartCounts.set(m.cart_number, (destCartCounts.get(m.cart_number) ?? 0) + 1);
+  }
+  let targetCart: number | null = null;
+  for (const [num, count] of destCartCounts) {
+    if (count === 1) {
+      targetCart = num;
+      break;
+    }
+  }
+  if (targetCart == null) {
+    const allCarts = foursomes
+      .flatMap((f) => (f.foursome_members ?? []).map((m) => m.cart_number))
+      .filter((n): n is number => typeof n === 'number');
+    targetCart = allCarts.length ? Math.max(...allCarts) + 1 : 1;
+  }
+
+  const del = await supabase
+    .from('foursome_members')
+    .delete()
+    .eq('id', currentRow.id);
+  if (del.error) return { ok: false, error: del.error.message };
+  const ins = await supabase.from('foursome_members').insert({
+    foursome_id: destFoursomeId,
+    user_id: userId,
+    cart_number: targetCart,
+  });
+  if (ins.error) {
+    // Restore the original assignment so a failed move never drops a player.
+    await supabase.from('foursome_members').insert({
+      foursome_id: currentRow.foursome_id,
+      user_id: userId,
+      cart_number: currentRow.cart_number,
+    });
+    return { ok: false, error: ins.error.message };
+  }
+
+  revalidatePath('/admin');
+  revalidatePath('/');
+  return { ok: true };
 }
 
 export async function swapPlayers(

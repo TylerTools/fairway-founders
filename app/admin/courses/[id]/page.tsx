@@ -10,6 +10,7 @@ import {
 } from '@/lib/auth';
 import CourseSettingsForm from './CourseSettingsForm';
 import ContactList from './ContactList';
+import HolesEditor from './HolesEditor';
 
 export const dynamic = 'force-dynamic';
 
@@ -53,6 +54,12 @@ export default async function CourseDetail({
     .eq('course_id', id)
     .order('date');
   const events = eventsRes.data ?? [];
+
+  const holesRes = await supabase
+    .from('course_holes')
+    .select('hole, par, yards')
+    .eq('course_id', id);
+  const holes = holesRes.data ?? [];
 
   // Members in this league are candidates for "link this contact to a user
   // so they can sign in and get course-staff access"
@@ -109,6 +116,13 @@ export default async function CourseDetail({
               contacts={contacts}
               memberOptions={memberOptions}
             />
+          </section>
+
+          <section>
+            <p className="text-[11px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] mb-3">
+              Holes · par &amp; yardage
+            </p>
+            <HolesEditor courseId={course.id} holes={holes} />
           </section>
         </div>
 

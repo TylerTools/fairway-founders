@@ -53,5 +53,6 @@ export async function saveCourseHoles(
 
   revalidatePath('/admin/test');
   revalidatePath('/leaderboard');
+  revalidatePath(`/admin/courses/${courseId}`);
   return { ok: true };
 }

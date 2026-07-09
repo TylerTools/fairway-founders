@@ -1,25 +1,18 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 import { SignInButton, SignUpButton } from '@clerk/nextjs';
 import { getAppUser } from '@/lib/current-user';
 import SponsorsSection from '@/components/SponsorsSection';
 
 export const dynamic = 'force-dynamic';
 
-export default async function Home({
-  searchParams,
-}: {
-  searchParams: Promise<{ home?: string }>;
-}) {
-  const { home } = await searchParams;
+// The homepage lives at the clean root (fairwayfounders.org) and always renders
+// the public sign-in surface — no query params, no auto-forward. Signed-in
+// members get an "Enter the app →" pill; signing in routes them to /dashboard
+// via ClerkProvider's signInFallbackRedirectUrl. Not-signed-in visitors to any
+// app route are bounced here by the middleware in proxy.ts.
+export default async function Home() {
   const me = await getAppUser();
-  // Approved members normally land straight in the app, but can explicitly view
-  // this public homepage via the header logo (which links to /?home=1). A bare
-  // valueless `?home` parses as undefined in Next, so we key on the value.
-  if (me && me.access_status === 'approved' && home !== '1') {
-    redirect('/dashboard');
-  }
 
   return (
     <>

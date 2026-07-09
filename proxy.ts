@@ -1,6 +1,27 @@
-import { clerkMiddleware } from '@clerk/nextjs/server';
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
 
-export default clerkMiddleware();
+// Public surfaces that a signed-out visitor is allowed to reach. Everything
+// else (the whole app) bounces to the homepage `/` when not signed in.
+//  - `/join(.*)`  — referral / league-join links land signed-out invitees here
+//  - `/api(.*)`   — cron + vCard + webhooks self-guard; never redirect them
+const isPublicRoute = createRouteMatcher([
+  '/',
+  '/privacy',
+  '/terms',
+  '/join(.*)',
+  '/api(.*)',
+  '/sign-in(.*)',
+  '/sign-up(.*)',
+]);
+
+export default clerkMiddleware(async (auth, req) => {
+  if (isPublicRoute(req)) return;
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.redirect(new URL('/', req.url));
+  }
+});
 
 export const config = {
   matcher: [

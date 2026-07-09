@@ -184,7 +184,7 @@ export default async function RootLayout({
           <HideOnHome>
             <header className="flex items-center justify-between gap-6 border-b border-[color:var(--color-gold)]/30 px-6 py-4 sticky top-0 z-10 bg-[color:var(--color-cream)]">
               <Link
-                href="/?home=1"
+                href="/"
                 className="flex items-center gap-2 leading-none shrink-0"
               >
                 <HeaderLogo size={appUser ? 'large' : 'small'} />

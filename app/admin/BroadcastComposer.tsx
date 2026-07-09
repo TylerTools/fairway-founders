@@ -5,15 +5,25 @@ import { sendBroadcast, type BroadcastState } from '@/app/actions/notifications'
 
 const initial: BroadcastState = { ok: true };
 
-export default function BroadcastComposer() {
+export default function BroadcastComposer({
+  eventId = null,
+}: {
+  eventId?: string | null;
+}) {
   const [pending, startTransition] = useTransition();
   const [state, setState] = useState<BroadcastState>(initial);
   const [open, setOpen] = useState(false);
+  // Default to the round's players when a round is active.
+  const [audience, setAudience] = useState<'round' | 'all'>(
+    eventId ? 'round' : 'all',
+  );
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
     const fd = new FormData(form);
+    fd.set('audience', audience);
+    fd.set('event_id', eventId ?? '');
     startTransition(async () => {
       const res = await sendBroadcast(initial, fd);
       setState(res);
@@ -43,7 +53,7 @@ export default function BroadcastComposer() {
     <div className="rounded-xl border border-[color:var(--color-gold)] bg-white p-4">
       <div className="flex justify-between items-start">
         <p className="text-[10px] tracking-[0.15em] uppercase font-bold text-[color:var(--color-gold)]">
-          Broadcast to all members
+          Send a message
         </p>
         <button
           type="button"
@@ -53,9 +63,6 @@ export default function BroadcastComposer() {
           Close
         </button>
       </div>
-      <p className="mt-1 text-[11px] text-[color:var(--color-mute)]">
-        Shows up in every approved member's notification bell.
-      </p>
 
       {state.ok && state.message ? (
         <div className="mt-3">
@@ -70,6 +77,40 @@ export default function BroadcastComposer() {
         </div>
       ) : (
         <form onSubmit={onSubmit} className="mt-3 space-y-3">
+          {/* Audience — only offer "this round" when a round is active */}
+          {eventId && (
+            <div>
+              <span className="text-[10px] tracking-[0.15em] uppercase font-semibold text-[color:#8a8576]">
+                Send to
+              </span>
+              <div className="mt-1 flex rounded-md overflow-hidden border border-[color:#e8e2d2]">
+                {(['round', 'all'] as const).map((a, i) => (
+                  <button
+                    key={a}
+                    type="button"
+                    onClick={() => setAudience(a)}
+                    className={`flex-1 py-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] ${
+                      i > 0 ? 'border-l border-[color:#e8e2d2]' : ''
+                    } ${
+                      audience === a
+                        ? 'bg-[color:var(--color-navy)] text-[color:var(--color-gold)]'
+                        : 'bg-white text-[color:var(--color-navy)]'
+                    }`}
+                  >
+                    {a === 'round' ? "This round's players" : 'All members'}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <p className="text-[11px] text-[color:var(--color-mute)] leading-relaxed">
+            {audience === 'round'
+              ? "Goes only to the players in this round's groups."
+              : "Shows up in every approved member's notification bell."}{' '}
+            Disappears after 24 hours.
+          </p>
+
           <label className="block">
             <span className="text-[10px] tracking-[0.15em] uppercase font-semibold text-[color:#8a8576]">
               Title <span className="text-[color:var(--color-gold)]">*</span>
@@ -116,7 +157,11 @@ export default function BroadcastComposer() {
             disabled={pending}
             className="w-full rounded-md bg-[color:var(--color-navy)] text-[color:var(--color-gold)] py-2.5 text-[11px] font-semibold tracking-[0.1em] uppercase disabled:opacity-60"
           >
-            {pending ? 'Sending…' : 'Send to all approved members'}
+            {pending
+              ? 'Sending…'
+              : audience === 'round'
+                ? "Send to this round's players"
+                : 'Send to all approved members'}
           </button>
         </form>
       )}

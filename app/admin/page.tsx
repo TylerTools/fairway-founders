@@ -430,7 +430,7 @@ export default async function AdminCockpit({
           Broadcast
         </p>
         <div className="mt-3">
-          <BroadcastComposer />
+          <BroadcastComposer eventId={event?.id ?? null} />
         </div>
       </section>
     </main>

@@ -767,6 +767,7 @@ export type Database = {
           body: string | null
           created_at: string
           created_by: string | null
+          expires_at: string | null
           id: string
           kind: Database["public"]["Enums"]["notification_kind"]
           link: string | null
@@ -778,6 +779,7 @@ export type Database = {
           body?: string | null
           created_at?: string
           created_by?: string | null
+          expires_at?: string | null
           id?: string
           kind: Database["public"]["Enums"]["notification_kind"]
           link?: string | null
@@ -789,6 +791,7 @@ export type Database = {
           body?: string | null
           created_at?: string
           created_by?: string | null
+          expires_at?: string | null
           id?: string
           kind?: Database["public"]["Enums"]["notification_kind"]
           link?: string | null

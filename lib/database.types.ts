@@ -933,6 +933,7 @@ export type Database = {
           professional_role: string | null
           referral_code: string | null
           seeking: string[]
+          seeking_industries: string[]
           tagline: string | null
           updated_at: string
           website_url: string | null
@@ -965,6 +966,7 @@ export type Database = {
           professional_role?: string | null
           referral_code?: string | null
           seeking?: string[]
+          seeking_industries?: string[]
           tagline?: string | null
           updated_at?: string
           website_url?: string | null
@@ -997,6 +999,7 @@ export type Database = {
           professional_role?: string | null
           referral_code?: string | null
           seeking?: string[]
+          seeking_industries?: string[]
           tagline?: string | null
           updated_at?: string
           website_url?: string | null

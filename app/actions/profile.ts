@@ -57,6 +57,7 @@ export interface AppProfileSnapshot {
   handicap: number | null;
   helps: string[];
   seeking: string[];
+  seeking_industries: string[];
   goals: string | null;
   tagline: string | null;
   phone: string | null;
@@ -87,6 +88,7 @@ export async function getMyAppProfile(): Promise<AppProfileSnapshot | null> {
     handicap: me.handicap != null ? Number(me.handicap) : null,
     helps: me.helps ?? [],
     seeking: me.seeking ?? [],
+    seeking_industries: me.seeking_industries ?? [],
     goals: me.goals,
     tagline: me.tagline,
     phone: me.phone,
@@ -152,6 +154,7 @@ export async function updateProfile(
       .slice(0, 8);
   const helps = csv('helps');
   const seeking = csv('seeking');
+  const seeking_industries = csv('seeking_industries');
 
   const { error } = await supabase
     .from('users')
@@ -169,6 +172,7 @@ export async function updateProfile(
       handicap,
       helps,
       seeking,
+      seeking_industries,
       leaderboard_opt_out,
     })
     .eq('id', me.id);

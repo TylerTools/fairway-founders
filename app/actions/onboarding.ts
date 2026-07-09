@@ -27,18 +27,7 @@ export async function submitOnboarding(
   if (!company) return { ok: false, error: 'Company is required.' };
 
   const name = str('name', 120);
-  const bio = str('bio', 600);
-  const goals = str('goals', 600);
   const industry = str('industry', 120);
-  const city = str('city', 120);
-
-  const handicapRaw = formData.get('handicap') as string | null;
-  let handicap: number | null = null;
-  if (handicapRaw && handicapRaw.trim() !== '') {
-    const parsed = parseFloat(handicapRaw);
-    if (Number.isNaN(parsed)) return { ok: false, error: 'Handicap must be a number.' };
-    handicap = Math.max(0, Math.min(54, parsed));
-  }
 
   // Chip fields arrive as repeated form entries; fall back to a comma string.
   const arr = (k: string) => {
@@ -48,22 +37,18 @@ export async function submitOnboarding(
       : many;
     return [...new Set(base.map((s) => s.trim()).filter(Boolean))].slice(0, 8);
   };
-  const helps = arr('helps');
   const seeking = arr('seeking');
+  const seeking_industries = arr('seeking_industries');
 
   const { error } = await supabase
     .from('users')
     .update({
       name: name ?? me.name,
-      bio,
       company,
       professional_role,
       industry,
-      city,
-      goals,
-      handicap,
-      helps,
       seeking,
+      seeking_industries,
       onboarded_at: new Date().toISOString(),
       access_requested_at: new Date().toISOString(),
     })

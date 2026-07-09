@@ -181,45 +181,51 @@ export default async function RootLayout({
             },
           }}
         >
-          <HideOnHome>
-            <header className="flex items-center justify-between gap-6 border-b border-[color:var(--color-gold)]/30 px-6 py-4 sticky top-0 z-10 bg-[color:var(--color-cream)]">
-              <Link
-                href="/"
-                className="flex items-center gap-2 leading-none shrink-0"
-              >
-                <HeaderLogo size={appUser ? 'large' : 'small'} />
-                <span className="sr-only">Fairway Founders Network — home</span>
-              </Link>
-              <HeaderNav
-                signedIn={isSignedInApproved}
-                showAdmin={showAdminChrome}
-                showCourse={showCourseTab}
-              />
-              <div className="flex items-center gap-3 shrink-0">
-                {isSignedInApproved && currentLeague && (
-                  <LeagueSwitcher
-                    current={{
-                      id: currentLeague.id,
-                      name: currentLeague.name,
-                      short_name: currentLeague.short_name,
-                    }}
-                    options={myLeagues.map((l) => ({
-                      id: l.id,
-                      name: l.name,
-                      short_name: l.short_name,
-                    }))}
-                  />
-                )}
-                {isActuallyAdmin && isApproved && (
-                  <ViewToggle current={viewRole === 'admin' ? 'admin' : 'member'} />
-                )}
-                {isSignedInApproved && <NotificationBell />}
-                <Show when="signed-in">
-                  <HeaderUserButton />
-                </Show>
-              </div>
-            </header>
-          </HideOnHome>
+          {(() => {
+            const headerEl = (
+              <header className="flex items-center justify-between gap-6 border-b border-[color:var(--color-gold)]/30 px-6 py-4 sticky top-0 z-10 bg-[color:var(--color-cream)]">
+                <Link
+                  href="/"
+                  className="flex items-center gap-2 leading-none shrink-0"
+                >
+                  <HeaderLogo size={appUser ? 'large' : 'small'} />
+                  <span className="sr-only">Fairway Founders Network — home</span>
+                </Link>
+                <HeaderNav
+                  signedIn={isSignedInApproved}
+                  showAdmin={showAdminChrome}
+                  showCourse={showCourseTab}
+                />
+                <div className="flex items-center gap-3 shrink-0">
+                  {isSignedInApproved && currentLeague && (
+                    <LeagueSwitcher
+                      current={{
+                        id: currentLeague.id,
+                        name: currentLeague.name,
+                        short_name: currentLeague.short_name,
+                      }}
+                      options={myLeagues.map((l) => ({
+                        id: l.id,
+                        name: l.name,
+                        short_name: l.short_name,
+                      }))}
+                    />
+                  )}
+                  {isActuallyAdmin && isApproved && (
+                    <ViewToggle current={viewRole === 'admin' ? 'admin' : 'member'} />
+                  )}
+                  {isSignedInApproved && <NotificationBell />}
+                  <Show when="signed-in">
+                    <HeaderUserButton />
+                  </Show>
+                </div>
+              </header>
+            );
+            // Signed-in users always see the header (even on /) so pending /
+            // denied / onboarding screens still expose the user menu +
+            // sign-out. Signed-out visitors keep the immersive public homepage.
+            return appUser ? headerEl : <HideOnHome>{headerEl}</HideOnHome>;
+          })()}
           <div className="flex-1 lg:pb-0 pb-24 flex">
             {isSignedInApproved && (
               <HideOnHome>

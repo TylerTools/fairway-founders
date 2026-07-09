@@ -81,6 +81,7 @@ export default function ProfileEditor({
 
         <SectionLabel>Networking</SectionLabel>
         <Field name="seeking" label="Looking for (comma separated, max 8)" defaultValue={profile.seeking.join(', ')} placeholder="Investors / capital, Customers / clients…" />
+        <Field name="seeking_industries" label="Industries you want to connect with (comma separated, max 8)" defaultValue={(profile.seeking_industries ?? []).join(', ')} placeholder="Real Estate, Software / SaaS…" />
         <Field name="helps" label="Can help with (comma separated, max 8)" defaultValue={profile.helps.join(', ')} placeholder="Fundraising & capital, Sales & GTM…" />
         <Field name="goals" label="What you’re hoping to get out of the group" defaultValue={profile.goals ?? ''} textarea rows={2} />
 

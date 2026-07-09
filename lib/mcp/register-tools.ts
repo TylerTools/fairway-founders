@@ -238,6 +238,83 @@ export function registerMcpTools(server: McpServer) {
     },
   );
 
+  // ── Tees (named tee sets with per-hole yardages) ────────────────────────
+  server.tool(
+    'list_tees',
+    'List the tee sets defined on a course, with per-hole yardages.',
+    { courseId: z.string() },
+    async (args, extra) => {
+      await requireAdmin(extra);
+      return text(
+        must(
+          await supabase
+            .from('course_tees')
+            .select('id, name, sort_order, yardages')
+            .eq('course_id', args.courseId)
+            .order('sort_order'),
+        ),
+      );
+    },
+  );
+
+  server.tool(
+    'upsert_tee',
+    'Create or update a tee set (e.g. White, Red, Blue) with per-hole yardages. Pass teeId to update an existing one.',
+    {
+      courseId: z.string(),
+      teeId: z.string().optional(),
+      name: z.string(),
+      sortOrder: z.number().optional(),
+      yardages: z.array(z.object({ hole: z.number(), yards: z.number() })),
+    },
+    async (args, extra) => {
+      await requireAdmin(extra);
+      const yardages: Record<number, number> = {};
+      for (const y of args.yardages) {
+        if (y.hole >= 1 && y.hole <= 18) yardages[y.hole] = Math.max(0, Math.round(y.yards));
+      }
+      const payload = {
+        course_id: args.courseId,
+        name: args.name.trim(),
+        sort_order: args.sortOrder ?? 0,
+        yardages,
+        updated_at: new Date().toISOString(),
+      };
+      const data = must(
+        args.teeId
+          ? await supabase
+              .from('course_tees')
+              .update(payload)
+              .eq('id', args.teeId)
+              .select('id, name')
+              .single()
+          : await supabase
+              .from('course_tees')
+              .insert(payload)
+              .select('id, name')
+              .single(),
+      );
+      return text({ saved: data });
+    },
+  );
+
+  server.tool(
+    'delete_tee',
+    'Delete a tee set from a course.',
+    { teeId: z.string() },
+    async (args, extra) => {
+      await requireAdmin(extra);
+      must(
+        await supabase
+          .from('course_tees')
+          .delete()
+          .eq('id', args.teeId)
+          .select('id'),
+      );
+      return text({ deleted: args.teeId });
+    },
+  );
+
   // ── Events / rounds ─────────────────────────────────────────────────────
   server.tool(
     'list_events',

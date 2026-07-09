@@ -109,6 +109,44 @@ export type Database = {
           },
         ]
       }
+      course_tees: {
+        Row: {
+          course_id: string
+          created_at: string
+          id: string
+          name: string
+          sort_order: number
+          updated_at: string
+          yardages: Json
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          id?: string
+          name: string
+          sort_order?: number
+          updated_at?: string
+          yardages?: Json
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
+          yardages?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_tees_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       courses: {
         Row: {
           address: string | null
@@ -252,11 +290,14 @@ export type Database = {
           course_id: string
           created_at: string
           date: string
+          default_tee_id: string | null
           fee_cents: number
+          game_type: Database["public"]["Enums"]["game_type"]
           id: string
           is_test: boolean
           opens_at: string
           pro_shop_email: string | null
+          round_yardages: Json
           scoring_mode: Database["public"]["Enums"]["scoring_mode"]
           series_id: string | null
           status: Database["public"]["Enums"]["event_status"]
@@ -269,11 +310,14 @@ export type Database = {
           course_id: string
           created_at?: string
           date: string
+          default_tee_id?: string | null
           fee_cents?: number
+          game_type?: Database["public"]["Enums"]["game_type"]
           id?: string
           is_test?: boolean
           opens_at: string
           pro_shop_email?: string | null
+          round_yardages?: Json
           scoring_mode?: Database["public"]["Enums"]["scoring_mode"]
           series_id?: string | null
           status?: Database["public"]["Enums"]["event_status"]
@@ -286,11 +330,14 @@ export type Database = {
           course_id?: string
           created_at?: string
           date?: string
+          default_tee_id?: string | null
           fee_cents?: number
+          game_type?: Database["public"]["Enums"]["game_type"]
           id?: string
           is_test?: boolean
           opens_at?: string
           pro_shop_email?: string | null
+          round_yardages?: Json
           scoring_mode?: Database["public"]["Enums"]["scoring_mode"]
           series_id?: string | null
           status?: Database["public"]["Enums"]["event_status"]
@@ -302,6 +349,13 @@ export type Database = {
             columns: ["course_id"]
             isOneToOne: false
             referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_default_tee_id_fkey"
+            columns: ["default_tee_id"]
+            isOneToOne: false
+            referencedRelation: "course_tees"
             referencedColumns: ["id"]
           },
         ]
@@ -408,6 +462,7 @@ export type Database = {
           id: string
           score: number | null
           submitted_at: string | null
+          tee_id: string | null
           tier: Database["public"]["Enums"]["foursome_tier"]
         }
         Insert: {
@@ -418,6 +473,7 @@ export type Database = {
           id?: string
           score?: number | null
           submitted_at?: string | null
+          tee_id?: string | null
           tier?: Database["public"]["Enums"]["foursome_tier"]
         }
         Update: {
@@ -428,6 +484,7 @@ export type Database = {
           id?: string
           score?: number | null
           submitted_at?: string | null
+          tee_id?: string | null
           tier?: Database["public"]["Enums"]["foursome_tier"]
         }
         Relationships: [
@@ -436,6 +493,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "foursomes_tee_id_fkey"
+            columns: ["tee_id"]
+            isOneToOne: false
+            referencedRelation: "course_tees"
             referencedColumns: ["id"]
           },
         ]
@@ -1051,6 +1115,7 @@ export type Database = {
       feedback_kind: "feedback" | "issue"
       feedback_status: "new" | "in_review" | "resolved" | "wontfix"
       foursome_tier: "A" | "B" | "C"
+      game_type: "scramble" | "individual"
       interaction_kind: "four" | "link" | "birdie"
       interaction_status: "pending" | "accepted" | "declined"
       league_member_role: "member" | "admin"
@@ -1244,6 +1309,7 @@ export const Constants = {
       feedback_kind: ["feedback", "issue"],
       feedback_status: ["new", "in_review", "resolved", "wontfix"],
       foursome_tier: ["A", "B", "C"],
+      game_type: ["scramble", "individual"],
       interaction_kind: ["four", "link", "birdie"],
       interaction_status: ["pending", "accepted", "declined"],
       league_member_role: ["member", "admin"],

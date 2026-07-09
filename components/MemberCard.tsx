@@ -27,12 +27,20 @@ const ROLE_LABEL: Record<'member' | 'super_admin', string> = {
 export default function MemberCard({
   m,
   isAdmin,
+  onApprove,
+  approving,
+  approveLabel,
 }: {
   m: DirectoryMember;
   isAdmin: boolean;
+  onApprove?: (userId: string) => void;
+  approving?: boolean;
+  approveLabel?: string;
 }) {
   const showRoleChip = m.app_role !== 'member';
   const showStatusChip = isAdmin && m.access_status !== 'approved';
+  const showApprove =
+    isAdmin && !!onApprove && m.access_status === 'pending' && !m.isMe;
   const subtitle = m.tagline || m.professional_role;
   const borderCls = m.featured
     ? 'border-[color:var(--color-gold)]'
@@ -41,11 +49,14 @@ export default function MemberCard({
       : 'border-[color:#e8e2d2]';
 
   return (
-    <Link
-      href={`/roster/${m.id}`}
-      className={`border rounded-xl p-3.5 ff-card hover:border-[color:var(--color-gold)] transition-colors ${borderCls} ${
+    <article
+      className={`border rounded-xl ff-card overflow-hidden ${borderCls} ${
         m.featured ? 'bg-[color:#fdfbf4]' : 'bg-white'
       }`}
+    >
+    <Link
+      href={`/roster/${m.id}`}
+      className="block p-3.5 hover:bg-[color:#fdfbf4] transition-colors"
     >
       {m.featured && (
         <p className="mb-1.5 text-[8px] tracking-[0.15em] uppercase font-bold text-[color:var(--color-gold)]">
@@ -116,5 +127,16 @@ export default function MemberCard({
         </div>
       )}
     </Link>
+      {showApprove && (
+        <button
+          type="button"
+          onClick={() => onApprove!(m.id)}
+          disabled={approving}
+          className="w-full border-t border-[color:#e8e2d2] bg-[color:var(--color-navy)] text-[color:var(--color-gold)] text-[10px] tracking-[0.12em] uppercase font-bold py-2 disabled:opacity-60 hover:bg-[color:#0f2a20]"
+        >
+          {approving ? 'Approving…' : (approveLabel ?? 'Approve')}
+        </button>
+      )}
+    </article>
   );
 }

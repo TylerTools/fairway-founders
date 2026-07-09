@@ -149,7 +149,15 @@ export default async function RosterPage() {
         )}
       </div>
 
-      <MemberDirectory members={enriched} leagues={leagueFilters} isAdmin={isAdmin} />
+      <MemberDirectory
+        members={enriched}
+        leagues={leagueFilters}
+        isAdmin={isAdmin}
+        currentLeagueId={currentLeague?.id ?? null}
+        currentLeagueLabel={
+          currentLeague?.short_name ?? currentLeague?.name ?? null
+        }
+      />
     </main>
   );
 }

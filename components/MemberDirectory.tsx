@@ -1,20 +1,49 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import MemberCard, { type DirectoryMember } from './MemberCard';
+import { attachOrphanToLeague } from '@/app/actions/access';
 
 export default function MemberDirectory({
   members,
   leagues,
   isAdmin,
+  currentLeagueId,
+  currentLeagueLabel,
 }: {
   members: DirectoryMember[];
   leagues: { slug: string; label: string }[];
   isAdmin: boolean;
+  currentLeagueId?: string | null;
+  currentLeagueLabel?: string | null;
 }) {
+  const router = useRouter();
   const [q, setQ] = useState('');
   const [league, setLeague] = useState<string>('all');
   const [industry, setIndustry] = useState<string>('all');
+  const [approvingId, setApprovingId] = useState<string | null>(null);
+  const [approveError, setApproveError] = useState<string | null>(null);
+  const [, startApprove] = useTransition();
+
+  const approveLabel = currentLeagueLabel
+    ? `Approve into ${currentLeagueLabel}`
+    : 'Approve';
+
+  function onApprove(userId: string) {
+    if (!currentLeagueId) {
+      setApproveError('Pick a league from the switcher first.');
+      return;
+    }
+    setApproveError(null);
+    setApprovingId(userId);
+    startApprove(async () => {
+      const res = await attachOrphanToLeague(userId, currentLeagueId);
+      if (!res.ok) setApproveError(res.error ?? 'Could not approve.');
+      setApprovingId(null);
+      router.refresh();
+    });
+  }
 
   const industries = useMemo(
     () =>
@@ -78,6 +107,10 @@ export default function MemberDirectory({
         </div>
       )}
 
+      {approveError && (
+        <p className="mt-3 text-xs text-[color:#a13c3c]">{approveError}</p>
+      )}
+
       {filtered.length === 0 ? (
         <p className="mt-10 text-center text-sm italic text-[color:var(--color-mute)]">
           No members match{q ? ` “${q}”` : ' that filter'}.
@@ -85,7 +118,14 @@ export default function MemberDirectory({
       ) : (
         <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-2.5">
           {filtered.map((m) => (
-            <MemberCard key={m.id} m={m} isAdmin={isAdmin} />
+            <MemberCard
+              key={m.id}
+              m={m}
+              isAdmin={isAdmin}
+              onApprove={isAdmin && currentLeagueId ? onApprove : undefined}
+              approving={approvingId === m.id}
+              approveLabel={approveLabel}
+            />
           ))}
         </div>
       )}

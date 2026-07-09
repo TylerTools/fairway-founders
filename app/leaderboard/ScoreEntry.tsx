@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { upsertHoleScore } from '@/app/actions/scores';
 import { setScorecardSubmitted } from '@/app/actions/round';
 
@@ -19,6 +19,15 @@ function relationLabel(diff: number): string {
   if (diff === 1) return 'Bogey';
   if (diff === 2) return 'Double bogey';
   return `+${diff}`;
+}
+
+/** Colored pip tint mirroring how holes read on a paper card. */
+function tintFor(diff: number | null): { bg: string; fg: string } {
+  if (diff == null) return { bg: '#fff', fg: '#5a5a4a' };
+  if (diff < 0) return { bg: '#7c9885', fg: '#fff' };
+  if (diff === 0) return { bg: '#f5f1e8', fg: '#1a3a2e' };
+  if (diff === 1) return { bg: '#f0ebd8', fg: '#1a3a2e' };
+  return { bg: '#a87c4f', fg: '#fff' };
 }
 
 export default function ScoreEntry({
@@ -47,18 +56,29 @@ export default function ScoreEntry({
   const [scores, setScores] = useState<Record<number, number | null>>(
     initialScores,
   );
-  const [selected, setSelected] = useState<number | null>(null);
-  const [pending, startTransition] = useTransition();
-
-  // A submitted card is locked for editing until reopened.
-  const editable = canEdit && !submitted;
   const parFor = (hole: number) => pars[hole] ?? DEFAULT_PAR;
 
-  function setSubmitted(value: boolean) {
-    startTransition(async () => {
-      await setScorecardSubmitted(foursomeId, value);
-    });
-  }
+  // The focused hole. Start at the first hole that hasn't been scored yet —
+  // if the whole card is filled, land on the first hole so admins can review.
+  const initialIdx = useMemo(() => {
+    for (let i = 0; i < holes.length; i++) {
+      if (initialScores[holes[i]] == null) return i;
+    }
+    return 0;
+    // We intentionally only re-derive on mount — later state lives in `idx`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const [idx, setIdx] = useState(initialIdx);
+  const [pending, startTransition] = useTransition();
+  const [showPlayers, setShowPlayers] = useState(false);
+
+  const editable = canEdit && !submitted;
+  const currentHole = holes[idx];
+  const curValue = scores[currentHole] ?? null;
+  const curPar = parFor(currentHole);
+  const curYards = yards[currentHole] ?? null;
+  const scoreShown = curValue ?? curPar;
+  const diff = scoreShown - curPar;
 
   function commit(hole: number, value: number | null) {
     setScores((prev) => ({ ...prev, [hole]: value }));
@@ -67,199 +87,248 @@ export default function ScoreEntry({
     });
   }
 
-  function selectHole(hole: number) {
+  function ensureStarted() {
     if (!editable) return;
-    setSelected(hole);
-    // First tap on a blank hole starts it at par.
-    if (scores[hole] == null) commit(hole, parFor(hole));
+    if (curValue == null) commit(currentHole, curPar);
   }
-
   function adjust(delta: number) {
-    if (selected == null) return;
-    const cur = scores[selected] ?? parFor(selected);
-    commit(selected, clampStrokes(cur + delta));
+    if (!editable) return;
+    const cur = scores[currentHole] ?? curPar;
+    commit(currentHole, clampStrokes(cur + delta));
+  }
+  function clearHole() {
+    if (!editable) return;
+    commit(currentHole, null);
+  }
+  function goto(nextIdx: number) {
+    const clamped = Math.max(0, Math.min(holes.length - 1, nextIdx));
+    setIdx(clamped);
+  }
+  function setSubmitted(value: boolean) {
+    startTransition(async () => {
+      await setScorecardSubmitted(foursomeId, value);
+    });
   }
 
-  function clearHole() {
-    if (selected == null) return;
-    commit(selected, null);
+  // Touch swipe left/right → next/prev hole. Threshold ~40px.
+  const swipe = useRef<{ x: number; y: number } | null>(null);
+  function onTouchStart(e: React.TouchEvent) {
+    const t = e.touches[0];
+    swipe.current = { x: t.clientX, y: t.clientY };
   }
+  function onTouchEnd(e: React.TouchEvent) {
+    const start = swipe.current;
+    swipe.current = null;
+    if (!start) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - start.x;
+    const dy = t.clientY - start.y;
+    if (Math.abs(dx) < 40 || Math.abs(dy) > Math.abs(dx)) return;
+    if (dx < 0) goto(idx + 1);
+    else goto(idx - 1);
+  }
+
+  // Keyboard arrows for admin desktop review.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.target instanceof HTMLInputElement) return;
+      if (e.key === 'ArrowLeft') goto(idx - 1);
+      else if (e.key === 'ArrowRight') goto(idx + 1);
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idx, holes.length]);
 
   const gross = Object.values(scores).reduce<number>(
     (a, v) => a + (typeof v === 'number' && v > 0 ? v : 0),
     0,
   );
   const net = gross > 0 ? gross - teamHcp : null;
-
-  const selPar = selected != null ? parFor(selected) : DEFAULT_PAR;
-  const selValue = selected != null ? scores[selected] ?? null : null;
-  const selYards = selected != null ? yards[selected] ?? null : null;
+  const holesIn = Object.values(scores).filter(
+    (v) => typeof v === 'number' && v > 0,
+  ).length;
 
   return (
-    <div className="bg-[color:var(--color-cream)] border-t border-[color:#e8e2d2] px-3 py-3">
-      <p className="text-[10px] tracking-[0.1em] uppercase text-[color:var(--color-mute)] font-semibold mb-2">
-        Hole-by-Hole{' '}
-        {submitted ? (
-          <span className="italic font-normal normal-case tracking-normal">
-            · submitted
-          </span>
-        ) : (
-          !canEdit && (
-            <span className="italic font-normal normal-case tracking-normal">
-              · view only
-            </span>
-          )
-        )}
-        {pending && (
-          <span className="ml-2 italic font-normal normal-case tracking-normal">
-            · saving…
-          </span>
-        )}
-      </p>
-
+    <div className="bg-[color:var(--color-cream)] border-t border-[color:#e8e2d2] px-4 py-4">
+      {/* Focused hole card */}
       <div
-        className="grid gap-1"
-        style={{ gridTemplateColumns: `repeat(${holes.length}, minmax(0,1fr))` }}
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+        className="rounded-xl bg-white border border-[color:#e8e2d2] ff-card p-5 select-none"
       >
-        {holes.map((hole) => {
+        <div className="flex items-baseline justify-between">
+          <p
+            className="text-3xl leading-none"
+            style={{ fontFamily: 'var(--font-display)' }}
+          >
+            Hole {currentHole}
+          </p>
+          <p className="text-[10px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] font-semibold">
+            {idx + 1} / {holes.length}
+          </p>
+        </div>
+        <p className="mt-1 text-[11px] tracking-[0.1em] uppercase text-[color:var(--color-mute)]">
+          Par {curPar}
+          {curYards != null ? ` · ${curYards.toLocaleString('en-US')} yds` : ''}
+        </p>
+
+        <div className="mt-5 flex items-center justify-center gap-6">
+          <button
+            type="button"
+            onClick={() => adjust(-1)}
+            disabled={!editable}
+            aria-label="One stroke under"
+            className="ff-btn ff-btn-secondary border border-[color:var(--color-gold)] bg-white text-[color:var(--color-navy)] w-14 h-14 rounded-full text-3xl leading-none font-semibold disabled:opacity-40"
+          >
+            −
+          </button>
+          <button
+            type="button"
+            onClick={ensureStarted}
+            disabled={!editable && curValue == null}
+            className="text-center disabled:cursor-default"
+          >
+            <p
+              className="text-6xl leading-none min-w-[2ch]"
+              style={{
+                fontFamily: 'var(--font-display)',
+                color: curValue != null ? '#1a3a2e' : '#a8a596',
+              }}
+            >
+              {curValue ?? (editable ? curPar : '—')}
+            </p>
+          </button>
+          <button
+            type="button"
+            onClick={() => adjust(1)}
+            disabled={!editable}
+            aria-label="One stroke over"
+            className="ff-btn ff-btn-secondary border border-[color:var(--color-gold)] bg-white text-[color:var(--color-navy)] w-14 h-14 rounded-full text-3xl leading-none font-semibold disabled:opacity-40"
+          >
+            +
+          </button>
+        </div>
+
+        <div className="mt-3 flex items-center justify-center gap-4">
+          <span className="text-[11px] tracking-[0.1em] uppercase font-semibold text-[color:var(--color-mute)]">
+            {curValue != null ? relationLabel(diff) : editable ? 'Tap to start' : '—'}
+          </span>
+          {editable && curValue != null && (
+            <button
+              type="button"
+              onClick={clearHole}
+              className="text-[11px] tracking-[0.08em] uppercase text-[color:var(--color-mute)] underline hover:text-[color:var(--color-navy)]"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+
+        <div className="mt-5 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => goto(idx - 1)}
+            disabled={idx === 0}
+            className="rounded-lg border border-[color:#e8e2d2] bg-white py-2.5 text-[11px] tracking-[0.08em] uppercase font-semibold text-[color:var(--color-navy)] disabled:opacity-40"
+          >
+            ← Prev
+          </button>
+          <button
+            type="button"
+            onClick={() => goto(idx + 1)}
+            disabled={idx === holes.length - 1}
+            className="rounded-lg ff-btn ff-btn-pine bg-[color:var(--color-navy)] text-[color:var(--color-gold)] py-2.5 text-[11px] tracking-[0.08em] uppercase font-semibold disabled:opacity-40"
+          >
+            Next →
+          </button>
+        </div>
+      </div>
+
+      {/* Hole progress strip — small pips reflecting the card so far. */}
+      <div className="mt-3 flex gap-1 overflow-x-auto pb-1">
+        {holes.map((hole, i) => {
           const v = scores[hole];
-          const score = typeof v === 'number' && v > 0 ? v : null;
-          const diff = score != null ? score - parFor(hole) : null;
-          let bg = '#fff';
-          let fg = '#1a3a2e';
-          if (diff != null) {
-            if (diff < 0) {
-              bg = '#7c9885';
-              fg = '#fff';
-            } else if (diff === 0) {
-              bg = '#fff';
-            } else if (diff === 1) {
-              bg = '#f0ebd8';
-            } else {
-              bg = '#a87c4f';
-              fg = '#fff';
-            }
-          }
-          const isSel = selected === hole;
-          const boxClass = `w-full text-center text-sm font-semibold border rounded-md py-1.5 ${
-            isSel
-              ? 'border-[color:var(--color-gold)] ring-2 ring-[color:var(--color-gold)]'
-              : 'border-[color:#e8e2d2]'
-          }`;
+          const scored = typeof v === 'number' && v > 0;
+          const tint = tintFor(scored ? (v as number) - parFor(hole) : null);
+          const active = i === idx;
           return (
-            <div key={hole} className="flex flex-col items-center gap-0.5">
-              <span className="text-[9px] text-[color:var(--color-mute)] font-semibold">
-                {hole}
-              </span>
-              {editable ? (
-                <button
-                  type="button"
-                  onClick={() => selectHole(hole)}
-                  className={boxClass}
-                  style={{ background: bg, color: fg }}
-                >
-                  {v ?? ''}
-                </button>
-              ) : (
-                <div className={boxClass} style={{ background: bg, color: fg }}>
-                  {v ?? '—'}
-                </div>
-              )}
-              <span className="text-[8px] text-[color:var(--color-mute)]">
-                {parFor(hole)}
-              </span>
-            </div>
+            <button
+              key={hole}
+              type="button"
+              onClick={() => goto(i)}
+              aria-label={`Go to hole ${hole}`}
+              className={`min-w-[2rem] rounded-md border py-1 text-[11px] font-semibold ${
+                active
+                  ? 'border-[color:var(--color-gold)] ring-2 ring-[color:var(--color-gold)]'
+                  : 'border-[color:#e8e2d2]'
+              }`}
+              style={{ background: tint.bg, color: tint.fg }}
+            >
+              {scored ? v : hole}
+            </button>
           );
         })}
       </div>
 
-      {editable &&
-        (selected == null ? (
-          <p className="mt-3 text-center text-[11px] text-[color:var(--color-mute)] italic">
-            Tap a hole — it starts at par, then adjust with − / +.
-          </p>
-        ) : (
-          <div className="mt-3 rounded-lg border border-[color:var(--color-gold)] bg-white p-3">
-            <p className="text-[10px] tracking-[0.15em] uppercase text-[color:var(--color-mute)] font-semibold text-center">
-              Hole {selected} · Par {selPar}
-              {selYards != null ? ` · ${selYards} yds` : ''}
-            </p>
-            <div className="mt-2 flex items-center justify-center gap-6">
-              <button
-                type="button"
-                onClick={() => adjust(-1)}
-                aria-label="One stroke under"
-                className="ff-btn ff-btn-secondary border border-[color:var(--color-gold)] bg-white text-[color:var(--color-navy)] w-12 h-12 rounded-full text-2xl leading-none font-semibold"
-              >
-                −
-              </button>
-              <p
-                className="text-4xl leading-none min-w-[2ch] text-center"
-                style={{ fontFamily: 'var(--font-display)' }}
-              >
-                {selValue ?? selPar}
-              </p>
-              <button
-                type="button"
-                onClick={() => adjust(1)}
-                aria-label="One stroke over"
-                className="ff-btn ff-btn-secondary border border-[color:var(--color-gold)] bg-white text-[color:var(--color-navy)] w-12 h-12 rounded-full text-2xl leading-none font-semibold"
-              >
-                +
-              </button>
-            </div>
-            <div className="mt-2 flex items-center justify-center gap-3">
-              <span className="text-[11px] tracking-[0.08em] uppercase text-[color:var(--color-mute)] font-semibold">
-                {relationLabel((selValue ?? selPar) - selPar)}
-              </span>
-              {selValue != null && (
-                <button
-                  type="button"
-                  onClick={clearHole}
-                  className="text-[11px] tracking-[0.08em] uppercase text-[color:var(--color-mute)] underline hover:text-[color:var(--color-navy)]"
-                >
-                  Clear
-                </button>
-              )}
-            </div>
+      {/* Totals + submit chrome */}
+      <div className="mt-4 pt-3 border-t border-[color:#e8e2d2]">
+        {showHandicap ? (
+          <div className="flex justify-around text-xs">
+            <Stat label="Thru" value={holesIn || '—'} />
+            <Stat label="Gross" value={gross || '—'} />
+            <Stat label="− Hcp" value={teamHcp} />
+            <Stat label="Net" value={net ?? '—'} highlight />
           </div>
-        ))}
+        ) : (
+          <div className="flex justify-around text-xs">
+            <Stat label="Thru" value={holesIn || '—'} />
+            <Stat label="Total" value={gross || '—'} highlight />
+          </div>
+        )}
+      </div>
 
-      {showHandicap ? (
-        <div className="mt-3 pt-2 border-t border-[color:#e8e2d2] flex justify-around text-xs">
-          <Stat label="Gross" value={gross || '—'} />
-          <Stat label="− Hcp" value={teamHcp} />
-          <Stat label="Net" value={net ?? '—'} highlight />
-        </div>
-      ) : (
-        <div className="mt-3 pt-2 border-t border-[color:#e8e2d2] flex justify-around text-xs">
-          <Stat label="Total" value={gross || '—'} highlight />
-        </div>
+      {(pending || submitted || (!canEdit && !submitted)) && (
+        <p className="mt-2 text-[10px] tracking-[0.1em] uppercase text-[color:var(--color-mute)] font-semibold text-center italic">
+          {submitted
+            ? 'submitted'
+            : pending
+              ? 'saving…'
+              : !canEdit
+                ? 'view only'
+                : ''}
+        </p>
       )}
 
-      {showHandicap && (
-        <div className="mt-2 pt-2 border-t border-[color:#e8e2d2]">
-          <p className="text-[10px] tracking-[0.1em] uppercase text-[color:var(--color-mute)] font-semibold mb-1.5">
-            Players · individual hcp
-          </p>
-          <div className="flex flex-wrap gap-1.5">
-            {members.map((m) => (
-              <span
-                key={m.id}
-                className="text-[11px] px-2 py-0.5 bg-white border border-[color:#e8e2d2] rounded-full text-[color:#5a5a4a]"
-              >
-                {m.name.split(' ')[0]} ·{' '}
-                <strong className="text-[color:var(--color-ink)]">
-                  {m.handicap ?? '—'}
-                </strong>
-              </span>
-            ))}
-          </div>
+      {showHandicap && members.length > 0 && (
+        <div className="mt-3">
+          <button
+            type="button"
+            onClick={() => setShowPlayers((s) => !s)}
+            className="text-[10px] tracking-[0.12em] uppercase font-semibold text-[color:var(--color-gold)]"
+          >
+            {showPlayers ? '▾ Hide players' : '▸ Show players'}
+          </button>
+          {showPlayers && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {members.map((m) => (
+                <span
+                  key={m.id}
+                  className="text-[11px] px-2 py-0.5 bg-white border border-[color:#e8e2d2] rounded-full text-[color:#5a5a4a]"
+                >
+                  {m.name.split(' ')[0]} ·{' '}
+                  <strong className="text-[color:var(--color-ink)]">
+                    {m.handicap ?? '—'}
+                  </strong>
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
       {canEdit && (
-        <div className="mt-3 pt-2 border-t border-[color:#e8e2d2]">
+        <div className="mt-3 pt-3 border-t border-[color:#e8e2d2]">
           {submitted ? (
             <div className="flex items-center justify-between gap-2">
               <span className="text-[11px] tracking-[0.08em] uppercase font-semibold text-[color:var(--color-gold)]">

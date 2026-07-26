@@ -126,7 +126,7 @@ API / route handlers:
 - Push notifications (web push or native)
 - Stripe / payments — green fee is paid in person at the pro shop
 - Native mobile apps — the web app is mobile-first PWA at most
-- RLS — currently disabled; trust boundary is the server-action guard layer. Hardening (RLS + Clerk → Supabase JWT) is a separate effort.
+- (RLS was previously called out as out-of-scope. Now shipped — see below.)
 - Public league discovery / signup-to-league flows — super_admin assigns memberships today
 
 **Note (reversal of an earlier decision):** The Members Redesign explicitly adds photo uploads (member photos + business logos via Supabase Storage). Earlier wording in this file ("no photo uploads in v1") is obsolete.
@@ -143,5 +143,7 @@ API / route handlers:
 ## Operational notes
 
 - Supabase free tier auto-pauses after 7 days of inactivity. The keep-alive cron prevents this; if the project goes `INACTIVE`, restore via MCP `restore_project`.
-- Service-role key (`SUPABASE_SERVICE_ROLE_KEY`) bypasses every RLS rule. It's used by `lib/supabase-admin.ts` for Storage writes (member photo/logo uploads). **Never import this client into anything that runs client-side.**
+- **RLS is ON with default-deny on every `public` table.** All server code (Server Components, server actions, cron) imports `supabase` from `lib/supabase.ts` — which is now the **service-role client** with `import 'server-only'` and bypasses RLS. Any client-component import fails at build time. Browser code uses the `useSupabaseClient()` hook from `lib/supabase-client.ts` — publishable key + Clerk-signed JWT (Supabase v2 `accessToken`). Only two SELECT policies exist for the publishable-key path (`foursomes`, `hole_scores`, authenticated only) so the leaderboard's Realtime channel keeps working; every other read + every write via the publishable key is denied. **Prereq:** Supabase project must have Clerk configured under Authentication → Third-Party Auth, otherwise `auth.jwt()` is null and even those two SELECT policies deny.
+- `lib/supabase-admin.ts` (`getSupabaseAdmin()`) is now redundant with `lib/supabase.ts` — both use service-role. It's kept for its explicit intent (Storage writes) but new code can use either.
+- Service-role key (`SUPABASE_SERVICE_ROLE_KEY`) must be set in Vercel for **all** environments (Production, Preview, Development). Without it, every request that touches the DB fails at runtime.
 - Windows PowerShell is the local shell, but Bash is available via the harness. CRLF warnings on git add are noise — `.gitattributes` would silence them.

@@ -1,22 +1,23 @@
+import 'server-only';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from './database.types';
 
 /**
- * Lazy Supabase client.
+ * Server Supabase client — SERVER-ONLY, SERVICE-ROLE.
  *
- * The previous version called createClient() at module load time, which
- * crashed the production build with "supabaseUrl is required" whenever a
- * Vercel environment was missing NEXT_PUBLIC_SUPABASE_URL — e.g. when the
- * Preview env scope wasn't checked in the project settings.
+ * With RLS default-deny on every table, the publishable key can't do
+ * anything meaningful on its own. Server actions and Server Components
+ * still need full access to run their own auth via the guard layer in
+ * lib/auth.ts, so this client uses the service-role key and bypasses
+ * every RLS rule.
  *
- * Build's "collect page data" step loads every route module. Now that
- * supabase exists as a proxy, importing this file does no work; the real
- * client is created on first property access (e.g. `supabase.from(...)`).
- * So the build never executes createClient() at module-eval time, which
- * means missing env vars surface at runtime with a clear error instead of
- * a confusing stack trace during build.
+ * `import 'server-only'` above makes any accidental import from a client
+ * component a build error. Browser code uses `lib/supabase-client.ts`
+ * (publishable key + Clerk JWT).
  *
- * Callers don't change — `import { supabase }` keeps working everywhere.
+ * Lazy proxy pattern — the client is built on first property access, not
+ * at module load, so a missing env var surfaces as a clear runtime error
+ * during a request rather than crashing the production build.
  */
 
 let cached: SupabaseClient<Database> | null = null;
@@ -24,15 +25,15 @@ let cached: SupabaseClient<Database> | null = null;
 function getClient(): SupabaseClient<Database> {
   if (cached) return cached;
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-  if (!url || !publishableKey) {
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceKey) {
     throw new Error(
-      'Supabase env vars missing. Set NEXT_PUBLIC_SUPABASE_URL and ' +
-        'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY in Vercel for ALL environments ' +
+      'Server Supabase env vars missing. Set NEXT_PUBLIC_SUPABASE_URL and ' +
+        'SUPABASE_SERVICE_ROLE_KEY in Vercel for ALL environments ' +
         '(Production, Preview, Development).',
     );
   }
-  cached = createClient<Database>(url, publishableKey, {
+  cached = createClient<Database>(url, serviceKey, {
     auth: { persistSession: false },
   });
   return cached;

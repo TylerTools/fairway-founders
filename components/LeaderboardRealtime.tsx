@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { useSupabaseClient } from '@/lib/supabase-client';
 
 /**
  * Live-refreshes the leaderboard whenever a relevant DB change lands.
@@ -29,6 +29,7 @@ export default function LeaderboardRealtime({
   foursomeIds: string[];
 }) {
   const router = useRouter();
+  const supabase = useSupabaseClient();
   const pending = useRef<ReturnType<typeof setTimeout> | null>(null);
   const idKey = foursomeIds.join(',');
 
@@ -76,7 +77,7 @@ export default function LeaderboardRealtime({
       }
       supabase.removeChannel(channel);
     };
-  }, [eventId, idKey, router]);
+  }, [eventId, idKey, router, supabase]);
 
   return null;
 }

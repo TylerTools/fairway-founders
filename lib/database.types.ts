@@ -816,6 +816,174 @@ export type Database = {
           },
         ]
       }
+      order_audit_events: {
+        Row: {
+          actor_type: string
+          actor_user_id: string | null
+          created_at: string
+          from_status: Database["public"]["Enums"]["order_status"] | null
+          id: string
+          metadata: Json
+          order_id: string
+          reason: string | null
+          to_status: Database["public"]["Enums"]["order_status"]
+        }
+        Insert: {
+          actor_type?: string
+          actor_user_id?: string | null
+          created_at?: string
+          from_status?: Database["public"]["Enums"]["order_status"] | null
+          id?: string
+          metadata?: Json
+          order_id: string
+          reason?: string | null
+          to_status: Database["public"]["Enums"]["order_status"]
+        }
+        Update: {
+          actor_type?: string
+          actor_user_id?: string | null
+          created_at?: string
+          from_status?: Database["public"]["Enums"]["order_status"] | null
+          id?: string
+          metadata?: Json
+          order_id?: string
+          reason?: string | null
+          to_status?: Database["public"]["Enums"]["order_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_audit_events_actor_user_id_fkey"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_audit_events_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          amount_cents: number
+          attempt_count: number
+          created_at: string
+          created_by: string | null
+          currency: string
+          id: string
+          idempotency_key: string
+          last_failure_code: string | null
+          last_failure_message: string | null
+          league_id: string
+          nmi_customer_vault_id: string | null
+          nmi_payment_token: string | null
+          nmi_transaction_id: string | null
+          order_type: Database["public"]["Enums"]["order_type"]
+          receipt_metadata: Json
+          receipt_number: string | null
+          receipt_sent_at: string | null
+          refunded_amount_cents: number
+          rsvp_id: string | null
+          sponsorship_id: string | null
+          statement_descriptor: string | null
+          status: Database["public"]["Enums"]["order_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_cents: number
+          attempt_count?: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          id?: string
+          idempotency_key: string
+          last_failure_code?: string | null
+          last_failure_message?: string | null
+          league_id: string
+          nmi_customer_vault_id?: string | null
+          nmi_payment_token?: string | null
+          nmi_transaction_id?: string | null
+          order_type: Database["public"]["Enums"]["order_type"]
+          receipt_metadata?: Json
+          receipt_number?: string | null
+          receipt_sent_at?: string | null
+          refunded_amount_cents?: number
+          rsvp_id?: string | null
+          sponsorship_id?: string | null
+          statement_descriptor?: string | null
+          status?: Database["public"]["Enums"]["order_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          attempt_count?: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          id?: string
+          idempotency_key?: string
+          last_failure_code?: string | null
+          last_failure_message?: string | null
+          league_id?: string
+          nmi_customer_vault_id?: string | null
+          nmi_payment_token?: string | null
+          nmi_transaction_id?: string | null
+          order_type?: Database["public"]["Enums"]["order_type"]
+          receipt_metadata?: Json
+          receipt_number?: string | null
+          receipt_sent_at?: string | null
+          refunded_amount_cents?: number
+          rsvp_id?: string | null
+          sponsorship_id?: string | null
+          statement_descriptor?: string | null
+          status?: Database["public"]["Enums"]["order_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_rsvp_id_fkey"
+            columns: ["rsvp_id"]
+            isOneToOne: false
+            referencedRelation: "rsvps"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_sponsorship_id_fkey"
+            columns: ["sponsorship_id"]
+            isOneToOne: false
+            referencedRelation: "sponsorships"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profile_views: {
         Row: {
           created_at: string
@@ -860,6 +1028,7 @@ export type Database = {
           created_at: string
           event_id: string
           id: string
+          order_id: string | null
           requested_cart_partner_id: string | null
           user_id: string
         }
@@ -867,6 +1036,7 @@ export type Database = {
           created_at?: string
           event_id: string
           id?: string
+          order_id?: string | null
           requested_cart_partner_id?: string | null
           user_id: string
         }
@@ -874,6 +1044,7 @@ export type Database = {
           created_at?: string
           event_id?: string
           id?: string
+          order_id?: string | null
           requested_cart_partner_id?: string | null
           user_id?: string
         }
@@ -883,6 +1054,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rsvps_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
             referencedColumns: ["id"]
           },
           {
@@ -911,6 +1089,7 @@ export type Database = {
           kind: Database["public"]["Enums"]["sponsorship_kind"]
           league_id: string | null
           note: string | null
+          order_id: string | null
           placements: Database["public"]["Enums"]["sponsor_placement"][]
           requested_at: string
           starts_at: string | null
@@ -926,6 +1105,7 @@ export type Database = {
           kind: Database["public"]["Enums"]["sponsorship_kind"]
           league_id?: string | null
           note?: string | null
+          order_id?: string | null
           placements?: Database["public"]["Enums"]["sponsor_placement"][]
           requested_at?: string
           starts_at?: string | null
@@ -941,6 +1121,7 @@ export type Database = {
           kind?: Database["public"]["Enums"]["sponsorship_kind"]
           league_id?: string | null
           note?: string | null
+          order_id?: string | null
           placements?: Database["public"]["Enums"]["sponsor_placement"][]
           requested_at?: string
           starts_at?: string | null
@@ -960,6 +1141,13 @@ export type Database = {
             columns: ["league_id"]
             isOneToOne: false
             referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sponsorships_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
             referencedColumns: ["id"]
           },
           {
@@ -1093,7 +1281,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      app_current_user_id: { Args: never; Returns: string }
+      is_gln_admin: { Args: never; Returns: boolean }
     }
     Enums: {
       access_status: "pending" | "approved" | "denied"
@@ -1153,6 +1342,16 @@ export type Database = {
         | "sponsorship_request"
         | "sponsorship_approved"
         | "sponsorship_declined"
+      order_status:
+        | "pending"
+        | "authorized"
+        | "paid"
+        | "failed"
+        | "cancelled"
+        | "refunded"
+        | "partially_refunded"
+        | "comped"
+      order_type: "event_rsvp" | "sponsorship"
       scoring_mode: "gross" | "net"
       sponsor_placement:
         | "roster_pin"
@@ -1350,6 +1549,17 @@ export const Constants = {
         "sponsorship_approved",
         "sponsorship_declined",
       ],
+      order_status: [
+        "pending",
+        "authorized",
+        "paid",
+        "failed",
+        "cancelled",
+        "refunded",
+        "partially_refunded",
+        "comped",
+      ],
+      order_type: ["event_rsvp", "sponsorship"],
       scoring_mode: ["gross", "net"],
       sponsor_placement: [
         "roster_pin",
